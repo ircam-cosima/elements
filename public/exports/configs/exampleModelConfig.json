@@ -1,0 +1,10 @@
+{
+  "gaussians": 1,
+  "relativeRegularization": 0.001,
+  "absoluteRegularization": 0.001,
+  "covarianceMode": "full",
+  "hierarchical": true,
+  "states": 4,
+  "transitionMode": "leftright",
+  "regressionEstimator": "full"
+}

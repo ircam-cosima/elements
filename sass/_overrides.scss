@@ -1,0 +1,285 @@
+// Entry point for application specific styles
+
+// ------------------------------------------------------------
+// LOGIN
+// ------------------------------------------------------------
+
+#service-login, #service-comonodelogin, #service-comobrowserlogin {
+
+  input[type=text], input[type=password], .btn {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  input[type=text], input[type=password] {
+    font-size: 1.4rem;
+    height: 30px;
+    text-align: center;
+    color: #343434;
+  }
+
+  label {
+    font-size: 1.4rem;
+    color: #bbb;
+  }
+
+  #errorMessage {
+    font-size: 1.4rem;
+    color: #f00;
+  }
+}
+
+$navHeight: 40px;
+$eltTopMargin: 0px;
+$eltBottomMargin: 5px;//10px;
+$maxWidth: 800px;
+
+.section-top {
+  max-width: $maxWidth;
+  margin: auto;
+  padding-top: $eltBottomMargin;
+}
+
+.superdesigner {
+  .section-top {
+    padding-top: $navHeight + $eltBottomMargin;
+  }
+}
+
+.player, .designer, .superdesigner {
+
+  $recHeight: 100px;
+  $eltHeight: 30px;
+  $configEltHeight: 25px;
+  $btnBorderRadius: 15px;
+  $backgroundColor: #262626;
+  $navBackgroundColor: #444;
+
+  font-size: 1.4em;
+  background-color: $backgroundColor;
+
+  .foreground {
+    position: relative;
+    background-color: $backgroundColor;
+  }
+
+  #nav {
+    z-index: 2;
+    width: 100%;
+    display: block;
+    position: fixed;
+    background-color: $navBackgroundColor;
+    height: $navHeight;
+  }
+
+  #openConfigBtn {
+    //z-index: 1;
+    position: relative;
+    display: block; // Display block instead of inline
+    top: 0px;
+    text-align: center;
+    text-decoration: none;
+    color: #919191;
+    font-size: 30px;
+
+    img {
+      $vPadding: $navHeight * 0.33 * 0.5;
+      padding: $vPadding 0px $vPadding 0px;
+      max-height: $navHeight * 0.66;
+      //filter: opacity(50%);
+    }
+  }
+
+  .section-center, .section-bottom {
+    display: block;
+    position: absolute;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    max-height: 0;
+  }
+
+  .section-underlay {
+    // margin-top: $navHeight;
+    // position: absolute;
+    // padding-top: $navHeight;
+    // height: 100%;
+  }
+
+  .section-overlay {
+    max-height: 0;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    background-color: $navBackgroundColor;
+    overflow: hidden;
+    //transition: 0.3s;
+  }
+
+  .section-overlay.active {
+    height: inherit;
+    // height: 100%;
+    max-height: 1200px;
+    margin-top: $navHeight;
+  }
+
+  .overlay-content {
+    // http://stackoverflow.com/questions/114543/how-to-horizontally-center-a-div-in-another-div
+    position: relative;
+    padding: 0px 10px 0px 10px;
+    max-width: $maxWidth;
+    margin: 0 auto;
+  }
+
+  select, input {
+    width: 100%;
+    height: $eltHeight;
+    margin-top: $eltTopMargin;
+    margin-bottom: $eltBottomMargin;
+    margin-left: 16px;
+  }
+
+  input {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  button {
+    border: 0px;
+    background-color: #def;
+    font-size: 1.6em;
+
+    width: 100%;
+    height: $eltHeight;
+    margin-top: $eltTopMargin;
+    margin-bottom: $eltBottomMargin;
+
+    border-radius: $btnBorderRadius;
+    -moz-border-radius: $btnBorderRadius;
+    -webkit-border-radius: $btnBorderRadius;
+  }
+
+  canvas#likelihoods {
+    overflow: hidden;
+  }
+
+  .canvasDiv {
+    display: block;
+    position: relative;
+    clear: both;
+    max-height: 100px;
+    overflow: hidden;
+    margin-top: $eltTopMargin;
+    margin-bottom: $eltBottomMargin;
+  }
+
+  hr {
+    display: inline-block;
+    width: 100%;
+  }
+
+  p {
+    text-align: center;
+    margin-top: 5px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+  }
+
+  .toggleDiv, .selectDiv, .triggerDiv {
+    white-space: nowrap;
+    height: $eltHeight;
+    line-height: $eltHeight;
+    margin-top: $eltTopMargin;
+    margin-bottom: $eltBottomMargin;
+  }
+
+  .toggleDiv, .triggerDiv {
+    float: left;
+    clear: both;
+  }
+
+  .selectDiv {
+    width: 100%;
+    height: $configEltHeight;
+    display: inline;
+    text-align: left;
+    float: right;
+    clear: both;
+
+    label {
+      //display: inline-block;
+      //width: 66%;
+      //float: left;
+      //padding-right: 20px;
+    }
+
+    select, input {
+      display: block;
+      height: $configEltHeight;
+      margin-top: 0px;
+      //margin-left: 10%;
+      width: auto;
+      float: right;
+    }
+
+    input {
+      max-width: 30%;
+    }
+  }
+
+  .toggleBtn, .triggerBtn {
+    display: block;
+    text-align: center;
+    width: $eltHeight;
+    height: $eltHeight;
+    margin-right: 12px;
+    float: left;
+  }
+
+  .toggleBtn.active:before {
+    display: block;
+    // position: absolute;
+    padding: 0 0;
+    top: 0px;
+    left: 0px;
+    content: 'X';
+  }
+
+  .triggerBtn.active:before {
+    background-color: #00f; //if we want to make it blink
+  }
+
+  #recBtn, #sound-onoff, #intensity-onoff {
+    height: $recHeight;
+  }
+
+  #recBtn.active {
+    background-color: #d00;
+  }
+
+  #sound-onoff.active, #intensity-onoff.active {
+    background-color: #0d0;
+  }
+
+  .audioDiv {
+    float: left;
+    width: 100%;
+    height: $eltHeight;
+    // clear: both;
+  }
+
+  #audioSliderDiv {
+    display: flex;
+    height: $eltHeight;
+    line-height: $eltHeight;
+  }
+
+  input[type=range] {
+    width: 100%;
+  }
+}

@@ -1,0 +1,38 @@
+/public/exports/models/*
+!/public/exports/models/exampleModel.json
+/public/exports/sets/*
+!/public/exports/sets/exampleTrainingSet.json
+/public/exports/configs/*
+!/public/exports/configs/exampleModelConfig.json
+
+/src/client/comodesigner
+/src/client/services/*
+!/src/client/services/Login.js
+
+/src/server/ComoDesignerExperience.js
+/src/server/services/*
+!/src/server/services/Login.js
+
+scratch/
+
+# Transpiled files and dependencies
+/node_modules
+/public/js
+/public/css
+/server
+/client
+/common
+
+# ignore all config except default
+/src/server/config/*
+!/src/server/config/default.js
+/src/server/services/freesoundjs
+
+# Application instance specific
+/logs
+/db
+
+# ignore junk files
+npm-debug.log
+.DS_Store
+Thumbs.db

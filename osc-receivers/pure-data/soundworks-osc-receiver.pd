@@ -1,0 +1,104 @@
+#N canvas 365 136 644 440 10;
+#X obj 52 65 oscparse;
+#X obj 52 40 netreceive -u -b 57120;
+#X obj 52 122 route example;
+#X obj 52 151 route sensors likelihoods likeliest intensity, f 88
+;
+#X obj 445 249 vsl 30 128 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 0 0;
+#X obj 52 94 route list;
+#N canvas 796 134 476 594 remap-filter 0;
+#X obj 164 43 inlet;
+#X obj 249 510 outlet;
+#X obj 164 72 / 50;
+#X obj 164 100 clip 0 1;
+#X obj 164 127 pow 1.2;
+#X obj 227 100 loadbang;
+#X msg 227 127 0 0 0 0 0 0 0 0 0 0;
+#X obj 164 197 list split 10;
+#X obj 164 171 list append;
+#X obj 166 259 +;
+#X obj 164 227 unpack f f f f f f f f f f;
+#X obj 176 284 +;
+#X obj 187 309 +;
+#X obj 197 334 +;
+#X obj 209 358 +;
+#X obj 219 383 +;
+#X obj 230 408 +;
+#X obj 240 433 +;
+#X obj 249 456 +;
+#X obj 249 484 / 10;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 4 0;
+#X connect 4 0 8 0;
+#X connect 5 0 6 0;
+#X connect 6 0 8 1;
+#X connect 7 0 8 1;
+#X connect 7 0 10 0;
+#X connect 8 0 7 0;
+#X connect 9 0 11 0;
+#X connect 10 0 9 0;
+#X connect 10 1 9 1;
+#X connect 10 2 11 1;
+#X connect 10 3 12 1;
+#X connect 10 4 13 1;
+#X connect 10 5 14 1;
+#X connect 10 6 15 1;
+#X connect 10 7 16 1;
+#X connect 10 8 17 1;
+#X connect 10 9 18 1;
+#X connect 11 0 12 0;
+#X connect 12 0 13 0;
+#X connect 13 0 14 0;
+#X connect 14 0 15 0;
+#X connect 15 0 16 0;
+#X connect 16 0 17 0;
+#X connect 17 0 18 0;
+#X connect 18 0 19 0;
+#X connect 19 0 1 0;
+#X restore 445 223 pd remap-filter;
+#X obj 52 222 unpack f f f f f f;
+#X obj 52 248 vsl 15 128 -50 50 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 6367 0;
+#X obj 69 248 vsl 15 128 -50 50 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 6373 0;
+#X obj 86 248 vsl 15 128 -50 50 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 5078 0;
+#X obj 115 248 vsl 15 128 -3000 3000 0 0 empty empty empty 0 -9 0 10
+-262144 -1 -1 6349 0;
+#X obj 132 248 vsl 15 128 -3000 3000 0 0 empty empty empty 0 -9 0 10
+-262144 -1 -1 6351 0;
+#X obj 149 248 vsl 15 128 -3000 3000 0 0 empty empty empty 0 -9 0 10
+-262144 -1 -1 6350 0;
+#X text 60 383 accel;
+#X text 122 383 gyro;
+#X obj 183 221 unpack f f f;
+#X obj 183 247 vsl 25 128 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 67 0;
+#X obj 210 247 vsl 25 128 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 0 0;
+#X obj 237 247 vsl 25 128 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 12633 0;
+#X obj 314 220 nbx 1 50 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 50
+-262144 -1 -1 2 256;
+#X text 199 41 < listen to soundworks' default output port;
+#X text 142 123 < osc messages are prepended by the model's name;
+#X connect 0 0 5 0;
+#X connect 1 0 0 0;
+#X connect 2 0 3 0;
+#X connect 3 0 7 0;
+#X connect 3 1 16 0;
+#X connect 3 2 20 0;
+#X connect 3 3 6 0;
+#X connect 5 0 2 0;
+#X connect 6 0 4 0;
+#X connect 7 0 8 0;
+#X connect 7 1 9 0;
+#X connect 7 2 10 0;
+#X connect 7 3 11 0;
+#X connect 7 4 12 0;
+#X connect 7 5 13 0;
+#X connect 16 0 17 0;
+#X connect 16 1 18 0;
+#X connect 16 2 19 0;
