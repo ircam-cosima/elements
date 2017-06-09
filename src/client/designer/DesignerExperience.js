@@ -3,7 +3,8 @@ import * as lfo from 'waves-lfo/common';
 import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
 import { Login } from '../services/Login';
 import { classes } from  '../shared/config';
-import FeaturizerLfo from '../shared/FeaturizerLfo';
+// import FeaturizerLfo from '../shared/FeaturizerLfo';
+import PreProcess from '../shared/PreProcess';
 import MotionRenderer from '../shared/MotionRenderer';
 import AudioEngine from '../shared/AudioEngine';
 
@@ -225,6 +226,12 @@ const viewTemplate = `
           <button id="playBtn" class="toggleBtn"></button>
           Enable sounds
         </div>
+        <!--
+        <div class="toggleDiv">
+          <button id="intensityBtn" class="toggleBtn"></button>
+          Disable intensity control
+        </div>
+        -->
       </div>
     </div>
 
@@ -273,7 +280,7 @@ export default class DesignerExperience extends soundworks.Experience {
       classes: classes
     };
     this.viewCtor = DesignerView;
-    this.viewOptions = { preservePixelRatio: true, className: 'superdesigner' };
+    this.viewOptions = { preservePixelRatio: true, className: 'designer' };
     this.view = this.createView();
 
     this._onConfig = this._onConfig.bind(this);
@@ -286,6 +293,8 @@ export default class DesignerExperience extends soundworks.Experience {
     this._motionCallback = this._motionCallback.bind(this);
     this._intensityCallback = this._intensityCallback.bind(this);
     this._enableSounds = this._enableSounds.bind(this);
+    // this._onSoundOnOff = this._onSoundOnOff.bind(this);
+    // this._onIntensityOnOff = this._onIntensityOnOff.bind(this);
 
     this.view.onConfig(this._onConfig);
     this.view.onRecord(this._onRecord);
@@ -293,55 +302,21 @@ export default class DesignerExperience extends soundworks.Experience {
     this.view.onClearLabel(this._onClearLabel);
     this.view.onClearModel(this._onClearModel);
     this.view.onEnableSounds(this._enableSounds);
+    // this.view.onSoundOnOff(this._onSoundOnOff);
+    // this.view.onIntensityOnOff(this._onIntensityOnOff);
 
-    //--------------------------------- LFO's --------------------------------//
-    this._devicemotionIn = new lfo.source.EventIn({
-      frameType: 'vector',
-      frameSize: 6,
-      frameRate: 1,//this.motionInput.period doesn't seem available anymore
-      description: ['accX', 'accY', 'accZ', 'gyrAlpha', 'gyrBeta', 'gyrGamma']
-    });
-    this._featurizer = new FeaturizerLfo({
-      descriptors: [ 'accRaw', 'gyrZcr', 'accIntensity' ],
-      // gyrZcrNoiseThresh: 0.01,
-      // gyrZcrFrameSize: 100,
-      // gyrZcrHopSize: 10,
-      // callback: this._intensityCallback
-    });
-    // this._selectInput = new lfo.operator.Select({ indices: [0, 1, 2, 3, 4, 5] });
-    this._selectInput = new lfo.operator.Select({ indices: [0, 1, 2] });
-    // this._inputFilter = new lfo.operator.MovingAvrage({})
-    // this._inputBridge = new lfo.sink.Bridge({
-    //   // processFrame: (frame) => { console.log(frame); }
-    // });
-    this._selectAccIntensity = new lfo.operator.Select({ index: 6 });
-    this._intensityBridge = new lfo.sink.Bridge({
-      processFrame: this._intensityCallback
-    });
+    //------------------ LFO's ------------------//
     this._phraseRecorder = new PhraseRecorderLfo({
-      columnNames: [ 'accelX', 'accelY', 'accelZ',
-                     'gyrAmplitude', 'gyrFrequency', 'gyrPeriodicity' ]
+      columnNames: [ 'accelX', 'accelY', 'accelZ' ]
     });
-    // this._phraseRecorder = new PhraseRecorderLfo({
-    //   columnNames: ['accelGravX', 'accelGravY', 'accelGravZ',
-    //                  'rotAlpha', 'rotBeta', 'rotGamma']      
-    // });
     this._xmmDecoder = new XmmDecoderLfo({
-      likelihoodWindow: 50,
+      likelihoodWindow: 20,
       callback: this._onModelFilter
     });
-
-    this._devicemotionIn.connect(this._featurizer);
-    this._featurizer.connect(this._selectInput);
-    // this._devicemotionIn.connect(this._selectInput);
-    // this._selectInput.connect(this._inputBridge);
-    this._selectInput.connect(this._phraseRecorder);
-    this._selectInput.connect(this._xmmDecoder);
-    // this._devicemotionIn.connect(this._phraseRecorder);
-    // this._devicemotionIn.connect(this._xmmDecoder);
-    this._featurizer.connect(this._selectAccIntensity);
-    this._selectAccIntensity.connect(this._intensityBridge);
-    this._devicemotionIn.start();
+    this._preProcess = new PreProcess(this._intensityCallback);
+    this._preProcess.connect(this._phraseRecorder);
+    this._preProcess.connect(this._xmmDecoder);
+    this._preProcess.start();
 
     //----------------- RECEIVE -----------------//
     this.receive('model', this._onReceiveModel);
@@ -416,8 +391,7 @@ export default class DesignerExperience extends soundworks.Experience {
 
   _motionCallback(eventValues) {
     const values = eventValues.slice(0,3).concat(eventValues.slice(-3));
-    // values.forEach(function(elt) { elt *= 1000; });
-    this._devicemotionIn.process(audioContext.currentTime, values);
+    this._preProcess.process(audioContext.currentTime, values);
   }
 
   _onReceiveModel(model) {
@@ -457,22 +431,18 @@ export default class DesignerExperience extends soundworks.Experience {
     elt = v.querySelector('#relReg');
     elt.value = config.relative_regularization;
 
-    // elt = v.querySelector('#hierarchicalSelect');
-    // elt.selectedIndex = config.hierarchical ? 0 : 1;
-    elt = v.querySelector('#transModeSelect');
-    elt.selectedIndex = config.transition_mode ? config.transition_mode : 0;
     elt = v.querySelector('#statesSelect');
     elt.selectedIndex = config.states ? config.states - 1 : 0;
-    // elt = v.querySelector('#regressEstimSelect');
-    // elt.selectedIndex = config.regressionEstimator;
-    //this.view.render();
+    elt = v.querySelector('#transModeSelect');
+    elt.selectedIndex = config.transition_mode ? config.transition_mode : 0;
   }
 
   _onModelFilter(res) {
-    const likelihoods = res.likelihoods;
-    const likeliest = res.likeliestIndex;
-    const label = res.likeliest;
-    // const alphas = res.alphas[likeliest];
+    const likelihoods = res ? res.likelihoods : [];
+    const likeliest = res ? res.likeliestIndex : -1;
+    const label = res ? res.likeliest : 'unknown';
+    const alphas = res ? res.alphas : [[]];// res.alphas[likeliest];
+
     const newRes = {
       label: label,
       likeliest: likeliest,
@@ -492,11 +462,19 @@ export default class DesignerExperience extends soundworks.Experience {
 
   _intensityCallback(frame) {
     // console.log(frame);
-    // this.audioEngine.setGainFromIntensity(frame.data[0]);
-    this.audioEngine.setGainFromIntensity(1);
+    this.audioEngine.setGainFromIntensity(frame.data[0]);
+    // this.audioEngine.setGainFromIntensity(1);
   }
 
   _enableSounds(onOff) {
     this.audioEngine.enableSounds(onOff);
   }
+
+  // _onSoundOnOff(onOff) {
+
+  // }
+
+  // _onIntensityOnOff(onOff) {
+
+  // }
 }

@@ -7,7 +7,6 @@ export default class PlayerExperience extends Experience {
 
     this.checkin = this.require('checkin');
     this.sharedConfig = this.require('shared-config');
-    this.osc = this.require('osc');
   }
 
   // if anything needs to append when the experience starts
@@ -29,17 +28,9 @@ export default class PlayerExperience extends Experience {
     	});
     	this.send(client, 'models', models);
     });
-
-    this.receive(client, 'sendosc', this._sendOsc(client));
   }
 
   exit(client) {
     super.exit(client);
-  }
-
-  _sendOsc(client) {
-  	return (args) => {
-  		this.osc.send(args.url, args.values);
-  	}
   }
 }

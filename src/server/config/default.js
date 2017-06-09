@@ -29,7 +29,7 @@ export default {
   assetsDomain: '/',
 
   // port used to open the http server, in production this value is typically 80
-  port: 8000,
+  port: 9000,
 
   // describe the location where the experience takes places, theses values are
   // used by the `placer`, `checkin` and `locator` services.

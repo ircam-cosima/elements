@@ -6,8 +6,7 @@ const audioContext = soundworks.audioContext;
 class MvAvrg{
 	constructor() {
 		this.value = 0;
-		// this.avgMaxFilterSize = 50;
-    this.avgFilterSize = 50;
+    this.avgFilterSize = 20;
 		this.avgFilter = [];
 		for (var i = 0; i < this.avgFilterSize; i++) {
 			this.avgFilter.push(0);
@@ -67,7 +66,6 @@ export default class AudioEngine {
     this.mute.connect(this.gain);
 
     this.mvAvrg = new MvAvrg();
-    // this._soundIndex = -1;
 	}
 
 	start() {
@@ -81,7 +79,6 @@ export default class AudioEngine {
     	src.connect(fade);
     	fade.connect(this.mute);
 
-    	// fade.gain.setValueAtTime(0, audioContext.currentTime);
     	fade.gain.value = 0;
     	src.loop = true;
     	src.start(audioContext.currentTime);
@@ -93,7 +90,6 @@ export default class AudioEngine {
     this.mute.gain.value = 0;
     this.master.gain.value = 1;
 
-    // this._fadeToNewSound(this._soundIndex);
     this.fadeToNewSound(-1);
 	}
 
@@ -102,7 +98,6 @@ export default class AudioEngine {
   }
 
   fadeToNewSound(index) {
-  	// this._soundIndex = -1;
     const now = audioContext.currentTime;
     for (let i = 0; i < this.labels.length; i++) {
       const currentValue = this.fades[i].gain.value;

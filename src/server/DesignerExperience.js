@@ -11,7 +11,6 @@ export default class DesignerExperience extends Experience {
     this.checkin = this.require('checkin');
     this.sharedConfig = this.require('shared-config');
     this.login = this.require('login');
-    this.osc = this.require('osc');
     this.xmms = new Map();
   }
 
@@ -23,13 +22,6 @@ export default class DesignerExperience extends Experience {
   enter(client) {
     super.enter(client);
 
-    this._sendClientsList();
-
-    //this.xmms[client] = new xmm('hhmm');//'hhmm', {
-    //   states: 3,
-    //   relativeRegularization: 0.01,
-    //   transitionMode: 'leftright'
-    // });
     this._getModel(client);
 
     this.receive(client, 'configuration', this._onNewConfig(client));
@@ -39,11 +31,10 @@ export default class DesignerExperience extends Experience {
 
   exit(client) {
     super.exit(client);
-    this._sendClientsList();
   }
 
   _getModel(client) {
-    let set;
+    let set = {};
     try {
       set = JSON.parse(fs.readFileSync(
         `./public/exports/sets/${client.activities['service:login'].userName}TrainingSet.json`,
@@ -51,15 +42,15 @@ export default class DesignerExperience extends Experience {
       ));
     } catch (e) {
       if (e.code === 'ENOENT') {
-        set = fs.writeFileSync(
-          `./public/exports/sets/${client.activities['service:login'].userName}TrainingSet.json`,
-          JSON.stringify({}),
-          'utf-8'
-        );
+        // set = fs.writeFileSync(
+        //   `./public/exports/sets/${client.activities['service:login'].userName}TrainingSet.json`,
+        //   JSON.stringify({}),
+        //   'utf-8'
+        // );
       } else throw e;
     }
 
-    let config;
+    let config = {};
     try {
       config = JSON.parse(fs.readFileSync(
         `./public/exports/configs/${client.activities['service:login'].userName}ModelConfig.json`,
@@ -67,15 +58,15 @@ export default class DesignerExperience extends Experience {
       ));
     } catch (e) {
       if (e.code === 'ENOENT') {
-        config = fs.writeFileSync(
-          `./public/exports/configs/${client.activities['service:login'].userName}ModelConfig.json`,
-          JSON.stringify({}),
-          'utf-8'          
-        );
+        // config = fs.writeFileSync(
+        //   `./public/exports/configs/${client.activities['service:login'].userName}ModelConfig.json`,
+        //   JSON.stringify({}),
+        //   'utf-8'          
+        // );
       } else throw e;
     }
 
-    if (!config) config = {};
+    // if (!config) config = {};
     this.xmms[client] = new xmm(config.states ? 'hhmm' : 'gmm', config)
     this.xmms[client].setTrainingSet(set);
     this._updateModelAndSet(client);
@@ -144,24 +135,5 @@ export default class DesignerExperience extends Experience {
 
       this.send(client, 'model', model);
     });    
-  }
-
-  _sendClientsList() {
-    const clientsList = [];
-    for (let i = 0; i < this.clients.length; i++) {
-      let c = this.clients[i];
-
-      if (c.type === 'designer') {
-        let c2 = {};
-        for (let prop in c) {
-          if (prop !== 'socket') {
-            c2[prop] = c[prop];
-          }
-        }
-        clientsList.push(c2);
-      }
-    }
-    // console.log(clientsList);
-    this.broadcast('hub', null, 'clients', clientsList);
   }
 }

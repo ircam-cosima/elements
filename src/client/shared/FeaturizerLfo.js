@@ -6,6 +6,9 @@ import { MotionFeatures } from 'motion-features';
 // 3,4,5 -> acceleration
 // 6,7,8 -> rotationRate
 
+// but, as they are preprocessed by parent class,
+// indices for acc + gyro are 0, 1, 2, 3, 4, 5 (see below)
+
 const definitions = {
   descriptors: {
     type: 'any',
@@ -18,7 +21,7 @@ const definitions = {
       'kick',
       'shake',
       'spin',
-      'still'
+      'still',
     ],
     constant: true,
   },

@@ -40,13 +40,33 @@ $maxWidth: 800px;
   padding-top: $eltBottomMargin;
 }
 
-.superdesigner {
+.designer {
   .section-top {
     padding-top: $navHeight + $eltBottomMargin;
   }
 }
 
-.player, .designer, .superdesigner {
+.player #modelsDiv {
+  font-size: 2em;
+  height: auto;
+  margin: 0;
+  // display: flex;
+  display: inline-block;
+  vertical-align: middle;
+
+  label {
+    display: inline-block;
+    vertical-align: middle;
+    padding-bottom: 10px;
+  }
+
+  select {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.player, .designer {
 
   $recHeight: 100px;
   $eltHeight: 30px;
