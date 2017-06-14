@@ -11,6 +11,7 @@ const audioContext = soundworks.audioContext;
 
 const viewModel = {
   classes: classes,
+  assetsDomain: '',
 };
 
 const viewTemplate = `
@@ -18,7 +19,7 @@ const viewTemplate = `
 
     <div id="nav">
       <!-- <a href="#" id="openConfigBtn">&#9776;</a> -->
-      <a href="#" id="openConfigBtn"> <img src="/pics/navicon.png"> </a>
+      <a href="#" id="openConfigBtn"> <img src="<%= assetsDomain %>pics/navicon.png"> </a>
     </div>
 
     <div class="section-top flex-middle">
@@ -246,14 +247,13 @@ class DesignerView extends soundworks.CanvasView {
 };
 
 
-
 class DesignerExperience extends soundworks.Experience {
   constructor(assetsDomain) {
     super();
 
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.checkin = this.require('checkin', { showDialog: false });
-    // this.sharedConfig = this.require('shared-config');
+    this.sharedConfig = this.require('shared-config', { items: ['assetsDomain'] });
     this.login = this.require('login');
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: assetsDomain,
@@ -275,6 +275,9 @@ class DesignerExperience extends soundworks.Experience {
       preservePixelRatio: true,
       className: 'designer'
     });
+
+    this.view.model.assetsDomain = this.sharedConfig.get('assetsDomain');
+    console.log(this.view.model.assetsDomain);
 
     this.show().then(() => {
 
