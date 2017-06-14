@@ -178,24 +178,22 @@ class PlayerExperience extends soundworks.Experience {
   _onReceiveModels(models) {
     this._models = models;
 
-    // this.view.content = {
-    //   models: this._models      
-    // };
     this.view.model.models = this._models;
     this.view.render('#modelsDiv');
 
     const prevModels = Object.keys(models);
     const prevModelIndex = prevModels.indexOf(this._currentModel);
 
+    console.log(this._currentModel + ' ' + prevModelIndex);
+
     if (this._currentModel &&  prevModelIndex > -1) {
       this._currentModel = prevModels[prevModelIndex];
-      this.view.setItem(this._currentModel);
+      this.view.setModelItem(this._currentModel);
     } else {
       this._currentModel = prevModels[0];
     }
 
     this._xmmDecoder.params.set('model', this._models[this._currentModel]);
-    console.log('received models');
   }
 
   _onModelFilter(res) {
@@ -203,12 +201,6 @@ class PlayerExperience extends soundworks.Experience {
     const likeliest = res ? res.likeliestIndex : -1;
     const label = res ? res.likeliest : 'unknown';
     const alphas = res ? res.alphas : [[]];// res.alphas[likeliest];
-
-    // const newRes = {
-    //   label: label,
-    //   likeliest: likeliest,
-    //   likelihoods: likelihoods
-    // };
 
     if (this.likeliest !== label) {
       this.likeliest = label;

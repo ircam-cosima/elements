@@ -1,5 +1,6 @@
 import { Experience } from 'soundworks/server';
-import fs from 'fs';
+import ModelsRetriever from './shared/ModelsRetriever';
+// import fs from 'fs';
 
 export default class PlayerExperience extends Experience {
   constructor(clientType) {
@@ -17,20 +18,24 @@ export default class PlayerExperience extends Experience {
     // send a 'hello' message to all the other clients of the same type
     this.broadcast(client.type, client, 'hello');
 
-    const modelPath = './public/exports/models/';
-    const models = {};
-    fs.readdir(modelPath, (err, files) => {
-      if (!files) {
-        this.send(client, 'models', null);
-        return;
-      }
+    // const modelPath = './public/exports/models/';
+    // const models = {};
+    // fs.readdir(modelPath, (err, files) => {
+    //   if (!files) {
+    //     this.send(client, 'models', null);
+    //     return;
+    //   }
       
-      files.forEach(file => {
-        if (file !== '.DS_Store' && file !== 'Thumbs.db') {
-          const modelName = file.split('Model.json')[0];
-          models[modelName] = JSON.parse(fs.readFileSync(modelPath + file));
-        }
-      });
+    //   files.forEach(file => {
+    //     if (file !== '.DS_Store' && file !== 'Thumbs.db') {
+    //       const modelName = file.split('Model.json')[0];
+    //       models[modelName] = JSON.parse(fs.readFileSync(modelPath + file));
+    //     }
+    //   });
+    //   this.send(client, 'models', models);
+    // });
+
+    ModelsRetriever.getModels((err, models) => {
       this.send(client, 'models', models);
     });
   }

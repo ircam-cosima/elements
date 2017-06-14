@@ -1,5 +1,6 @@
 import { Experience } from 'soundworks/server';
 import { Login } from './services/Login';
+import ModelsRetriever from './shared/ModelsRetriever';
 import xmm from 'xmm-node';
 import fs from 'fs';
 
@@ -130,6 +131,10 @@ export default class DesignerExperience extends Experience {
       );
 
       this.send(client, 'model', model);
+
+      ModelsRetriever.getModels((err, models) => {
+        this.broadcast('player', null, 'models', models);
+      });
     });    
   }
 }
