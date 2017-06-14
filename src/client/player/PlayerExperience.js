@@ -178,10 +178,10 @@ class PlayerExperience extends soundworks.Experience {
   _onReceiveModels(models) {
     this._models = models;
 
-    this.view.content = {
-      models: this._models      
-    };
-
+    // this.view.content = {
+    //   models: this._models      
+    // };
+    this.view.model.models = this._models;
     this.view.render('#modelsDiv');
 
     const prevModels = Object.keys(models);
