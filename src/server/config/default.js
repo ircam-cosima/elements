@@ -31,7 +31,7 @@ export default {
   // assetsDomain: '/apps/elements/',
 
   // port used to open the http server, in production this value is typically 80
-  port: 8000,
+  port: 9000,
 
 
   // define if the server should use gzip compression for static files
@@ -59,7 +59,8 @@ export default {
 
   // socket.io configuration
   websockets: {
-    url: '',
+    // url: '',
+    // url: ':9000',
     transports: ['websocket'],
     path: ''
     // path: '/apps/elements/socket.io',
@@ -109,7 +110,8 @@ export default {
   // configuration of the `raw-socket` service
   rawSocket: {
     // port used for socket connection
-    port: 8080
+    // port: 8080
+    port: 9000
   },
 
   // bunyan configuration

@@ -19,14 +19,11 @@ scratch/
 /node_modules
 /public/js
 /public/css
-/server
-/client
-/common
+/dist
 
 # ignore all config except default
 /src/server/config/*
 !/src/server/config/default.js
-/src/server/services/freesoundjs
 
 # Application instance specific
 /logs
