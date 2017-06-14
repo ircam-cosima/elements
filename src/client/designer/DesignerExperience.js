@@ -270,6 +270,7 @@ class DesignerExperience extends soundworks.Experience {
   start() {
     super.start(); // don't forget this
 
+    // viewModel.assetsDomain = this.
     this.view = new DesignerView(viewTemplate, viewModel, {}, {
       preservePixelRatio: true,
       className: 'designer'

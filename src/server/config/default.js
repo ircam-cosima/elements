@@ -59,10 +59,10 @@ export default {
 
   // socket.io configuration
   websockets: {
-    // url: '',
+    url: '',
     // url: ':9000',
     transports: ['websocket'],
-    path: ''
+    // path: ''
     // path: '/apps/elements/socket.io',
     // @note: EngineIO defaults
     // pingTimeout: 3000,
