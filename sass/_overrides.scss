@@ -1,11 +1,6 @@
 // Entry point for application specific styles
 
-// ------------------------------------------------------------
-// LOGIN
-// ------------------------------------------------------------
-
-#service-login, #service-comonodelogin, #service-comobrowserlogin {
-
+#service-login {
   input[type=text], input[type=password], .btn {
     width: 100%;
     margin-bottom: 12px;

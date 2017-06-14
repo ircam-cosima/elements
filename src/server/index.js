@@ -1,16 +1,19 @@
 import 'source-map-support/register'; // enable sourcemaps in node
+import path from 'path';
 import * as soundworks from 'soundworks/server';
-import DesignerExperience from './DesignerExperience';
-// import ComoDesignerExperience from './ComoDesignerExperience';
 import PlayerExperience from './PlayerExperience';
-import defaultConfig from './config/default';
+import DesignerExperience from './DesignerExperience';
 
+const configName = process.env.ENV || 'default';
+const configPath = path.join(__dirname, 'config', configName);
 let config = null;
 
-switch(process.env.ENV) {
-  default:
-    config = defaultConfig;
-    break;
+// rely on node `require` for synchronicity
+try {
+  config = require(configPath).default;
+} catch(err) {
+  console.error(`Invalid ENV "${configName}", file "${configPath}.js" not found`);
+  process.exit(1);
 }
 
 // configure express environment ('production' enables cache systems)
@@ -24,7 +27,7 @@ soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) =>
     clientType: clientType,
     env: config.env,
     appName: config.appName,
-    socketIO: config.socketIO,
+    websockets: config.websockets,
     version: config.version,
     defaultType: config.defaultClient,
     assetsDomain: config.assetsDomain,
@@ -38,9 +41,7 @@ soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) =>
 // `src/server/playerExperience.js`) and the server side `playerExperience`.
 // - we could also map activities to additional client types (thus defining a
 //   route (url) of the following form: `/${clientType}`)
-
 const designer = new DesignerExperience('designer');
-// const cdesigner = new ComoDesignerExperience('comodesigner');
 const player = new PlayerExperience('player');
 
 // start application

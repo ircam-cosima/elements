@@ -1,0 +1,68 @@
+'use strict';
+
+require('source-map-support/register');
+
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
+var _server = require('soundworks/server');
+
+var soundworks = _interopRequireWildcard(_server);
+
+var _PlayerExperience = require('./PlayerExperience');
+
+var _PlayerExperience2 = _interopRequireDefault(_PlayerExperience);
+
+var _DesignerExperience = require('./DesignerExperience');
+
+var _DesignerExperience2 = _interopRequireDefault(_DesignerExperience);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// enable sourcemaps in node
+var configName = process.env.ENV || 'default';
+var configPath = _path2.default.join(__dirname, 'config', configName);
+var config = null;
+
+// rely on node `require` for synchronicity
+try {
+  config = require(configPath).default;
+} catch (err) {
+  console.error('Invalid ENV "' + configName + '", file "' + configPath + '.js" not found');
+  process.exit(1);
+}
+
+// configure express environment ('production' enables cache systems)
+process.env.NODE_ENV = config.env;
+// initialize application with configuration options
+soundworks.server.init(config);
+
+// define the configuration object to be passed to the `.ejs` template
+soundworks.server.setClientConfigDefinition(function (clientType, config, httpRequest) {
+  return {
+    clientType: clientType,
+    env: config.env,
+    appName: config.appName,
+    websockets: config.websockets,
+    version: config.version,
+    defaultType: config.defaultClient,
+    assetsDomain: config.assetsDomain
+  };
+});
+
+// create the experience
+// activities must be mapped to client types:
+// - the `'player'` clients (who take part in the scenario by connecting to the
+//   server through the root url) need to communicate with the `checkin` (see
+// `src/server/playerExperience.js`) and the server side `playerExperience`.
+// - we could also map activities to additional client types (thus defining a
+//   route (url) of the following form: `/${clientType}`)
+var designer = new _DesignerExperience2.default('designer');
+var player = new _PlayerExperience2.default('player');
+
+// start application
+soundworks.server.start();
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImluZGV4LmpzIl0sIm5hbWVzIjpbInNvdW5kd29ya3MiLCJjb25maWdOYW1lIiwicHJvY2VzcyIsImVudiIsIkVOViIsImNvbmZpZ1BhdGgiLCJqb2luIiwiX19kaXJuYW1lIiwiY29uZmlnIiwicmVxdWlyZSIsImRlZmF1bHQiLCJlcnIiLCJjb25zb2xlIiwiZXJyb3IiLCJleGl0IiwiTk9ERV9FTlYiLCJzZXJ2ZXIiLCJpbml0Iiwic2V0Q2xpZW50Q29uZmlnRGVmaW5pdGlvbiIsImNsaWVudFR5cGUiLCJodHRwUmVxdWVzdCIsImFwcE5hbWUiLCJ3ZWJzb2NrZXRzIiwidmVyc2lvbiIsImRlZmF1bHRUeXBlIiwiZGVmYXVsdENsaWVudCIsImFzc2V0c0RvbWFpbiIsImRlc2lnbmVyIiwicGxheWVyIiwic3RhcnQiXSwibWFwcGluZ3MiOiI7O0FBQUE7O0FBQ0E7Ozs7QUFDQTs7SUFBWUEsVTs7QUFDWjs7OztBQUNBOzs7Ozs7OztBQUpzQztBQU10QyxJQUFNQyxhQUFhQyxRQUFRQyxHQUFSLENBQVlDLEdBQVosSUFBbUIsU0FBdEM7QUFDQSxJQUFNQyxhQUFhLGVBQUtDLElBQUwsQ0FBVUMsU0FBVixFQUFxQixRQUFyQixFQUErQk4sVUFBL0IsQ0FBbkI7QUFDQSxJQUFJTyxTQUFTLElBQWI7O0FBRUE7QUFDQSxJQUFJO0FBQ0ZBLFdBQVNDLFFBQVFKLFVBQVIsRUFBb0JLLE9BQTdCO0FBQ0QsQ0FGRCxDQUVFLE9BQU1DLEdBQU4sRUFBVztBQUNYQyxVQUFRQyxLQUFSLG1CQUE4QlosVUFBOUIsaUJBQW9ESSxVQUFwRDtBQUNBSCxVQUFRWSxJQUFSLENBQWEsQ0FBYjtBQUNEOztBQUVEO0FBQ0FaLFFBQVFDLEdBQVIsQ0FBWVksUUFBWixHQUF1QlAsT0FBT0wsR0FBOUI7QUFDQTtBQUNBSCxXQUFXZ0IsTUFBWCxDQUFrQkMsSUFBbEIsQ0FBdUJULE1BQXZCOztBQUVBO0FBQ0FSLFdBQVdnQixNQUFYLENBQWtCRSx5QkFBbEIsQ0FBNEMsVUFBQ0MsVUFBRCxFQUFhWCxNQUFiLEVBQXFCWSxXQUFyQixFQUFxQztBQUMvRSxTQUFPO0FBQ0xELGdCQUFZQSxVQURQO0FBRUxoQixTQUFLSyxPQUFPTCxHQUZQO0FBR0xrQixhQUFTYixPQUFPYSxPQUhYO0FBSUxDLGdCQUFZZCxPQUFPYyxVQUpkO0FBS0xDLGFBQVNmLE9BQU9lLE9BTFg7QUFNTEMsaUJBQWFoQixPQUFPaUIsYUFOZjtBQU9MQyxrQkFBY2xCLE9BQU9rQjtBQVBoQixHQUFQO0FBU0QsQ0FWRDs7QUFZQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLElBQU1DLFdBQVcsaUNBQXVCLFVBQXZCLENBQWpCO0FBQ0EsSUFBTUMsU0FBUywrQkFBcUIsUUFBckIsQ0FBZjs7QUFFQTtBQUNBNUIsV0FBV2dCLE1BQVgsQ0FBa0JhLEtBQWxCIiwiZmlsZSI6ImluZGV4LmpzIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0ICdzb3VyY2UtbWFwLXN1cHBvcnQvcmVnaXN0ZXInOyAvLyBlbmFibGUgc291cmNlbWFwcyBpbiBub2RlXG5pbXBvcnQgcGF0aCBmcm9tICdwYXRoJztcbmltcG9ydCAqIGFzIHNvdW5kd29ya3MgZnJvbSAnc291bmR3b3Jrcy9zZXJ2ZXInO1xuaW1wb3J0IFBsYXllckV4cGVyaWVuY2UgZnJvbSAnLi9QbGF5ZXJFeHBlcmllbmNlJztcbmltcG9ydCBEZXNpZ25lckV4cGVyaWVuY2UgZnJvbSAnLi9EZXNpZ25lckV4cGVyaWVuY2UnO1xuXG5jb25zdCBjb25maWdOYW1lID0gcHJvY2Vzcy5lbnYuRU5WIHx8wqAnZGVmYXVsdCc7XG5jb25zdCBjb25maWdQYXRoID0gcGF0aC5qb2luKF9fZGlybmFtZSwgJ2NvbmZpZycsIGNvbmZpZ05hbWUpO1xubGV0IGNvbmZpZyA9IG51bGw7XG5cbi8vIHJlbHkgb24gbm9kZSBgcmVxdWlyZWAgZm9yIHN5bmNocm9uaWNpdHlcbnRyeSB7XG4gIGNvbmZpZyA9IHJlcXVpcmUoY29uZmlnUGF0aCkuZGVmYXVsdDtcbn0gY2F0Y2goZXJyKSB7XG4gIGNvbnNvbGUuZXJyb3IoYEludmFsaWQgRU5WIFwiJHtjb25maWdOYW1lfVwiLCBmaWxlIFwiJHtjb25maWdQYXRofS5qc1wiIG5vdCBmb3VuZGApO1xuICBwcm9jZXNzLmV4aXQoMSk7XG59XG5cbi8vIGNvbmZpZ3VyZSBleHByZXNzIGVudmlyb25tZW50ICgncHJvZHVjdGlvbicgZW5hYmxlcyBjYWNoZSBzeXN0ZW1zKVxucHJvY2Vzcy5lbnYuTk9ERV9FTlYgPSBjb25maWcuZW52O1xuLy8gaW5pdGlhbGl6ZSBhcHBsaWNhdGlvbiB3aXRoIGNvbmZpZ3VyYXRpb24gb3B0aW9uc1xuc291bmR3b3Jrcy5zZXJ2ZXIuaW5pdChjb25maWcpO1xuXG4vLyBkZWZpbmUgdGhlIGNvbmZpZ3VyYXRpb24gb2JqZWN0IHRvIGJlIHBhc3NlZCB0byB0aGUgYC5lanNgIHRlbXBsYXRlXG5zb3VuZHdvcmtzLnNlcnZlci5zZXRDbGllbnRDb25maWdEZWZpbml0aW9uKChjbGllbnRUeXBlLCBjb25maWcsIGh0dHBSZXF1ZXN0KSA9PiB7XG4gIHJldHVybiB7XG4gICAgY2xpZW50VHlwZTogY2xpZW50VHlwZSxcbiAgICBlbnY6IGNvbmZpZy5lbnYsXG4gICAgYXBwTmFtZTogY29uZmlnLmFwcE5hbWUsXG4gICAgd2Vic29ja2V0czogY29uZmlnLndlYnNvY2tldHMsXG4gICAgdmVyc2lvbjogY29uZmlnLnZlcnNpb24sXG4gICAgZGVmYXVsdFR5cGU6IGNvbmZpZy5kZWZhdWx0Q2xpZW50LFxuICAgIGFzc2V0c0RvbWFpbjogY29uZmlnLmFzc2V0c0RvbWFpbixcbiAgfTtcbn0pO1xuXG4vLyBjcmVhdGUgdGhlIGV4cGVyaWVuY2Vcbi8vIGFjdGl2aXRpZXMgbXVzdCBiZSBtYXBwZWQgdG8gY2xpZW50IHR5cGVzOlxuLy8gLSB0aGUgYCdwbGF5ZXInYCBjbGllbnRzICh3aG8gdGFrZSBwYXJ0IGluIHRoZSBzY2VuYXJpbyBieSBjb25uZWN0aW5nIHRvIHRoZVxuLy8gICBzZXJ2ZXIgdGhyb3VnaCB0aGUgcm9vdCB1cmwpIG5lZWQgdG8gY29tbXVuaWNhdGUgd2l0aCB0aGUgYGNoZWNraW5gIChzZWVcbi8vIGBzcmMvc2VydmVyL3BsYXllckV4cGVyaWVuY2UuanNgKSBhbmQgdGhlIHNlcnZlciBzaWRlIGBwbGF5ZXJFeHBlcmllbmNlYC5cbi8vIC0gd2UgY291bGQgYWxzbyBtYXAgYWN0aXZpdGllcyB0byBhZGRpdGlvbmFsIGNsaWVudCB0eXBlcyAodGh1cyBkZWZpbmluZyBhXG4vLyAgIHJvdXRlICh1cmwpIG9mIHRoZSBmb2xsb3dpbmcgZm9ybTogYC8ke2NsaWVudFR5cGV9YClcbmNvbnN0IGRlc2lnbmVyID0gbmV3IERlc2lnbmVyRXhwZXJpZW5jZSgnZGVzaWduZXInKTtcbmNvbnN0IHBsYXllciA9IG5ldyBQbGF5ZXJFeHBlcmllbmNlKCdwbGF5ZXInKTtcblxuLy8gc3RhcnQgYXBwbGljYXRpb25cbnNvdW5kd29ya3Muc2VydmVyLnN0YXJ0KCk7XG4iXX0=

@@ -1,37 +1,10 @@
 import { Service, SegmentedView, serviceManager } from 'soundworks/client';
 
 const SERVICE_ID = 'service:login';
+const LOCAL_STORAGE_KEY = `soundworks:${SERVICE_ID}`;
 
-class LoginView extends SegmentedView {
-  onLogin(callback) {
-    this.installEvents({
-      'click #login': () => {
-        const userName = this.$el.querySelector('#username').value;
-        if (userName !== '') {
-          callback(userName);
-        }
-    	}
-    });
-  }
-
-  onConfirm(callback) {
-    this.installEvents({
-      'click #confirm': () => {
-        callback();
-      }
-    });
-  }
-
-  onLogout(callback) {
-  	this.installEvents({
-      'click #logout': () => {
-        callback();
-      }
-    });
-  }
-}
-
-const defaultViewTemplate = `
+/*
+const viewTemplate = `
 <% if (!logged) { %>
 	<div class="section-top flex-middle">
     <p><%= instructions %></p>
@@ -56,7 +29,7 @@ const defaultViewTemplate = `
   <div class="section-bottom"></div>
 <% } %>`;
 
-const defaultViewContent = {
+const viewModel = {
 	instructions: 'Enter your user name',
 	login : 'Log in',
 	welcomeMessage: 'Logged in as ',
@@ -65,6 +38,7 @@ const defaultViewContent = {
 	logout: 'Log out',
 	logged: false
 };
+//*/
 
 /**
  * Interface for the client `login` service
@@ -83,61 +57,50 @@ class Login extends Service {
 
 		const defaults = {
 			viewPriority: 100,
-			viewCtor: LoginView
 		};
 
 		this.configure(defaults);
 
-    this._defaultViewTemplate = defaultViewTemplate;
-    this._defaultViewContent = defaultViewContent;
+    this.platform = this.require('platform', { features: ['web-audio'] });
+    this.checkin = this.require('checkin');
+
+    this._username = null;
 
     this._onLoginResponse = this._onLoginResponse.bind(this);
     this._onLoginConfirmed = this._onLoginConfirmed.bind(this);
     this._onLogoutResponse = this._onLogoutResponse.bind(this);
+
     this._login = this._login.bind(this);
     this._confirm = this._confirm.bind(this);
     this._logout = this._logout.bind(this);
-
-    this.platform = this.require('platform', { features: ['web-audio'] });
-    this.checkin = this.require('checkin');
 	}
-
-  //configure(options) 
 
   /** @private */
 	init() {
-		this._userName = null;
-
-		this.viewCtor = this.options.viewCtor;
-		this.view = this.createView();
-		this.view.onLogin(this._login);
-    this.view.onConfirm(this._confirm);
-		this.view.onLogout(this._logout);
+    // console.log('login init');
 	}
 
   /** @private */
   start() {
     super.start();
 
-    if (!this.hasStarted)
-      this.init();
+    this.view.setLoginCallback(this._login);
+    this.view.setConfirmCallback(this._confirm);
+    this.view.setLogoutCallback(this._logout);
 
     this.receive('login', this._onLoginResponse);
     this.receive('confirm', this._onLoginConfirmed);
     this.receive('logout', this._onLogoutResponse);
 
-    const key = 'soundworks:service:login:userName'; // too long for safari :(
-    // const key = 'soundworks:userName';
-    const storedUserName = localStorage.getItem(key);
-    // const storedUserName = localStorage.getItem('soundworks:service:login:userName');
+    const storedUsername = localStorage.getItem(LOCAL_STORAGE_KEY);
 
-    if (storedUserName !== null) {
-      this.view.content.logged = true;
-      this.view.content.userName = storedUserName;
-      this._userName = storedUserName;
+    if (storedUsername !== null) {
+      this.view.model.logged = true;
+      this.view.model.username = storedUsername;
+      this._username = storedUsername;
     } else {
-      this.view.content.logged = false;
-      this.view.content.userName = null;  
+      this.view.model.logged = false;
+      this.view.model.username = null;  
     }
 
     this.show();
@@ -154,41 +117,39 @@ class Login extends Service {
     this.hide();
   }
 
-  getUserName() {
-    return localStorage.getItem('soundworks:service:login:userName');
+  getUsername() {
+    return localStorage.getItem(LOCAL_STORAGE_KEY);
   }
 
-	_login(userName) {
-		this.send('login', userName);
+	_login(username) {
+		this.send('login', username);
 	}
 
   _confirm() {
-    this.send('confirm', this._userName);
+    this.send('confirm', this._username);
   }
 
 	_logout() {
-		this.send('logout', this._userName);
+		this.send('logout', this._username);
 	}
 
-	_onLoginResponse(userName) {
-    this._userName = userName;
-    console.log('login response : ' + this._userName);
-		localStorage.setItem('soundworks:service:login:userName', userName);
-		this._defaultViewContent.logged = true;
-    this._defaultViewContent.userName = userName;
+	_onLoginResponse(username) {
+    this._username = username;
+		localStorage.setItem(LOCAL_STORAGE_KEY, username);
+    this.view.model.username = username;
+    this.view.model.logged = true;
     this.view.render();
 	}
 
-  _onLoginConfirmed(userName) {
-    console.log('server confirmed that ' + userName + ' is logged in');
+  _onLoginConfirmed(username) {
     this.ready();
   }
 
-	_onLogoutResponse(userName) {
-		this._userName = null;
-    localStorage.removeItem('soundworks:service:login:userName');
-		this._defaultViewContent.logged = false;
-    this._defaultViewContent.userName = null;
+	_onLogoutResponse(username) {
+		this._username = null;
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    this.view.model.username = null;
+    this.view.model.logged = false;
     this.view.render();
 	}
 }

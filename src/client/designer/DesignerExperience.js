@@ -1,14 +1,146 @@
 import * as soundworks from 'soundworks/client';
+import { Login } from '../services/Login';
 import * as lfo from 'waves-lfo/common';
 import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
-import { Login } from '../services/Login';
-import { classes } from  '../shared/config';
-// import FeaturizerLfo from '../shared/FeaturizerLfo';
 import PreProcess from '../shared/PreProcess';
-import MotionRenderer from '../shared/MotionRenderer';
+import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
+import { classes } from  '../shared/config';
 import AudioEngine from '../shared/AudioEngine';
 
 const audioContext = soundworks.audioContext;
+
+const viewModel = {
+  classes: classes,
+};
+
+const viewTemplate = `
+  <div class="foreground">
+
+    <div id="nav">
+      <!-- <a href="#" id="openConfigBtn">&#9776;</a> -->
+      <a href="#" id="openConfigBtn"> <img src="/pics/navicon.png"> </a>
+    </div>
+
+    <div class="section-top flex-middle">
+      <div class="section-overlay">
+        
+        <div class="overlay-content">
+          <p> Global configuration </p>
+          <br />
+          <div class="selectDiv">
+            <label for="modelSelect"> Model type : </label>
+            <select id="modelSelect">
+              <option value="gmm">gmm</option>
+              <option value="hhmm">hhmm</option>
+            </select>
+          </div>
+          <div class="selectDiv">
+            <label for="gaussSelect"> Gaussians : </label>
+            <select id="gaussSelect">
+              <% for (var i = 0; i < 10; i++) { %>
+                <option value="<%= i+1 %>">
+                  <%= i+1 %>
+                </option>
+              <% } %>
+            </select>
+          </div>
+          <div class="selectDiv">
+            <label for="covModeSelect"> Covariance mode : </label>
+            <select id="covModeSelect">
+              <option value="full">full</option>
+              <option value="diagonal">diagonal</option>
+            </select>
+          </div>        
+          <div class="selectDiv">
+            <label for="absReg"> Absolute regularization : </label>
+            <input id="absReg" type="text" value="0.01">
+            </input>
+          </div>        
+          <div class="selectDiv">
+            <label for="relReg"> Relative regularization : </label>
+            <input id="relReg" type="text" value="0.01">
+            </input>
+          </div>        
+
+          <hr>
+          <p> Hhmm parameters </p>
+          <br />
+          <!--
+          <div class="selectDiv">
+            <label for="hierarchicalSelect"> Hierarchical : </label>
+            <select id="hierarchicalSelect">
+              <option value="yes">yes</option>
+              <option value="no">no</option>
+             </select>
+          </div>
+          -->        
+          <div class="selectDiv">
+            <label for="statesSelect"> States : </label>
+            <select id="statesSelect">
+              <% for (var i = 0; i < 20; i++) { %>
+                <option value="<%= i+1 %>">
+                  <%= i+1 %>
+                </option>
+              <% } %>
+            </select>
+          </div>
+          <div class="selectDiv">
+            <label for="transModeSelect"> Transition mode : </label>
+            <select id="transModeSelect">
+              <option value="ergodic">ergodic</option>
+              <option value="leftright">leftright</option>
+            </select>
+          </div> 
+          <!--
+          <div class="selectDiv">
+            <label for="regressEstimSelect"> Regression estimator : </label>
+            <select id="regressEstimSelect">
+              <option value="full">full</option>
+              <option value="windowed">windowed</option>
+              <option value="likeliest">likeliest</option>
+            </select>
+          </div>
+          -->        
+        </div>
+      </div>
+
+      <div class="section-underlay">
+        <div class="selectDiv"> Label :
+          <select id="labelSelect">
+            <% for (var prop in classes) { %>
+              <option value="<%= prop %>">
+                <%= prop %>
+              </option>
+            <% } %>
+          </select>
+        </div>
+        <button id="recBtn">REC</button>
+        <button id="sendBtn">SEND</button>
+        <div class="canvasDiv">
+          <canvas class="multislider" id="likelihoods"></canvas>
+        </div>
+        <button id="clearLabelBtn">CLEAR LABEL</button>
+        <button id="clearModelBtn">CLEAR MODEL</button>
+        <div class="toggleDiv">
+          <button id="playBtn" class="toggleBtn"></button>
+          Enable sounds
+        </div>
+        <!--
+        <div class="toggleDiv">
+          <button id="intensityBtn" class="toggleBtn"></button>
+          Disable intensity control
+        </div>
+        -->
+      </div>
+    </div>
+
+    <div class="section-center flex-center">
+    </div>
+    <div class="section-bottom flex-middle">
+    </div>
+
+  </div>
+`;
 
 class DesignerView extends soundworks.CanvasView {
   constructor(template, content, events, options) {
@@ -111,152 +243,21 @@ class DesignerView extends soundworks.CanvasView {
       }
     });
   }
-}
+};
 
-const viewTemplate = `
-  <div class="foreground">
 
-    <div id="nav">
-      <!-- <a href="#" id="openConfigBtn">&#9776;</a> -->
-      <a href="#" id="openConfigBtn"> <img src="/pics/navicon.png"> </a>
-    </div>
 
-    <div class="section-top flex-middle">
-      <div class="section-overlay">
-        
-        <div class="overlay-content">
-          <p> Global configuration </p>
-          <br />
-          <div class="selectDiv">
-            <label for="modelSelect"> Model type : </label>
-            <select id="modelSelect">
-              <option value="gmm">gmm</option>
-              <option value="hhmm">hhmm</option>
-            </select>
-          </div>
-          <div class="selectDiv">
-            <label for="gaussSelect"> Gaussians : </label>
-            <select id="gaussSelect">
-              <% for (var i = 0; i < 10; i++) { %>
-                <option value="<%= i+1 %>">
-                  <%= i+1 %>
-                </option>
-              <% } %>
-            </select>
-          </div>
-          <div class="selectDiv">
-            <label for="covModeSelect"> Covariance mode : </label>
-            <select id="covModeSelect">
-              <option value="full">full</option>
-              <option value="diagonal">diagonal</option>
-            </select>
-          </div>        
-          <div class="selectDiv">
-            <label for="absReg"> Absolute regularization : </label>
-            <input id="absReg" type="text" value="0.01">
-            </input>
-          </div>        
-          <div class="selectDiv">
-            <label for="relReg"> Relative regularization : </label>
-            <input id="relReg" type="text" value="0.01">
-            </input>
-          </div>        
-
-          <hr>
-          <p> Hhmm parameters </p>
-          <br />
-          <!--
-          <div class="selectDiv">
-            <label for="hierarchicalSelect"> Hierarchical : </label>
-            <select id="hierarchicalSelect">
-              <option value="yes">yes</option>
-              <option value="no">no</option>
-             </select>
-          </div>
-          -->        
-          <div class="selectDiv">
-            <label for="statesSelect"> States : </label>
-            <select id="statesSelect">
-              <% for (var i = 0; i < 20; i++) { %>
-                <option value="<%= i+1 %>">
-                  <%= i+1 %>
-                </option>
-              <% } %>
-            </select>
-          </div>
-          <div class="selectDiv">
-            <label for="transModeSelect"> Transition mode : </label>
-            <select id="transModeSelect">
-              <option value="ergodic">ergodic</option>
-              <option value="leftright">leftright</option>
-            </select>
-          </div> 
-          <!--
-          <div class="selectDiv">
-            <label for="regressEstimSelect"> Regression estimator : </label>
-            <select id="regressEstimSelect">
-              <option value="full">full</option>
-              <option value="windowed">windowed</option>
-              <option value="likeliest">likeliest</option>
-            </select>
-          </div>
-          -->        
-        </div>
-      </div>
-
-    	<div class="section-underlay">
-      	<!-- <p class="big"><%= title %></p> -->
-        <div class="selectDiv"> Label :
-          <select id="labelSelect">
-            <% for (var prop in classes) { %>
-              <option value="<%= prop %>">
-                <%= prop %>
-              </option>
-            <% } %>
-          </select>
-        </div>
-        <button id="recBtn">REC</button>
-        <button id="sendBtn">SEND</button>
-        <div class="canvasDiv">
-          <canvas class="multislider" id="likelihoods"></canvas>
-        </div>
-        <button id="clearLabelBtn">CLEAR LABEL</button>
-        <button id="clearModelBtn">CLEAR MODEL</button>
-        <div class="toggleDiv">
-          <button id="playBtn" class="toggleBtn"></button>
-          Enable sounds
-        </div>
-        <!--
-        <div class="toggleDiv">
-          <button id="intensityBtn" class="toggleBtn"></button>
-          Disable intensity control
-        </div>
-        -->
-      </div>
-    </div>
-
-    <div class="section-center flex-center">
-    </div>
-    <div class="section-bottom flex-middle">
-    </div>
-
-  </div>
-`;
-
-export default class DesignerExperience extends soundworks.Experience {
-	constructor(assetsDomain) {
+class DesignerExperience extends soundworks.Experience {
+  constructor(assetsDomain) {
     super();
 
-    const audioFiles = [];
-    for (let label in classes) {
-      audioFiles.push(classes[label]);
-    }
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.checkin = this.require('checkin', { showDialog: false });
+    // this.sharedConfig = this.require('shared-config');
     this.login = this.require('login');
-    this.loader = this.require('loader', {
+    this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: assetsDomain,
-      files: audioFiles
+      files: classes,
     });
     this.motionInput = this.require('motion-input', {
       descriptors: ['devicemotion']
@@ -264,90 +265,67 @@ export default class DesignerExperience extends soundworks.Experience {
 
     this.labels = Object.keys(classes);
     this.likeliest = undefined;
-	}
-
-  //=============================================//
-
-  init() {
-    console.log('start initialization');
-
-    this.audioEngine = new AudioEngine(classes, this.loader);
-
-    // initialize the view
-    this.viewTemplate = viewTemplate;
-    this.viewContent = {
-    	title: 'play !',
-      classes: classes
-    };
-    this.viewCtor = DesignerView;
-    this.viewOptions = { preservePixelRatio: true, className: 'designer' };
-    this.view = this.createView();
-
-    this._onConfig = this._onConfig.bind(this);
-    this._onRecord = this._onRecord.bind(this);
-    this._onSendPhrase = this._onSendPhrase.bind(this);
-    this._onClearLabel = this._onClearLabel.bind(this);
-    this._onClearModel = this._onClearModel.bind(this);
-    this._onReceiveModel = this._onReceiveModel.bind(this);
-    this._onModelFilter = this._onModelFilter.bind(this);   
-    this._motionCallback = this._motionCallback.bind(this);
-    this._intensityCallback = this._intensityCallback.bind(this);
-    this._enableSounds = this._enableSounds.bind(this);
-    // this._onSoundOnOff = this._onSoundOnOff.bind(this);
-    // this._onIntensityOnOff = this._onIntensityOnOff.bind(this);
-
-    this.view.onConfig(this._onConfig);
-    this.view.onRecord(this._onRecord);
-    this.view.onSendPhrase(this._onSendPhrase);
-    this.view.onClearLabel(this._onClearLabel);
-    this.view.onClearModel(this._onClearModel);
-    this.view.onEnableSounds(this._enableSounds);
-    // this.view.onSoundOnOff(this._onSoundOnOff);
-    // this.view.onIntensityOnOff(this._onIntensityOnOff);
-
-    //------------------ LFO's ------------------//
-    this._phraseRecorder = new PhraseRecorderLfo({
-      columnNames: [ 'accelX', 'accelY', 'accelZ' ]
-    });
-    this._xmmDecoder = new XmmDecoderLfo({
-      likelihoodWindow: 20,
-      callback: this._onModelFilter
-    });
-    this._preProcess = new PreProcess(this._intensityCallback);
-    this._preProcess.connect(this._phraseRecorder);
-    this._preProcess.connect(this._xmmDecoder);
-    this._preProcess.start();
-
-    //----------------- RECEIVE -----------------//
-    this.receive('model', this._onReceiveModel);
   }
-
-  //=============================================//
 
   start() {
     super.start(); // don't forget this
 
-    if (!this.hasStarted)
-      this.init();
+    this.view = new DesignerView(viewTemplate, viewModel, {}, {
+      preservePixelRatio: true,
+      className: 'designer'
+    });
 
-    this.show();
+    this.show().then(() => {
 
-    // initialize rendering
-    this.renderer = new MotionRenderer(100);
-    this.view.addRenderer(this.renderer);
-    // this function is called before each update (`Renderer.render`) of the canvas
-    this.view.setPreRender((ctx, dt) => {});
+      this._onConfig = this._onConfig.bind(this);
+      this._onRecord = this._onRecord.bind(this);
+      this._onSendPhrase = this._onSendPhrase.bind(this);
+      this._onClearLabel = this._onClearLabel.bind(this);
+      this._onClearModel = this._onClearModel.bind(this);
+      this._onReceiveModel = this._onReceiveModel.bind(this);
+      this._onModelFilter = this._onModelFilter.bind(this);   
+      this._motionCallback = this._motionCallback.bind(this);
+      this._intensityCallback = this._intensityCallback.bind(this);
+      this._enableSounds = this._enableSounds.bind(this);
 
-    this.audioEngine.start();
+      this.view.onConfig(this._onConfig);
+      this.view.onRecord(this._onRecord);
+      this.view.onSendPhrase(this._onSendPhrase);
+      this.view.onClearLabel(this._onClearLabel);
+      this.view.onClearModel(this._onClearModel);
+      this.view.onEnableSounds(this._enableSounds);
+
+      //------------------ LFO's ------------------//
+      this._phraseRecorder = new PhraseRecorderLfo({
+        columnNames: [ 'accelX', 'accelY', 'accelZ' ]
+      });
+      this._xmmDecoder = new XmmDecoderLfo({
+        likelihoodWindow: 20,
+        callback: this._onModelFilter
+      });
+      this._preProcess = new PreProcess(this._intensityCallback);
+      this._preProcess.connect(this._phraseRecorder);
+      this._preProcess.connect(this._xmmDecoder);
+      this._preProcess.start();
+
+      // initialize rendering
+      this.renderer = new LikelihoodsRenderer(100);
+      this.view.addRenderer(this.renderer);
+      // this.view.setPreRender((ctx, dt) => {});
+
+      this.audioEngine = new AudioEngine(this.audioBufferManager.data);
+      this.audioEngine.start();
 
     if (this.motionInput.isAvailable('devicemotion')) {
       this.motionInput.addListener('devicemotion', this._motionCallback);
     }
+      //----------------- RECEIVE -----------------//
+      this.receive('model', this._onReceiveModel);
+    });
   }
 
   _onConfig(type, config) {
     this.send('configuration', { type: type, config: config });
-    // console.log(config);
   }
 
   _onRecord(cmd) {
@@ -395,24 +373,11 @@ export default class DesignerExperience extends soundworks.Experience {
   }
 
   _onReceiveModel(model) {
-    // console.log(model);
     const config = model ? model.configuration.default_parameters : {};
 
     config.modelType = config.states ? 'hhmm' : 'gmm';
     this._updateConfigFromModel(config);
     this._xmmDecoder.params.set('model', model);
-
-    // no use for this : model should be null
-    // only if training was cancelled server-side
-    
-    // if (!model) {
-    //   this.renderer.setModelResults({
-    //     label: 'unknown',
-    //     likeliest: 0,
-    //     likelihoods: [ 0 ]
-    //   });
-    // }
-    //console.log('received model : ' + JSON.stringify(model, null, 2));
   }
 
   _updateConfigFromModel(config) {
@@ -446,14 +411,13 @@ export default class DesignerExperience extends soundworks.Experience {
     const newRes = {
       label: label,
       likeliest: likeliest,
-      // alphas: alphas,
       likelihoods: likelihoods
     };
 
     this.renderer.setModelResults(newRes);
 
     if (this.likeliest !== label) {
-    	this.likeliest = label;
+      this.likeliest = label;
       console.log('changed gesture to : ' + label);
       const i = this.labels.indexOf(label);
       this.audioEngine.fadeToNewSound(i);
@@ -461,20 +425,12 @@ export default class DesignerExperience extends soundworks.Experience {
   }
 
   _intensityCallback(frame) {
-    // console.log(frame);
     this.audioEngine.setGainFromIntensity(frame.data[0]);
-    // this.audioEngine.setGainFromIntensity(1);
   }
 
   _enableSounds(onOff) {
     this.audioEngine.enableSounds(onOff);
   }
+};
 
-  // _onSoundOnOff(onOff) {
-
-  // }
-
-  // _onIntensityOnOff(onOff) {
-
-  // }
-}
+export default DesignerExperience;

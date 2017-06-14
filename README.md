@@ -1,41 +1,73 @@
-# xmm-soundworks-template
+# Soundworks Application Template
 
-#### about
+> This is a project template for developing [*Soundworks*](https://github.com/collective-soundworks/soundworks/) applications.  
+> The template also includes comprehensive comments in the source files.
 
-This project is based on the [soundworks-template](https://github.com/collective-soundworks/soundworks-template)
-It is a starting point for the creation of soundworks based projects that use gesture recognition.
-The gesture recognition is performed by the [XMM](https://github.com/Ircam-RnD/xmm) library (more specifically
-by the [xmm-node](https://github.com/Ircam-RnD/xmm-node) Node.js addon server-side, and by the
-[xmm-client](https://github.com/Ircam-RnD/xmm-client) JavaScript library client-side).
+[//]: # (For a complete documentation of the *Soundworks* framework, please refer to http://collective-soundworks.github.io/soundworks/.)
 
-##### designer
+## Creating a New Application
 
-It features a special page, designer, which provides a simple interface allowing to record gestures
-(streams of devicemotion data received from the smartphone's sensors) and train a model in real-time.
-A visualization and a sonification of the results help the (human) gesture designer during the training process.
-On each operation, the training set used to train the model, and the model itself are updated in real-time, serialized
-and saved locally as json files for later reuse.
+To start the development of a new *Soundworks* application, we recommend the following sequence of commands:
 
-##### template
+```sh
+$ git clone https://github.com/collective-soundworks/soundworks-template.git my-soundworks-application
+$ cd my-soundworks-application
+$ rm -Rf .git
+$ npm install
+$ npm run watch
+```
 
-The real template (the main page) shows a simple way of reusing the statistical models trained in the designer page.
-It includes the same sonification system as in the designer page to show a simple audio example, and allows to send the
-classification results as an OpenSoundControl stream.
-A Max and a pure-data patches show basic examples of how to use these OSC streams.
+If you succeeded to execute all commands without errors, you can start connecting clients - on a mobile phone or a browser simulating a mobile user agent and touch events - to the server.
 
-#### getting started
+## Helper Scripts
 
-When you start with the designer, it first takes you to a login page.
-The login you choose will be used as the prefix of your training set and your model's filenames.
-Once you're logged in, you are taken to the main designer page.
-There, you can notice a dropdown menu that lets you select a label.
-Below, a record button allows you to record streams of data.
-The send button adds the latest recording to the training set, labelled with the currently
-selected label.
-If something went wrong with recordings of a certain label, it is possible to delete all the data
-related to this label in the training set and the model with the clear model button.
-It is also possible to clear everything with the clear model button.
+The template includes a set of scripts to support the development of an application.
+The scripts can be invoked through the `npm run` command:
+ * `transpile` - creates an executable application from the ES2015 (ES6) sources
+ * `start` - starts the application (i.e. its server).
+ * `watch` - starts the server and watches the file system to do the necessary operations while developing
 
-The play sounds button activates the audio players that sonify the classification results.
-Each label is associated with a sound file.
-One can change the labels and associated sounds in the "src/client/shared/config.js" file.
+```shell
+$ npm run transpile
+$ npm run start
+$ npm run watch
+```
+
+In detail, the `transpile` script implies the following operations:
+ * *transpile* javascript source files from ES2015 to ES5
+ * rebundle (i.e. *browserify*) the client Javascript (ES5) sources
+ * recreate the *CSS* files from their *SASS* sources
+
+The following operations may be performed by the `watch` script depending on the modification of source files:
+ * recreate a *CSS* file when a corresponding *SASS* file in the `sass` directory is modified
+ * re-*transpile* a modified server source file in the `src/server` directory
+ * re-*transpile* and *browserify* a modified client source file in the `src/client` directory
+ * re-*transpile* a modified source file used on both, client and server, in the `src/common` directory
+
+## Files and Directories
+
+The template consists of the following files and directories you should know about:
+ * `bin` - the Node.js scripts *(no need to touch these)*
+ * `public` - everything the clients need to run the application
+   * `fonts` - fonts used by the application template *(this is your directory)*
+   * `sounds` - sounds used by the application template *(this is your directory)*
+   * `js` - transpiled javascript files *(do not touch)*
+   * `css` - *CSS* stylesheets automatically created from *SASS* sources *(do not touch)*
+   * . . . add here the assets (images, movies, etc.) used by the clients of your application
+ * `sass` - *SASS* stylesheet sources
+   * `main.scss` - includes all other *SASS* files in the directory *(the provided files are described in comments)*
+   * . . . add your styles here (as *SASS* files) and include them into the `main.scss` file
+ * `src` - javascript (ES2015) sources *(this is all yours)*
+   * `client` - sources of the application's client side *(contains one directory per client type)*
+     * `player` - sources of the *player* client
+       * `index.js` - main file of the *player* client
+       * . . . files imported by the `index.js` main file
+   * `server` - sources of the application's server side
+     * `index.js` - server side main file *(for all client types)*
+     * . . . files imported by the `index.js` server side main file
+ * `html` - template files to generate the application's `index.html` files *(no need to touch)*
+ * `package.json` - NPM package file *(modify so that the description and dependencies match your application)*
+ * `README.md` - this file *(that you should replace by a file that informs about your application)*
+
+This structure is required by the *Soundworks* framework and the helper scripts.
+The files that are part of the application's implementation (i.e. especially the files in the `src` directories) contain comprehensive explanatory comments.

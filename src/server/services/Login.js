@@ -25,50 +25,33 @@ class Login extends Service {
   /** @private */
   connect(client) {
   	super.connect(client);
-  	// client.activities.login = { userName: null };
-  	client.activities['service:login'] = { userName: null };
+  	client.activities['service:login'] = { username: null };
     this.receive(client, 'login', this._onLogin(client));
     this.receive(client, 'confirm', this._onConfirm(client));
     this.receive(client, 'logout', this._onLogout(client));
   }
 
   /** @private */
-  /** @todo check for eventual db errors with more callbacks in Mongo.js */
 	_onLogin(client) {
-		return (userName) => {
-			// if (!this._mongo.docExistsInColl('users', {
-			// 	userName: userName
-			// })) {
-			// 	this._mongo.writeDocToColl('users', {
-			// 		userName: userName
-			// 	});
-			// }
-
-			// this._mongo.docExistsInColl('users', { userName: userName }, (yes) => {
-			// 	if (!yes) {
-			// 		this._mongo.writeDocToColl('users', { userName: userName });
-			// 	}
-			// })
-			this.send(client, 'login', userName);
+		return (username) => {
+      // check if user exists in db if needed
+			this.send(client, 'login', username);
 		};
 	}
 
 	/** @private */
 	_onConfirm(client) {
-		return (userName) => {
-			// client.activities.login.userName = userName;
-			// console.log(client.activities);
-			client.activities['service:login'].userName = userName;
-			this.send(client, 'confirm', userName);
+		return (username) => {
+			client.activities['service:login'].username = username;
+			this.send(client, 'confirm', username);
 		}
 	}
 
   /** @private */
 	_onLogout(client) {
-		return (userName) => {
-			// client.activities.login.userName = null;
-			client.activities['service:login'].userName = null;
-			this.send(client, 'logout', userName);
+		return (username) => {
+			client.activities['service:login'].username = null;
+			this.send(client, 'logout', username);
 		};
 	}
 }

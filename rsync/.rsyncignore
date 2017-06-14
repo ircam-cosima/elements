@@ -1,6 +1,7 @@
-*.DS_Store
+q*.DS_Store
 *.git/
 .gitignore
 dist/
 node_modules/
 rsync/
+log/

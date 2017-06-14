@@ -1,10 +1,6 @@
-import { Renderer } from 'soundworks/client';
+import { Canvas2dRenderer } from 'soundworks/client';
 
-/**
- * A simple canvas renderer.
- * The class renders a dot moving over the screen and rebouncing on the edges.
- */
-export default class MotionRenderer extends Renderer {
+class LikelihoodsRenderer extends Canvas2dRenderer {
   constructor(msHeight = 100) {
     super(0); // update rate = 0: synchronize updates to frame rate
 
@@ -153,4 +149,6 @@ export default class MotionRenderer extends Renderer {
       ctx.fillRect(r.x + x, r.y + y, r.w, r.h);
     }
   }
-}
+};
+
+export default LikelihoodsRenderer;

@@ -10,15 +10,14 @@ export default class DesignerExperience extends Experience {
 
     this.checkin = this.require('checkin');
     this.sharedConfig = this.require('shared-config');
+    this.audioBufferManager = this.require('audio-buffer-manager');
     this.login = this.require('login');
+
     this.xmms = new Map();
   }
 
-  // if anything needs to append when the experience starts
   start() {}
 
-  // if anything needs to happen when a client enters the performance (*i.e.*
-  // starts the experience on the client side), write it in the `enter` method
   enter(client) {
     super.enter(client);
 
@@ -34,39 +33,32 @@ export default class DesignerExperience extends Experience {
   }
 
   _getModel(client) {
+    const username = client.activities['service:login'].username;
+
     let set = {};
     try {
       set = JSON.parse(fs.readFileSync(
-        `./public/exports/sets/${client.activities['service:login'].userName}TrainingSet.json`,
+        `./public/exports/sets/${username}TrainingSet.json`,
         'utf-8'
       ));
     } catch (e) {
       if (e.code === 'ENOENT') {
-        // set = fs.writeFileSync(
-        //   `./public/exports/sets/${client.activities['service:login'].userName}TrainingSet.json`,
-        //   JSON.stringify({}),
-        //   'utf-8'
-        // );
+        // no file found, do nothing (let _updateModelAndSet do its job)
       } else throw e;
     }
 
     let config = {};
     try {
       config = JSON.parse(fs.readFileSync(
-        `./public/exports/configs/${client.activities['service:login'].userName}ModelConfig.json`,
+        `./public/exports/configs/${username}ModelConfig.json`,
         'utf-8'
       ));
     } catch (e) {
       if (e.code === 'ENOENT') {
-        // config = fs.writeFileSync(
-        //   `./public/exports/configs/${client.activities['service:login'].userName}ModelConfig.json`,
-        //   JSON.stringify({}),
-        //   'utf-8'          
-        // );
+        // do nothing
       } else throw e;
     }
 
-    // if (!config) config = {};
     this.xmms[client] = new xmm(config.states ? 'hhmm' : 'gmm', config)
     this.xmms[client].setTrainingSet(set);
     this._updateModelAndSet(client);
@@ -82,11 +74,10 @@ export default class DesignerExperience extends Experience {
 
   _onNewConfig(client) {
     return (args) => {
-      // console.log(args);
       const type = args.type;
       const config = args.config;
       const trainingSet = this.xmms[client].getTrainingSet();
-      //console.log(config);
+
       this.xmms[client] = new xmm(type, config);
       this.xmms[client].setTrainingSet(trainingSet);
       this._updateModelAndSet(client);
@@ -96,6 +87,7 @@ export default class DesignerExperience extends Experience {
   _onClearOperation(client) {
     return (args) => {
       const cmd = args.cmd;
+
       switch (cmd) {
         case 'label': {
           this.xmms[client].removePhrasesOfLabel(args.data);
@@ -105,30 +97,34 @@ export default class DesignerExperience extends Experience {
         case 'model': {
           this.xmms[client].clearTrainingSet();
         }
+        break;
 
         default:
         break;
       }
+
       this._updateModelAndSet(client);
     };
   }
 
   _updateModelAndSet(client) {
+    const username = client.activities['service:login'].username;
+
     this.xmms[client].train((err, model) => {
       fs.writeFileSync(
-       `./public/exports/sets/${client.activities['service:login'].userName}TrainingSet.json`,
+       `./public/exports/sets/${username}TrainingSet.json`,
        JSON.stringify(this.xmms[client].getTrainingSet(), null, 2),
        'utf-8'
       );
 
       fs.writeFileSync(
-       `./public/exports/configs/${client.activities['service:login'].userName}ModelConfig.json`,
+       `./public/exports/configs/${username}ModelConfig.json`,
        JSON.stringify(this.xmms[client].getConfig(), null, 2),
        'utf-8'
       );
 
       fs.writeFileSync(
-       `./public/exports/models/${client.activities['service:login'].userName}Model.json`,
+       `./public/exports/models/${username}Model.json`,
        JSON.stringify(this.xmms[client].getModel(), null, 2),
        'utf-8'
       );
