@@ -1,5 +1,5 @@
 // collection of { label: soundFile } pairs
-const classes = {
+const sounds = {
   vent: 'sounds/vent.mp3',
   nage: 'sounds/nage.mp3',
   pierres: 'sounds/pierres.mp3',
@@ -8,4 +8,4 @@ const classes = {
   silence: 'sounds/silence.mp3',
 };
 
-export { classes };
+export { sounds };

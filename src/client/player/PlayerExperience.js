@@ -1,7 +1,7 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
 import { XmmDecoderLfo } from 'xmm-lfo';
-import { classes } from  '../shared/config';
+import { sounds } from  '../shared/config';
 import PreProcess from '../shared/PreProcess';
 import AudioEngine from '../shared/AudioEngine';
 
@@ -100,18 +100,17 @@ class PlayerExperience extends soundworks.Experience {
     this.checkin = this.require('checkin', { showDialog: false });
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: assetsDomain,
-      files: classes,
+      files: sounds,
     });
     this.motionInput = this.require('motion-input', {
       descriptors: ['devicemotion']
     });
 
-    this.labels = Object.keys(classes);
+    this.labels = Object.keys(sounds);
     this.likeliest = undefined;
 
     this._models = null;
     this._currentModel = null;
-    this._sendOscFlag = false;
     this._intensityOn = false;
   }
 
@@ -157,7 +156,6 @@ class PlayerExperience extends soundworks.Experience {
       }
 
       //----------------- RECEIVE -----------------//
-      this.receive('model', this._onReceiveModel);
       this.receive('models', this._onReceiveModels);
     });
   }
@@ -183,8 +181,6 @@ class PlayerExperience extends soundworks.Experience {
 
     const prevModels = Object.keys(models);
     const prevModelIndex = prevModels.indexOf(this._currentModel);
-
-    console.log(this._currentModel + ' ' + prevModelIndex);
 
     if (this._currentModel &&  prevModelIndex > -1) {
       this._currentModel = prevModels[prevModelIndex];

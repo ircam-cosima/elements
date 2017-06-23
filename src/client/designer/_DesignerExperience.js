@@ -2,16 +2,15 @@ import * as soundworks from 'soundworks/client';
 import { Login } from '../services/Login';
 import * as lfo from 'waves-lfo/common';
 import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
-import FeaturizerLfo from '../shared/FeaturizerLfo';
+import PreProcess from '../shared/PreProcess';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
-import { sounds } from  '../shared/config';
+import { classes } from  '../shared/config';
 import AudioEngine from '../shared/AudioEngine';
-import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 
 const audioContext = soundworks.audioContext;
 
 const viewModel = {
-  sounds: sounds,
+  classes: classes,
   assetsDomain: '',
 };
 
@@ -24,6 +23,35 @@ const viewTemplate = `
     </div>
 
     <div class="section-top flex-middle">
+      <div class="section-underlay">
+        <div class="selectDiv"> Label :
+          <select id="labelSelect">
+            <% for (var prop in classes) { %>
+              <option value="<%= prop %>">
+                <%= prop %>
+              </option>
+            <% } %>
+          </select>
+        </div>
+        <button id="recBtn">REC</button>
+        <button id="sendBtn">SEND</button>
+        <div class="canvasDiv">
+          <canvas class="multislider" id="likelihoods"></canvas>
+        </div>
+        <button id="clearLabelBtn">CLEAR LABEL</button>
+        <button id="clearModelBtn">CLEAR MODEL</button>
+        <div class="toggleDiv">
+          <button id="playBtn" class="toggleBtn"></button>
+          Enable sounds
+        </div>
+        <!--
+        <div class="toggleDiv">
+          <button id="intensityBtn" class="toggleBtn"></button>
+          Disable intensity control
+        </div>
+        -->
+      </div>
+
       <div class="section-overlay">
         
         <div class="overlay-content">
@@ -102,58 +130,8 @@ const viewTemplate = `
               <option value="likeliest">likeliest</option>
             </select>
           </div>
-          -->
-
-          <!--
-          <hr>
-          <p> Autorecord parameters </p>
-          <br />
-          <div class="selectDiv">
-            <label for="highThresh"> High threshold : </label>
-            <input id="highThresh" type="text" value="0.6">
-            </input>
-          </div>        
-          <div class="selectDiv">
-            <label for="lowThresh"> Low threshold : </label>
-            <input id="lowThresh" type="text" value="0.3">
-            </input>
-          </div>        
-          <div class="selectDiv">
-            <label for="offDelay"> Off delay (ms) : </label>
-            <input id="offDelay" type="text" value="500">
-            </input>
-          </div>        
-          -->
+          -->        
         </div>
-      </div>
-
-      <div class="section-underlay">
-        <div class="selectDiv"> Label :
-          <select id="labelSelect">
-            <% for (var prop in sounds) { %>
-              <option value="<%= prop %>">
-                <%= prop %>
-              </option>
-            <% } %>
-          </select>
-        </div>
-        <button id="recBtn">REC</button>
-        <button id="sendBtn">SEND</button>
-        <div class="canvasDiv">
-          <canvas class="multislider" id="likelihoods"></canvas>
-        </div>
-        <button id="clearLabelBtn">CLEAR LABEL</button>
-        <button id="clearModelBtn">CLEAR MODEL</button>
-        <div class="toggleDiv">
-          <button id="playBtn" class="toggleBtn"></button>
-          Enable sounds
-        </div>
-        <!--
-        <div class="toggleDiv">
-          <button id="intensityBtn" class="toggleBtn"></button>
-          Disable intensity control
-        </div>
-        -->
       </div>
     </div>
 
@@ -201,13 +179,6 @@ class DesignerView extends soundworks.CanvasView {
           // elt = this.$el.querySelector('#regressEstimSelect');
           // config['regressionEstimator'] = elt.options[elt.selectedIndex].value;
 
-          // elt = this.$el.querySelector('#highThresh');
-          // config['highThresh'] = Number(elt.value);
-          // elt = this.$el.querySelector('#lowThresh');
-          // config['lowThresh'] = Number(elt.value);
-          // elt = this.$el.querySelector('#offDelay');
-          // config['offDelay'] = Number(elt.value);
-
           callback(type, config);
 
           div.classList.remove('active');
@@ -216,19 +187,17 @@ class DesignerView extends soundworks.CanvasView {
     });
   }
 
-  onArm(callback) {
+  onRecord(callback) {
     this.installEvents({
       'click #recBtn': () => {
         const rec = this.$el.querySelector('#recBtn');
-        if (!rec.classList.contains('armed')) {
-          rec.innerHTML = 'ARMED';
-          rec.classList.add('armed');
-          // rec.classList.remove('recording');
-          callback('arm');
-        } else {
+        if (!rec.classList.contains('active')) {
           rec.innerHTML = 'STOP';
+          rec.classList.add('active');
+          callback('record');
+        } else {
+          rec.innerHTML = 'REC';
           rec.classList.remove('active');
-          rec.classList.remove('armed');
           callback('stop')
         }
       }
@@ -288,19 +257,20 @@ class DesignerExperience extends soundworks.Experience {
     this.login = this.require('login');
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: assetsDomain,
-      files: sounds,
+      files: classes,
     });
     this.motionInput = this.require('motion-input', {
       descriptors: ['devicemotion']
     });
 
-    this.labels = Object.keys(sounds);
+    this.labels = Object.keys(classes);
     this.likeliest = undefined;
   }
 
   start() {
     super.start(); // don't forget this
 
+    // viewModel.assetsDomain = this.
     this.view = new DesignerView(viewTemplate, viewModel, {}, {
       preservePixelRatio: true,
       className: 'designer'
@@ -311,9 +281,7 @@ class DesignerExperience extends soundworks.Experience {
     this.show().then(() => {
 
       this._onConfig = this._onConfig.bind(this);
-      this._onArm = this._onArm.bind(this);
-      this._autoStartRecord = this._autoStartRecord.bind(this);
-      this._autoStopRecord = this._autoStopRecord.bind(this);
+      this._onRecord = this._onRecord.bind(this);
       this._onSendPhrase = this._onSendPhrase.bind(this);
       this._onClearLabel = this._onClearLabel.bind(this);
       this._onClearModel = this._onClearModel.bind(this);
@@ -324,47 +292,24 @@ class DesignerExperience extends soundworks.Experience {
       this._enableSounds = this._enableSounds.bind(this);
 
       this.view.onConfig(this._onConfig);
-      this.view.onArm(this._onArm);
+      this.view.onRecord(this._onRecord);
       this.view.onSendPhrase(this._onSendPhrase);
       this.view.onClearLabel(this._onClearLabel);
       this.view.onClearModel(this._onClearModel);
       this.view.onEnableSounds(this._enableSounds);
 
-      //--------------------------------- LFO's --------------------------------//
-      this._devicemotionIn = new lfo.source.EventIn({
-        frameType: 'vector',
-        frameSize: 3, // 6,
-        frameRate: 1, // this.motionInput.period doesn't seem available anymore
-        description: ['accelGravX', 'accelGravY', 'accelGravZ'], // 'gyrAlpha', 'gyrBeta', 'gyrGamma']
-      });
-      this._featurizer = new FeaturizerLfo({
-        descriptors: [ 'accIntensity' ],
-        callback: this._intensityCallback
-      });
+      //------------------ LFO's ------------------//
       this._phraseRecorder = new PhraseRecorderLfo({
-        columnNames: ['accelGravX', 'accelGravY', 'accelGravZ'],
-                       // 'rotAlpha', 'rotBeta', 'rotGamma']      
+        columnNames: [ 'accelX', 'accelY', 'accelZ' ]
       });
-      this._onOffDecoder = new lfo.operator.OnOff();
-      this._onOffDecoder.setState('on');
       this._xmmDecoder = new XmmDecoderLfo({
         likelihoodWindow: 20,
         callback: this._onModelFilter
       });
-
-      this._devicemotionIn.connect(this._featurizer);
-      this._devicemotionIn.connect(this._phraseRecorder);
-      this._devicemotionIn.connect(this._onOffDecoder);
-      this._onOffDecoder.connect(this._xmmDecoder);
-      this._devicemotionIn.start();
-
-      this.autoTrigger = new AutoMotionTrigger({
-        highThresh: 0.6,
-        lowThresh: 0.4,
-        offDelay: 300,
-        startCallback: this._autoStartRecord,
-        stopCallback: this._autoStopRecord,
-      });
+      this._preProcess = new PreProcess(this._intensityCallback);
+      this._preProcess.connect(this._phraseRecorder);
+      this._preProcess.connect(this._xmmDecoder);
+      this._preProcess.start();
 
       // initialize rendering
       this.renderer = new LikelihoodsRenderer(100);
@@ -374,10 +319,9 @@ class DesignerExperience extends soundworks.Experience {
       this.audioEngine = new AudioEngine(this.audioBufferManager.data);
       this.audioEngine.start();
 
-      if (this.motionInput.isAvailable('devicemotion')) {
-        this.motionInput.addListener('devicemotion', this._motionCallback);
-      }
-  
+    if (this.motionInput.isAvailable('devicemotion')) {
+      this.motionInput.addListener('devicemotion', this._motionCallback);
+    }
       //----------------- RECEIVE -----------------//
       this.receive('model', this._onReceiveModel);
     });
@@ -387,50 +331,17 @@ class DesignerExperience extends soundworks.Experience {
     this.send('configuration', { type: type, config: config });
   }
 
-  _onArm(cmd) {
+  _onRecord(cmd) {
     switch (cmd) {
-      case 'arm':
-        this.autoTrigger.setState('on');
+      case 'record':
+        this._phraseRecorder.start();
         break;
 
       case 'stop':
-        this._autoStopRecord();
+        this._phraseRecorder.stop();
         break;
     }
   }
-
-  _autoStartRecord() {
-    // set to play currently selected sound by interrupting recognition
-    // and forcing current label
-    this._onOffDecoder.setState('off');
-    const labels = this.view.$el.querySelector('#labelSelect');
-    this.likeliest = labels.options[labels.selectedIndex].text;
-    this.audioEngine.fadeToNewSound(this.labels.indexOf(this.likeliest));
-
-    // start recording
-    this._phraseRecorder.start();
-
-    // update view
-    const rec = this.view.$el.querySelector('#recBtn');
-    rec.innerHTML = 'STOP';
-    rec.classList.add('active');
-  }
-
-  _autoStopRecord() {
-    // stop recording
-    this._phraseRecorder.stop();
-
-    // enable recognition back
-    this._onOffDecoder.setState('on');
-
-    // update view
-    const rec = this.view.$el.querySelector('#recBtn');
-    rec.innerHTML = 'REC';
-    rec.classList.remove('active', 'armed');
-    this.autoTrigger.setState('off');
-  }
-
-  //=============================================//
 
   _onSendPhrase(label) {
     this._phraseRecorder.setPhraseLabel(label);
@@ -461,7 +372,7 @@ class DesignerExperience extends soundworks.Experience {
 
   _motionCallback(eventValues) {
     const values = eventValues.slice(0,3).concat(eventValues.slice(-3));
-    this._devicemotionIn.process(audioContext.currentTime, values);
+    this._preProcess.process(audioContext.currentTime, values);
   }
 
   _onReceiveModel(model) {
@@ -516,9 +427,8 @@ class DesignerExperience extends soundworks.Experience {
     }
   }
 
-  _intensityCallback(values) {
-    this.autoTrigger.push(values[0]);
-    this.audioEngine.setGainFromIntensity(values[0]);
+  _intensityCallback(frame) {
+    this.audioEngine.setGainFromIntensity(frame.data[0]);
   }
 
   _enableSounds(onOff) {
