@@ -1,6 +1,6 @@
 #!/bin/sh
 
-gitignore=$(dirname $0)/.rsyncignore
-comopath=$(dirname $0)/..
+ignore=$(dirname $0)/.rsyncignore
+path=$(dirname $0)/..
 
-rsync -avz --exclude-from $gitignore $comopath "$1"@como.ircam.fr:/srv/como/elements
+rsync -avz --exclude-from $ignore $path "$1"@como.ircam.fr:/srv/como/elements

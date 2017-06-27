@@ -60,7 +60,6 @@ export default {
   // socket.io configuration
   websockets: {
     // url: '',
-    // url: ':9000',
     transports: ['websocket'],
     path: ''
     // path: '/apps/elements/socket.io',
