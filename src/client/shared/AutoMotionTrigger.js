@@ -1,7 +1,7 @@
 const defaults = {
-  highThresh: 1.2,
+  highThresh: 0.5,
   lowThresh: 0.3,
-  offDelay: 500,
+  offDelay: 1000,
   startCallback: null,
   stopCallback: null,
 };
