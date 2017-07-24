@@ -7,87 +7,85 @@ import AudioEngine from '../shared/AudioEngine';
 
 const audioContext = soundworks.audioContext;
 
-const viewModel = { models: null };
-
 const viewTemplate = `
-  <div class="background fit-container"></div>
-  <div class="foreground fit-container">
-    <div class="section-top flex-middle">
-      <div>
+  <label class="select-container">Session:
+    <select id="select-model">
+      <% for (var uuid in models) { %>
+      <option value="<%= uuid %>">
+        <%= models[uuid].username %>
+      </option>
+      <% } %>
+    </select>
+  </label>
 
-        <div class="selectDiv" id="modelsDiv">
-          <label> Model : </label>
-          <select id="modelSelect">
-            <% for (var prop in models) { %>
-              <option value="<%= prop %>">
-                <%= prop %>
-              </option>
-            <% } %>
-          </select>
-        </div>
-
-        <button id="sound-onoff"> SOUND OFF </button>
-        <button id="intensity-onoff"> INTENSITY OFF </button>
-
-      </div>
-    </div>
-
-    <div class="section-center flex-center"></div>
-    <div class="section-bottom flex-middle"></div>
+  <div class="toggle-container" id="mute">
+    <div class="toggle-btn"><div></div></div> Mute
+  </div>
+  <div class="toggle-container" id="intensity">
+    <div class="toggle-btn"><div></div></div> Intensity
   </div>
 `;
 
-class PlayerView extends soundworks.SegmentedView {
+class PlayerView extends soundworks.View {
   constructor(template, content, events, options) {
     super(template, content, events, options);
-  }
 
-  onSoundOnOff(callback) {
+    this._muteCallback = () => {};
+    this._intensityCallback = () => {};
+    this._modelChangeCallback = () => {};
+
     this.installEvents({
-      'click #sound-onoff': () => {
-        const rec = this.$el.querySelector('#sound-onoff');
-        if (!rec.classList.contains('active')) {
-          rec.innerHTML = 'SOUND ON';
-          rec.classList.add('active');
-          callback(true);
-        } else {
-          rec.innerHTML = 'SOUND OFF';
-          rec.classList.remove('active');
-          callback(false);
-        }
-      }
+      'touchstart #mute': () => {
+        const $btn = this.$muteBtn;
+        const active = $btn.classList.contains('active');
+
+        if (!active)
+          $btn.classList.add('active');
+        else
+          $btn.classList.remove('active');
+
+        this._muteCallback(!active);
+      },
+      'touchstart #intensity': () => {
+        const $btn = this.$intensityBtn;
+        const active = $btn.classList.contains('active');
+
+        if (!active)
+          $btn.classList.add('active');
+        else
+          $btn.classList.remove('active');
+
+        this._intensityCallback(!active);
+      },
+      'change #model-select': () => {
+        const value = this.$selectModel.value;
+        this._modelChangeCallback(value);
+      },
     });
   }
 
-  onIntensityOnOff(callback) {
-    this.installEvents({
-      'click #intensity-onoff': () => {
-        const rec = this.$el.querySelector('#intensity-onoff');
-        if (!rec.classList.contains('active')) {
-          rec.innerHTML = 'INTENSITY ON';
-          rec.classList.add('active');
-          callback(true);
-        } else {
-          rec.innerHTML = 'INTENSITY OFF';
-          rec.classList.remove('active');
-          callback(false);
-        }
-      }
-    });
+  onRender() {
+    super.onRender();
+
+    this.$muteBtn = this.$el.querySelector('#mute');
+    this.$intensityBtn = this.$el.querySelector('#intensity');
+    this.$selectModel = this.$el.querySelector('#select-model');
   }
 
-  onModelChange(callback) {
-    this.installEvents({
-      'change #modelSelect': () => {
-        const inputs = this.$el.querySelector('#modelSelect');
-        callback(inputs.options[inputs.selectedIndex].value);
-      }
-    });
+  setMuteCallback(callback) {
+    this._muteCallback = callback;
+  }
+
+  setIntensityCallback(callback) {
+    this._intensityCallback = callback;
+  }
+
+  setModelChangeCallback(callback) {
+    this._modelChangeCallback = callback;
   }
 
   setModelItem(item) {
-    const el = this.$el.querySelector('#modelSelect');
-    el.value = item;
+    this.$selectModel.value = item;
   }
 }
 
@@ -97,11 +95,11 @@ class PlayerExperience extends soundworks.Experience {
     super();
 
     this.platform = this.require('platform', { features: ['web-audio'] });
-    // this.checkin = this.require('checkin', { showDialog: false });
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: assetsDomain,
       files: sounds,
     });
+
     this.motionInput = this.require('motion-input', {
       descriptors: ['devicemotion']
     });
@@ -109,114 +107,113 @@ class PlayerExperience extends soundworks.Experience {
     this.labels = Object.keys(sounds);
     this.likeliest = undefined;
 
-    this._models = null;
-    this._currentModel = null;
-    this._intensityOn = false;
+    this.models = null;
+    this.currentModelId = null;
+    this.enableIntensity = false;
+
+    this._onReceiveModels = this._onReceiveModels.bind(this);
+    this._onModelChange = this._onModelChange.bind(this);
+    this._onModelFilter = this._onModelFilter.bind(this);
+    this._motionCallback = this._motionCallback.bind(this);
+    this._intensityCallback = this._intensityCallback.bind(this);
+    this._onMuteChange = this._onMuteChange.bind(this);
+    this._onIntensityChange = this._onIntensityChange.bind(this);
   }
 
   start() {
     super.start(); // don't forget this
 
-    this.view = new PlayerView(viewTemplate, viewModel, {}, {
-      preservePixelRatio: true,
+    this.receive('models', this._onReceiveModels);
+
+    // rendering
+    this.view = new PlayerView(viewTemplate, { models: null }, {}, {
       className: 'player'
     });
 
-    // as show can be async, we make sure that the view is actually rendered
-    this.show().then(() => {
+    this.view.setModelChangeCallback(this._onModelChange);
+    this.view.setMuteCallback(this._onMuteChange);
+    this.view.setIntensityCallback(this._onIntensityChange);
 
-      this._onReceiveModels = this._onReceiveModels.bind(this);
-      this._onModelChange = this._onModelChange.bind(this);
-      this._onModelFilter = this._onModelFilter.bind(this);
-      this._motionCallback = this._motionCallback.bind(this);
-      this._intensityCallback = this._intensityCallback.bind(this);
-      this._onSoundOnOff = this._onSoundOnOff.bind(this);
-      this._onIntensityOnOff = this._onIntensityOnOff.bind(this);
+    this.audioEngine = new AudioEngine(this.audioBufferManager.data);
+    this.audioEngine.start();
 
-      this.view.onModelChange(this._onModelChange);
-      this.view.onSoundOnOff(this._onSoundOnOff);
-      this.view.onIntensityOnOff(this._onIntensityOnOff);
-
-      //------------------ LFO's ------------------//
-      this._xmmDecoder = new XmmDecoderLfo({
-        likelihoodWindow: 20,
-        callback: this._onModelFilter,
-      });
-      this._preProcess = new PreProcess(this._intensityCallback);
-      this._preProcess.connect(this._xmmDecoder);
-      this._preProcess.start();
-
-      //------------------ AUDIO -----------------//
-      this.audioEngine = new AudioEngine(this.audioBufferManager.data);
-      this.audioEngine.start();
-
-      //--------------- MOTION INPUT -------------//
-      if (this.motionInput.isAvailable('devicemotion')) {
-        this.motionInput.addListener('devicemotion', this._motionCallback);
-      }
-
-      //----------------- RECEIVE -----------------//
-      this.receive('models', this._onReceiveModels);
+    // lfo preprocessing
+    this.xmmDecoder = new XmmDecoderLfo({
+      likelihoodWindow: 20,
+      callback: this._onModelFilter,
     });
+    this.preProcess = new PreProcess(this._intensityCallback);
+    this.preProcess.connect(this.xmmDecoder);
+    this.preProcess.start();
+
+    if (this.motionInput.isAvailable('devicemotion'))
+      this.motionInput.addListener('devicemotion', this._motionCallback);
+
+    // as show can be async, we make sure that the view is actually rendered
+    this.show();
   }
 
   _motionCallback(eventValues) {
-    const values = eventValues.slice(0,3).concat(eventValues.slice(-3));
-    this._preProcess.process(audioContext.currentTime, values);
+    const values = eventValues.slice(0, 3);
+    this.preProcess.process(audioContext.currentTime, values);
   }
 
   _intensityCallback(frame) {
-    if (this._intensityOn) {
+    if (this.enableIntensity)
       this.audioEngine.setGainFromIntensity(frame.data[0]);
-    } else {
+    else
       this.audioEngine.setGainFromIntensity(1);
-    }
   }
 
   _onReceiveModels(models) {
-    this._models = models;
+    this.models = models;
 
-    this.view.model.models = this._models;
-    this.view.render('#modelsDiv');
+    this.view.model.models = this.models;
+    this.view.render('.select-container');
 
-    const prevModels = Object.keys(models);
-    const prevModelIndex = prevModels.indexOf(this._currentModel);
+    const uuids = Object.keys(models);
+    const index = uuids.indexOf(this.currentModelId);
 
-    if (this._currentModel &&  prevModelIndex > -1) {
-      this._currentModel = prevModels[prevModelIndex];
-      this.view.setModelItem(this._currentModel);
-    } else {
-      this._currentModel = prevModels[0];
-    }
+    // @todo - review that
+    if (this.currentModelId && index !== -1)
+      this.currentModelId = uuids[index];
+    else
+      this.currentModelId = uuids[0];
 
-    this._xmmDecoder.params.set('model', this._models[this._currentModel]);
+    this.view.setModelItem(this.currentModelId);
+
+    const model = this.models[this.currentModelId].model;
+    this.xmmDecoder.params.set('model', model);
   }
 
   _onModelFilter(res) {
     const likelihoods = res ? res.likelihoods : [];
     const likeliest = res ? res.likeliestIndex : -1;
     const label = res ? res.likeliest : 'unknown';
-    const alphas = res ? res.alphas : [[]];// res.alphas[likeliest];
+    // const alphas = res ? res.alphas : [[]];// res.alphas[likeliest];
 
     if (this.likeliest !== label) {
+      const index = this.labels.indexOf(label);
       this.likeliest = label;
+      this.audioEngine.fadeToNewSound(index);
+
       console.log('changed gesture to : ' + label);
-      const i = this.labels.indexOf(label);
-      this.audioEngine.fadeToNewSound(i);
     }
   }
 
   _onModelChange(value) {
-    this._currentModel = value;
-    this._xmmDecoder.params.set('model', this._models[this._currentModel]);
+    const model = this.models[this.currentModelId].model;
+
+    this.currentModelId = value;
+    this.xmmDecoder.params.set('model', model);
   }
 
-  _onSoundOnOff(onOff) {
-    this.audioEngine.enableSounds(onOff);
+  _onMuteChange(bool) {
+    this.audioEngine.mute = bool;
   }
 
-  _onIntensityOnOff(onOff) {
-    this._intensityOn = onOff;
+  _onIntensityChange(bool) {
+    this.enableIntensity = bool;
   }
 };
 

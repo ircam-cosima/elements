@@ -1,31 +1,41 @@
 import { Experience } from 'soundworks/server';
-import ModelsRetriever from './shared/ModelsRetriever';
-// import fs from 'fs';
+import xmmStore from './shared/xmmStore';
+import designerStore from './shared/designerStore';
 
-export default class PlayerExperience extends Experience {
-  constructor(clientType) {
+class PlayerExperience extends Experience {
+  constructor(clientType, comm) {
     super(clientType);
 
-    this.checkin = this.require('checkin');
-    this.sharedConfig = this.require('shared-config');
+    this.comm = comm;
+
     this.audioBufferManager = this.require('audio-buffer-manager');
+
+    this._onModelsUpdate = this._onModelsUpdate.bind(this);
   }
 
-  start() {}
+  start() {
+    this.comm.addListener('models-updated', this._onModelsUpdate);
+  }
 
   enter(client) {
     super.enter(client);
-    // send a 'hello' message to all the other clients of the same type
-    this.broadcast(client.type, client, 'hello');
 
-    ModelsRetriever.getModels((err, models) => {
-      this.send(client, 'models', models);
-    });
+    const designers = designerStore.getList();
+    const models = xmmStore.getModelByUsers(designers);
+
+    this.send(client, 'models', models);
   }
 
   exit(client) {
     super.exit(client);
-    // send a 'goodbye' message to all the other clients of the same type
-    this.broadcast(client.type, client, 'goodbye');
+  }
+
+  _onModelsUpdate(designers) {
+    const designers = designerStore.getList();
+    const models = xmmStore.getModelByUsers(designers);
+
+    this.broadcast('player', null, 'models', models);
   }
 }
+
+export default PlayerExperience;

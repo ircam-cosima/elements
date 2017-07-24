@@ -1,4 +1,5 @@
 import { CanvasView } from 'soundworks/client';
+import ModalDialog from './ModalDialog';
 
 const viewTemplate = `
   <canvas class=background noselect"></canvas>
@@ -38,7 +39,7 @@ const viewTemplate = `
           <input id="rel-reg" type="number" value="0.01" />
         </label>
 
-        <h2> Hhmm parameters </h2>
+        <h2>Hhmm parameters</h2>
 
         <label class="select-container">States:
           <select id="states-select">
@@ -54,6 +55,18 @@ const viewTemplate = `
             <option value="0">ergodic</option>
             <option value="1">leftright</option>
           </select>
+        </label>
+
+        <h2>Recording parameters</h2>
+
+        <label class="text-container">High Threshold:
+          <input id="high-threshold" type="number" value="<%= record.highThreshold %>" />
+        </label>
+        <label class="text-container">Low Threshold:
+          <input id="low-threshold" type="number" value="<%= record.lowThreshold %>" />
+        </label>
+        <label class="text-container">Off Delay:
+          <input id="off-delay" type="number" value="<%= record.offDelay %>" />
         </label>
       </div>
     </section>
@@ -72,8 +85,8 @@ const viewTemplate = `
             <% } %>
             </select>
           </label>
-          <button class="btn" id="clear-label">clear label</button>
-          <button class="btn" id="clear-all">clear all</button>
+          <button class="btn" id="clear-label" disabled>clear label</button>
+          <button class="btn" id="clear-all" disabled>clear all recordings</button>
         </div>
 
         <button id="rec-btn">
@@ -87,6 +100,12 @@ const viewTemplate = `
   </div>
 `;
 
+/**
+ * @todo - move more logic into the template:
+ *   * enable / disable clear buttons
+ *   * update clear button text
+ *   * active / inactive mute button
+ */
 class DesignerView extends CanvasView {
   constructor(content, events, options) {
     super(viewTemplate, content, events, options);
@@ -116,7 +135,7 @@ class DesignerView extends CanvasView {
           const $el = this.$el;
           const type = $el.querySelector('#model-select').value;
 
-          const config = {
+          const xmmConfig = {
             gaussians: parseFloat($el.querySelector('#gauss-select').value),
             covariance_mode: $el.querySelector('#cov-mode-select').value,
             absolute_regularization: parseFloat($el.querySelector('#abs-reg').value),
@@ -125,19 +144,40 @@ class DesignerView extends CanvasView {
             transition_mode: $el.querySelector('#trans-mode-select').value,
           };
 
-          this._configCallback(type, config);
+          const recordConfig = {
+            highThreshold: Math.min(1, Math.max($el.querySelector('#high-threshold').value, 0)),
+            lowThreshold: Math.min(1, Math.max($el.querySelector('#low-threshold').value, 0)),
+            offDelay: Math.max(20, $el.querySelector('#off-delay').value),
+          };
+
+          this._configCallback(type, xmmConfig, recordConfig);
           this.$overlay.classList.remove('active');
         }
       },
       'change #label-select': () => {
         const label = this.$labelSelect.value;
         this.$clearLabel.textContent = `clear ${label} recordings`;
+
+        if (this.currentLabels.indexOf(label) === -1)
+          this.$clearLabel.setAttribute('disabled', true);
+        else
+          this.$clearLabel.removeAttribute('disabled');
       },
-      'touchstart #clear-label': () => {
+      'touchstart #clear-label': (e) => {
+        e.preventDefault();
+
+        if (this.$clearLabel.hasAttribute('disabled'))
+          return;
+
         const label = this.$labelSelect.value;
         this._clearLabelCallback(label);
       },
-      'touchstart #clear-all': () => {
+      'touchstart #clear-all': (e) => {
+        e.preventDefault();
+
+        if (this.$clearAll.hasAttribute('disabled'))
+          return;
+
         this._clearModelCallack();
       },
       'touchstart #mute': () => {
@@ -153,6 +193,56 @@ class DesignerView extends CanvasView {
     });
   }
 
+  onRender() {
+    super.onRender();
+
+    this.$mainContent = this.$el.querySelector('#main');
+    this.$recBtn = this.$el.querySelector('#rec-btn');
+    this.$recBtnTxt = this.$el.querySelector('#rec-btn p');
+    this.$muteBtn = this.$el.querySelector('#mute');
+    this.$labelSelect = this.$el.querySelector('#label-select');
+    this.$clearLabel = this.$el.querySelector('#clear-label');
+    this.$clearAll = this.$el.querySelector('#clear-all');
+    this.$overlay = this.$el.querySelector('#overlay');
+
+    this.$clearLabel.textContent = `clear ${this.getCurrentLabel()} recordings`;
+  }
+
+  confirm(type, ...args) {
+    let msg;
+
+    switch (type) {
+      case 'send':
+        msg = 'do you want to keep this recording?';
+        break;
+      case 'clear-label':
+        msg = `do you really want to clear the label ${args[0]}?`;
+        break;
+      case 'clear-all':
+        msg = `do you really want to delete all your recordings?`;
+        break;
+      default:
+        msg = `What's the question?`;
+        break;
+    }
+
+    // @todo - replace with clean modal dialog
+    const promise = new Promise((resolve, reject) => {
+      const model = { msg };
+      const dialog = new ModalDialog(model, resolve, reject);
+
+      dialog.render();
+      dialog.show();
+      dialog.appendTo(this.$el);
+    });
+
+    // promise
+    //   .then(() => console.log(`"${msg}" succeded`))
+    //   .catch(err => console.log(`"${msg}" canceled`));
+
+    return promise;
+  }
+
   setConfig(config) {
     const $el = this.$el;
 
@@ -165,43 +255,20 @@ class DesignerView extends CanvasView {
     $el.querySelector('#trans-mode-select').selectedIndex = config.transition_mode || 0;
   }
 
-  onRender() {
-    super.onRender();
+  setCurrentLabels(currentLabels) {
+    this.currentLabels = currentLabels;
 
-    this.$mainContent = this.$el.querySelector('#main');
-    this.$recBtn = this.$el.querySelector('#rec-btn');
-    this.$recBtnTxt = this.$el.querySelector('#rec-btn p');
-    this.$muteBtn = this.$el.querySelector('#mute');
-    this.$labelSelect = this.$el.querySelector('#label-select');
-    this.$clearLabel = this.$el.querySelector('#clear-label');
-    this.$overlay = this.$el.querySelector('#overlay');
-  }
+    // enable / disable clear all
+    if (this.currentLabels.length === 0)
+      this.$clearAll.setAttribute('disabled', true);
+    else
+      this.$clearAll.removeAttribute('disabled');
 
-  confirm(type, ...args) {
-    let msg;
-
-    switch (type) {
-      case 'send':
-        msg = 'Do you want to keep to recording?';
-        break;
-      case 'clear-label':
-        msg = `do you really want to clear the label ${args[0]}?`;
-        break;
-      case 'clear all':
-        msg = `do you really want to delete all your recordings?`;
-        break;
-      default:
-        msg = `What's the question?`;
-        break;
-    }
-
-    // @todo - replace with clean modal dialog
-    return new Promise((resolve, reject) => {
-      if (window.confirm(msg))
-        resolve();
-      else
-        reject();
-    });
+    // enable / disable clear current label
+    if (this.currentLabels.indexOf(this.getCurrentLabel()) === -1)
+      this.$clearLabel.setAttribute('disabled', true);
+    else
+      this.$clearLabel.removeAttribute('disabled');
   }
 
   getContentHeight() {

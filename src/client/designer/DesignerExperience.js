@@ -12,7 +12,6 @@ import { sounds } from  '../shared/config';
 
 const audioContext = soundworks.audioContext;
 
-
 class DesignerExperience extends soundworks.Experience {
   constructor(assetsDomain) {
     super();
@@ -51,9 +50,16 @@ class DesignerExperience extends soundworks.Experience {
   start() {
     super.start(); // don't forget this
 
+    const autoTriggerDefaults = {
+      highThreshold: 0.7,
+      lowThreshold: 0.2,
+      offDelay: 500,
+    }
+
     this.view = new DesignerView({
         sounds: sounds,
         assetsDomain: this.assetsDomain,
+        record: autoTriggerDefaults,
       }, {}, {
         preservePixelRatio: true,
         className: 'designer',
@@ -102,9 +108,9 @@ class DesignerExperience extends soundworks.Experience {
     this.onOffDecoder.connect(this.xmmDecoder);
 
     this.autoTrigger = new AutoMotionTrigger({
-      highThreshold: 0.7,
-      lowThreshold: 0.2,
-      offDelay: 500,
+      highThreshold: autoTriggerDefaults.highThreshold,
+      lowThreshold: autoTriggerDefaults.lowThreshold,
+      offDelay: autoTriggerDefaults.offDelay,
       startCallback: this._startRecording,
       stopCallback: this._stopRecording,
     });
@@ -125,8 +131,12 @@ class DesignerExperience extends soundworks.Experience {
     });
   }
 
-  _onConfigUpdate(type, config) {
-    this.send('configuration', { type: type, config: config });
+  _onConfigUpdate(type, xmmConfig, recordConfig) {
+    this.send('configuration', { type: type, config: xmmConfig });
+
+    this.autoTrigger.highThreshold = recordConfig.highThreshold;
+    this.autoTrigger.lowThreshold = recordConfig.lowThreshold;
+    this.autoTrigger.offDelay = recordConfig.offDelay;
   }
 
   _onRecord(cmd) {
@@ -166,28 +176,28 @@ class DesignerExperience extends soundworks.Experience {
     this.view.confirm('send').then(() => {
       const label = this.view.getCurrentLabel();
       this.phraseRecorder.setPhraseLabel(label);
+
       const phrase = this.phraseRecorder.getRecordedPhrase();
 
       this.send('phrase', { cmd: 'add', data: phrase });
-    }).catch(err => console.error(err.stack));
+    }).catch((err) => {
+      if (err instanceof Error)
+        console.error(err.stack)
+    });
   }
-
-  //=============================================//
 
   _onClearLabel(label) {
     // @todo - crashes the server when no label to clear
     this.view.confirm('clear-label', label).then(() => {
       this.send('clear', { cmd: 'label', data: label });
-    });
+    }).catch(() => {});
   }
 
   _onClearModel() {
     this.view.confirm('clear-all').then(() => {
       this.send('clear', { cmd: 'model' });
-    });
+    }).catch(() => {});
   }
-
-  //================ callbacks : ================//
 
   _motionCallback(eventValues) {
     const values = eventValues.slice(0, 3);
@@ -195,11 +205,13 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _onReceiveModel(model) {
-    console.log(model);
     const config = model ? model.configuration.default_parameters : {};
     config.modelType = config.states ? 'hhmm' : 'gmm';
-
     this.view.setConfig(config);
+
+    const currentLabels = model.models.map(model => model.label);
+    this.view.setCurrentLabels(currentLabels);
+
     this.xmmDecoder.params.set('model', model);
   }
 
@@ -222,7 +234,6 @@ class DesignerExperience extends soundworks.Experience {
 
       const index = this.labels.indexOf(label);
       this.audioEngine.fadeToNewSound(index);
-
       console.log(`gesture changed to: ${label}`);
     }
   }

@@ -63,9 +63,134 @@ $green: #40de56;
 $navHeight: 40px;
 $eltTopMargin: 0px;
 $eltBottomMargin: 5px;//10px;
+$elmHeight: 36px;
 
-.player, .designer {
-  $elmHeight: 36px;
+.toggle-container {
+  height: 33px;
+  padding: 0 0 0 50px;
+  line-height: 33px;
+  position: relative;
+
+  .toggle-btn {
+    width: 31px;
+    height: 31px;
+    border-radius: 50px;
+    border: 2px solid $green;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    div {
+      width: 25px;
+      height: 25px;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      border-radius: 50%;
+      background-color: $green;
+      opacity: 0;
+      transition: opacity 50ms;
+    }
+  }
+
+  &.active .toggle-btn div {
+    opacity: 0.9;
+  }
+}
+
+.select-container {
+  height: $elmHeight;
+  line-height: $elmHeight;
+  position: relative;
+  margin-bottom: 12px;
+  display: block;
+  width: 100%;
+
+  select {
+    height: $elmHeight;
+    width: 65%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-radius: 2px;
+  }
+}
+
+.text-container {
+  height: $elmHeight;
+  line-height: $elmHeight;
+  position: relative;
+  margin-bottom: 12px;
+  display: block;
+  width: 100%;
+
+  input[type=text], input[type=number] {
+    height: $elmHeight;
+    width: 50%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0 5px;
+  }
+}
+
+.modal-dialog {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+
+  .background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    opacity: 0.8,
+  }
+
+  .wrapper {
+    position: absolute;
+    width: 86%;
+    top: 25%;
+    left: 7%;
+    background-color: #000000;
+    color: #ffffff;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 2px;
+    border: 1px solid #787878;
+
+    p {
+      font-size: 1rem;
+      margin: 10px 0;
+    }
+
+    .btn-wrapper {
+      position: relative;
+      height: $elmHeight;
+      margin: 30px 0 10px 0;
+    }
+
+    .btn {
+      width: 45%;
+      position: absolute;
+      top: 0;
+      height: $elmHeight;
+      margin: 0;
+      border-radius: 2px;
+      border: 1px solid #ffffff;
+
+      &#ok { right: 0; }
+      &#cancel { left: 0 }
+    }
+  }
+}
+
+.designer {
   $configElmHeight: 25px;
   $btnBorderRadius: 15px;
   $backgroundColor: #000000;
@@ -92,11 +217,6 @@ $eltBottomMargin: 5px;//10px;
     text-align: center;
     border-top: 1px solid #efefef;
   }
-
-  // hr {
-  //   display: inline-block;
-  //   width: 100%;
-  // }
 
   #main {
     display: block;
@@ -188,202 +308,16 @@ $eltBottomMargin: 5px;//10px;
 
   // components
   .btn {
-    // width: 100%;
     margin-bottom: 12px;
-    // height: $elmHeight;
   }
+}
+
+.player {
+  font-size: 1.4em;
+  padding: 10px;
+  box-sizing: border-box;
 
   .toggle-container {
-    height: 33px;
-    padding: 0 0 0 50px;
-    line-height: 33px;
-    position: relative;
-
-    .toggle-btn {
-      width: 31px;
-      height: 31px;
-      border-radius: 50px;
-      border: 2px solid $green;
-      position: absolute;
-      top: 0;
-      left: 0;
-
-      div {
-        width: 25px;
-        height: 25px;
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        border-radius: 50%;
-        background-color: $green;
-        opacity: 0;
-        transition: opacity 50ms;
-      }
-    }
-
-    &.active .toggle-btn div {
-      opacity: 0.9;
-    }
-  }
-
-  .select-container {
-    height: $elmHeight;
-    line-height: $elmHeight;
-    position: relative;
     margin-bottom: 12px;
-    display: block;
-    width: 100%;
-
-    select {
-      height: $elmHeight;
-      width: 65%;
-      position: absolute;
-      top: 0;
-      right: 0;
-      border-radius: 2px;
-    }
-  }
-
-  .text-container {
-    height: $elmHeight;
-    line-height: $elmHeight;
-    position: relative;
-    margin-bottom: 12px;
-    display: block;
-    width: 100%;
-
-    input[type=text], input[type=number] {
-      height: $elmHeight;
-      width: 50%;
-      position: absolute;
-      top: 0;
-      right: 0;
-      padding: 0 5px;
-    }
-  }
-
-  // select, input {
-  //   width: 100%;
-  //   margin: 12px 0;
-
-  // }
-
-
-  // .select-container {
-  //   width: 100%;
-  //   height: $configElmHeight;
-  //   display: inline;
-  //   text-align: left;
-  //   float: right;
-  //   clear: both;
-
-  //   label {
-  //     //display: inline-block;
-  //     //width: 66%;
-  //     //float: left;
-  //     //padding-right: 20px;
-  //   }
-
-  //   select, input {
-  //     display: block;
-  //     height: $configElmHeight;
-  //     margin-top: 0px;
-  //     //margin-left: 10%;
-  //     width: auto;
-  //     float: right;
-  //   }
-
-  //   input {
-  //     max-width: 30%;
-  //   }
-  // }
-
-  // #recBtn, #sound-onoff, #intensity-onoff {
-  //   height: $recHeight;
-  // }
-
-  // #recBtn.active, #recBtn.armed.active {
-  //   background-color: #d00;
-  // }
-
-  // #recBtn.armed {
-  //   background-color: #d77;
-  // }
-
-  // ------------------------------------------------
-  // input {
-  //   padding-left: 10px;
-
-  // }
-
-  // button {
-  //   border: 0px;
-  //   background-color: #def;
-  //   font-size: 1.6em;
-
-  //   width: 100%;
-  //   height: $elmHeight;
-  //   margin-top: $eltTopMargin;
-  //   margin-bottom: $eltBottomMargin;
-
-  //   border-radius: $btnBorderRadius;
-  //   -moz-border-radius: $btnBorderRadius;
-  //   -webkit-border-radius: $btnBorderRadius;
-  // }
-
-  // .toggleDiv, .select-container, .triggerDiv {
-  //   white-space: nowrap;
-  //   height: $elmHeight;
-  //   line-height: $elmHeight;
-  //   margin-top: $eltTopMargin;
-  //   margin-bottom: $eltBottomMargin;
-  // }
-
-  // .toggleDiv, .triggerDiv {
-  //   float: left;
-  //   clear: both;
-  // }
-
-  // .toggleBtn, .triggerBtn {
-  //   display: block;
-  //   text-align: center;
-  //   width: $elmHeight;
-  //   height: $elmHeight;
-  //   margin-right: 12px;
-  //   float: left;
-  // }
-
-  // .toggleBtn.active:before {
-  //   display: block;
-  //   // position: absolute;
-  //   padding: 0 0;
-  //   top: 0px;
-  //   left: 0px;
-  //   content: 'X';
-  // }
-
-  .triggerBtn.active:before {
-    background-color: #00f; //if we want to make it blink
-  }
-
-  #sound-onoff.active, #intensity-onoff.active {
-    background-color: #0d0;
-  }
-
-  .audioDiv {
-    float: left;
-    width: 100%;
-    height: $elmHeight;
-    // clear: both;
-  }
-
-  #audioSliderDiv {
-    display: flex;
-    height: $elmHeight;
-    line-height: $elmHeight;
-  }
-
-  input[type=range] {
-    width: 100%;
   }
 }

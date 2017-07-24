@@ -1,26 +1,30 @@
-import fs from 'fs';
-import xmm from 'xmm-node';
+import { default as Xmm } from 'xmm-node';
 import { Experience } from 'soundworks/server';
-import ModelsRetriever from './shared/ModelsRetriever';
 import SimpleLogin from './shared/services/SimpleLogin';
+import xmmStore from './shared/xmmStore';
+import designerStore from './shared/designerStore';
+
+const cwd = process.cwd();
 
 // server-side 'designer' experience.
 class DesignerExperience extends Experience {
-  constructor(clientType) {
+  constructor(clientType, comm) {
     super(clientType);
 
-    // this.checkin = this.require('checkin');
-    this.sharedConfig = this.require('shared-config');
+    this.comm = comm;
+
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.login = this.require('simple-login');
 
-    this.xmms = new Map();
+    this.xmms = new Map(); // `set`, `get`, `delete`
   }
 
   start() {}
 
   enter(client) {
     super.enter(client);
+
+    designerStore.add(client.activities['service:login'].user);
 
     this._getModel(client);
 
@@ -30,107 +34,93 @@ class DesignerExperience extends Experience {
   }
 
   exit(client) {
+    // @todo - define the expected behavior
+    // const user = client.activities['service:login'].user;
+    // designerStore.delete(user);
+    // this.comm.emit('models-updated');
+
+    this.xmms.delete(client);
+
     super.exit(client);
   }
 
   _getModel(client) {
-    const uuid = client.activities['service:login'].user.uuid;
+    const user = client.activities['service:login'].user;
 
-    let set = {};
-    try {
-      set = JSON.parse(fs.readFileSync(
-        `./public/exports/sets/${uuid}TrainingSet.json`,
-        'utf-8'
-      ));
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        // no file found, do nothing (let _updateModelAndSet do its job)
-      } else throw e;
-    }
+    const trainingSet = xmmStore.getTrainingSet(user);
+    const config = xmmStore.getConfig(user);
 
-    let config = {};
-    try {
-      config = JSON.parse(fs.readFileSync(
-        `./public/exports/configs/${uuid}ModelConfig.json`,
-        'utf-8'
-      ));
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        // do nothing
-      } else throw e;
-    }
+    const xmm = new Xmm(config.states ? 'hhmm' : 'gmm', config);
+    xmm.setTrainingSet(trainingSet);
 
-    this.xmms[client] = new xmm(config.states ? 'hhmm' : 'gmm', config)
-    this.xmms[client].setTrainingSet(set);
-    this._updateModelAndSet(client);
+    this.xmms.set(client, xmm);
+    this._updateModelAndSet(client, xmm);
   }
 
   _onNewPhrase(client) {
-    return (args) => {
-      const phrase = args.data;
-      this.xmms[client].addPhrase(phrase);
-      this._updateModelAndSet(client);
+    return msg => {
+      const xmm = this.xmms.get(client);
+      const phrase = msg.data;
+
+      xmm.addPhrase(phrase);
+      this._updateModelAndSet(client, xmm);
     }
   }
 
   _onNewConfig(client) {
-    return (args) => {
-      const type = args.type;
-      const config = args.config;
-      const trainingSet = this.xmms[client].getTrainingSet();
+    return msg => {
+      const type = msg.type;
+      const config = msg.config;
+      const oldXmm = this.xmms.get(client);
+      const trainingSet = oldXmm.getTrainingSet();
 
-      this.xmms[client] = new xmm(type, config);
-      this.xmms[client].setTrainingSet(trainingSet);
-      this._updateModelAndSet(client);
+      // as type may change we create a new xmm instance
+      const newXmm = new Xmm(type, config);
+      newXmm.setTraininSet(trainingSet);
+      // replace old instance with new instance
+      this.xmms.set(client, newXmm);
+
+      this._updateModelAndSet(client, newXmm);
     };
   }
 
   _onClearOperation(client) {
-    return (args) => {
-      const cmd = args.cmd;
+    return msg => {
+      const xmm = this.xmms.get(client);
 
-      switch (cmd) {
+      switch (msg.cmd) {
         case 'label':
-          this.xmms[client].removePhrasesOfLabel(args.data);
+          xmm.removePhrasesOfLabel(msg.data);
           break;
         case 'model':
-          this.xmms[client].clearTrainingSet();
+          xmm.clearTrainingSet();
           break;
         default:
           break;
       }
 
-      this._updateModelAndSet(client);
+      this._updateModelAndSet(client, xmm);
     };
   }
 
-  _updateModelAndSet(client) {
-    const uuid = client.activities['service:login'].user.uuid;
+  _updateModelAndSet(client, xmm) {
+    const user = client.activities['service:login'].user;
 
-    this.xmms[client].train((err, model) => {
-      fs.writeFileSync(
-       `./public/exports/sets/${uuid}TrainingSet.json`,
-       JSON.stringify(this.xmms[client].getTrainingSet(), null, 2),
-       'utf-8'
-      );
+    xmm.train((err, trainedModel) => {
+      if (err)
+        console.error(err.stack);
 
-      fs.writeFileSync(
-       `./public/exports/configs/${uuid}ModelConfig.json`,
-       JSON.stringify(this.xmms[client].getConfig(), null, 2),
-       'utf-8'
-      );
+      const trainingSet = xmm.getTrainingSet();
+      const config = xmm.getConfig();
+      const model = xmm.getModel();
 
-      fs.writeFileSync(
-       `./public/exports/models/${uuid}Model.json`,
-       JSON.stringify(this.xmms[client].getModel(), null, 2),
-       'utf-8'
-      );
+      xmmStore.persistTrainingSet(user, trainingSet);
+      xmmStore.persistConfig(user, config);
+      xmmStore.persistModel(user, model);
 
-      this.send(client, 'model', model);
+      this.send(client, 'model', trainedModel);
 
-      ModelsRetriever.getModels((err, models) => {
-        this.broadcast('player', null, 'models', models);
-      });
+      this.comm.emit('models-updated');
     });
   }
 }

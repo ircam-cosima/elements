@@ -1,4 +1,5 @@
 import 'source-map-support/register'; // enable sourcemaps in node
+import { EventEmitter } from 'events';
 import path from 'path';
 import * as soundworks from 'soundworks/server';
 import PlayerExperience from './PlayerExperience';
@@ -34,15 +35,9 @@ soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) =>
   };
 });
 
-// create the experience
-// activities must be mapped to client types:
-// - the `'player'` clients (who take part in the scenario by connecting to the
-//   server through the root url) need to communicate with the `checkin` (see
-// `src/server/playerExperience.js`) and the server side `playerExperience`.
-// - we could also map activities to additional client types (thus defining a
-//   route (url) of the following form: `/${clientType}`)
-const designer = new DesignerExperience('designer');
-const player = new PlayerExperience('player');
+const comm = new EventEmitter();
 
-// start application
+const designer = new DesignerExperience('designer', comm);
+const player = new PlayerExperience('player', comm);
+
 soundworks.server.start();

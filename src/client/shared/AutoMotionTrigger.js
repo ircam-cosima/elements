@@ -1,6 +1,6 @@
 const defaults = {
-  highThresh: 0.5,
-  lowThresh: 0.3,
+  highThreshold: 0.5,
+  lowThreshold: 0.3,
   offDelay: 1000,
   startCallback: null,
   stopCallback: null,
@@ -32,12 +32,20 @@ class AutoMotionTrigger {
     return this.params.lowThreshold;
   }
 
+  set offDelay(value) {
+    this.params.offDelay = value;
+  }
+
+  get offDelay() {
+    return this.params.offDelay;
+  }
+
   push(value) {
     if (this.state === 'on') {
       if (value > this.params.highThreshold && !this.isMoving) {
         this.isMoving = true;
         this._start();
-      } else if (value < this.params.lowThresh && this.isMoving) {
+      } else if (value < this.params.lowThreshold && this.isMoving) {
         this.isMoving = false; // keep this out of the timeout
 
         if (!this.timeoutId)

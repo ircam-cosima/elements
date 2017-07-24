@@ -2,7 +2,7 @@
 const sounds = {
   aerial: 'sounds/aerial.mp3',
   birds: 'sounds/oiseaux.mp3',
-  buble: 'sounds/buble.mp3',
+  bubble: 'sounds/bubble.mp3',
   clicks: 'sounds/clicks.mp3',
   can: 'sounds/crashedcan.mp3',
   fire: 'sounds/feu.mp3',

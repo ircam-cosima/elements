@@ -7,7 +7,7 @@
   * online service - use como.ircam.fr/user
     implement REST API for user gestion
 
-- 
+- `decoder.getLabels()`;
 
 
 ## Errors
