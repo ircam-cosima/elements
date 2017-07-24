@@ -29,30 +29,35 @@ const serviceViews = {
   // ------------------------------------------------
   // Login
   // ------------------------------------------------
-  'service:login': class LoginView extends SegmentedView {
+  'service:simple-login': class LoginView extends SegmentedView {
     constructor() {
       super();
 
       this.template = `
         <% if (!logged) { %>
           <div class="section-top flex-middle">
-            <p><%= instructions %></p>
+            <p>Please login</p>
           </div>
           <div class="section-center flex-center">
             <div>
-              <input type="text" id="username" />
-              <button class="btn" id="login"><%= login %></button>
+              <% if (error) { %>
+              <p class="error">
+                Sorry user "<%= username %>" already exists
+              </p>
+              <% } %>
+              <input type="text" id="username" placeholder="username" />
+              <button class="btn" id="login">Send</button>
             </div>
           </div>
           <div class="section-bottom"></div>
         <% } else { %>
           <div class="section-top flex-middle">
-            <p><%= welcomeMessage %><%= username %></p>
+            <p><span class="grey">Logged in as</span> <%= username %></p>
           </div>
           <div class="section-center flex-center">
             <div>
-              <button class="btn" id="confirm"><%= confirm %></button>
-              <button class="btn" id="logout"><%= logout %></button>
+              <button class="btn" id="confirm">Confirm</button>
+              <button class="btn" id="logout">Log out</button>
             </div>
           </div>
           <div class="section-bottom"></div>
@@ -60,13 +65,9 @@ const serviceViews = {
       `;
 
       this.model = {
-        instructions: 'Enter your user name',
-        login : 'Log in',
-        welcomeMessage: 'Logged in as ',
+        error: false,
         username: null,
-        confirm: 'Confirm',
-        logout: 'Log out',
-        logged: false
+        logged: false,
       };
 
       this._loginCallback = noop;
@@ -76,9 +77,9 @@ const serviceViews = {
       this.installEvents({
         'click #login': () => {
           const username = this.$el.querySelector('#username').value;
-          if (username !== '') {
+
+          if (username !== '')
             this._loginCallback(username);
-          }
         },
         'click #confirm': () => {
           this._confirmCallback();

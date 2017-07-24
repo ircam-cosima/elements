@@ -54,7 +54,7 @@ class PlayerView extends soundworks.SegmentedView {
           rec.innerHTML = 'SOUND OFF';
           rec.classList.remove('active');
           callback(false);
-        }        
+        }
       }
     });
   }
@@ -71,7 +71,7 @@ class PlayerView extends soundworks.SegmentedView {
           rec.innerHTML = 'INTENSITY OFF';
           rec.classList.remove('active');
           callback(false);
-        }        
+        }
       }
     });
   }
@@ -97,7 +97,7 @@ class PlayerExperience extends soundworks.Experience {
     super();
 
     this.platform = this.require('platform', { features: ['web-audio'] });
-    this.checkin = this.require('checkin', { showDialog: false });
+    // this.checkin = this.require('checkin', { showDialog: false });
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: assetsDomain,
       files: sounds,
@@ -127,7 +127,7 @@ class PlayerExperience extends soundworks.Experience {
 
       this._onReceiveModels = this._onReceiveModels.bind(this);
       this._onModelChange = this._onModelChange.bind(this);
-      this._onModelFilter = this._onModelFilter.bind(this);   
+      this._onModelFilter = this._onModelFilter.bind(this);
       this._motionCallback = this._motionCallback.bind(this);
       this._intensityCallback = this._intensityCallback.bind(this);
       this._onSoundOnOff = this._onSoundOnOff.bind(this);
@@ -167,7 +167,7 @@ class PlayerExperience extends soundworks.Experience {
 
   _intensityCallback(frame) {
     if (this._intensityOn) {
-      this.audioEngine.setGainFromIntensity(frame.data[0]);      
+      this.audioEngine.setGainFromIntensity(frame.data[0]);
     } else {
       this.audioEngine.setGainFromIntensity(1);
     }

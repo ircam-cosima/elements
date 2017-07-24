@@ -1,8 +1,6 @@
 import fs from 'fs';
 
-export default class ModelsRetriever {
-  // constructor() {}
-
+class ModelsRetriever {
   static getModels(callback) {
     const modelPath = './public/exports/models/';
 
@@ -25,6 +23,8 @@ export default class ModelsRetriever {
       }
 
       callback(err, res);
-    });    
+    });
   }
 };
+
+export default ModelsRetriever;

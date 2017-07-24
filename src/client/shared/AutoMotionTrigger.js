@@ -6,43 +6,62 @@ const defaults = {
   stopCallback: null,
 };
 
-export default class AutoMotionTrigger {
+class AutoMotionTrigger {
   constructor(options) {
     this.params = Object.assign({}, defaults, options);
     this.isMoving = false;
-    this.timeout = null;
+    this.timeoutId = null;
     this.state = 'off';
+
+    this._stop = this._stop.bind(this);
+  }
+
+  set highThreshold(value) {
+    this.params.highThreshold = value;
+  }
+
+  get highThreshold() {
+    return this.params.highThreshold;
+  }
+
+  set lowThreshold(value) {
+    this.params.lowThreshold = value;
+  }
+
+  get lowThreshold() {
+    return this.params.lowThreshold;
   }
 
   push(value) {
     if (this.state === 'on') {
-      if (value > this.params.highThresh && !this.isMoving) {
+      if (value > this.params.highThreshold && !this.isMoving) {
         this.isMoving = true;
         this._start();
       } else if (value < this.params.lowThresh && this.isMoving) {
         this.isMoving = false; // keep this out of the timeout
-        if (!this.timeout) {
-          this.timeout = setTimeout(this._stop.bind(this), this.params.offDelay);
-        }
+
+        if (!this.timeoutId)
+          this.timeoutId = setTimeout(this._stop, this.params.offDelay);
       }
     } else {
-      if (this.isMoving) {
+      if (this.isMoving)
         this.isMoving = false;
-      }
     }
   }
 
   setState(onOff) {
     this.state = onOff;
+
     if (onOff === 'off') {
-      clearTimeout(this.timeout);
-      this.timeout = null;
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
     }
   }
 
   _start() {
-    clearTimeout(this.timeout);
-    this.timeout = null;
+    clearTimeout(this.timeoutId);
+
+    this.timeoutId = null;
     this.params.startCallback();
   }
 
@@ -50,3 +69,5 @@ export default class AutoMotionTrigger {
     this.params.stopCallback();
   }
 }
+
+export default AutoMotionTrigger;

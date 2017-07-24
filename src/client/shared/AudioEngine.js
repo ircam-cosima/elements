@@ -3,40 +3,42 @@ import * as soundworks from 'soundworks/client';
 const audioContext = soundworks.audioContext;
 
 // simple moving average filter to smooth energy input
-class MvAvrg{
+class MvAvrg {
 	constructor() {
 		this.value = 0;
     this.avgFilterSize = 20;
-		this.avgFilter = [];
-		for (var i = 0; i < this.avgFilterSize; i++) {
-			this.avgFilter.push(0);
-		}
 		this.filterIndex = 0;
+
+    this.avgFilter = new Float32Array(this.avgFilterSize);
+    this.avgFilter.fill(0);
 	}
 
 	filter(value) {
 		this.value = value;
 		// apply filter on the time progression :
 		this.avgFilter[this.filterIndex] = value;
+
 		let filteredValue = 0;
-		for (let i = 0; i < this.avgFilterSize; i++) {
+
+		for (let i = 0; i < this.avgFilterSize; i++)
 			filteredValue += this.avgFilter[i];
-		}
-		filteredValue /= this.avgFilterSize;
+
+
+    filteredValue /= this.avgFilterSize;
 		this.filterIndex = (this.filterIndex + 1) % this.avgFilterSize;
+
 		return filteredValue;
 	}
 
 	reset() {
-		for (var i = 0; i < this.avgFilterSize; i++) {
+		for (var i = 0; i < this.avgFilterSize; i++)
 			this.avgFilter[i] = this.value;
-		}		
 	}
 }
 
 //========================= the audio engine class : =========================//
 
-export default class AudioEngine {
+class AudioEngine {
 	constructor(classes) {
 		this._fadeInTime = 0.5;
     this._fadeOutTime = 1;
@@ -48,14 +50,26 @@ export default class AudioEngine {
     this.master = audioContext.createGain();
     this.master.connect(audioContext.destination);
 
-    this.gain = audioContext.createGain();
-    this.gain.connect(this.master);
+    this.gainNode = audioContext.createGain();
+    this.gainNode.connect(this.master);
 
-    this.mute = audioContext.createGain();
-    this.mute.connect(this.gain);
+    this.muteNode = audioContext.createGain();
+    this.muteNode.connect(this.gainNode);
 
     this.mvAvrg = new MvAvrg();
+
+    this.mute = false;
 	}
+
+  set mute(mute) {
+    const now = audioContext.currentTime;
+    const val = mute ? 0 : 1;
+    const currentValue = this.muteNode.gain.value;
+
+    this.muteNode.gain.cancelScheduledValues(now);
+    this.muteNode.gain.setValueAtTime(currentValue, now);
+    this.muteNode.gain.linearRampToValueAtTime(val, now + 1);
+  }
 
 	start() {
     this.fades = [];
@@ -66,7 +80,7 @@ export default class AudioEngine {
     	const fade = audioContext.createGain();
 
     	src.connect(fade);
-    	fade.connect(this.mute);
+    	fade.connect(this.muteNode);
 
     	fade.gain.value = 0;
     	src.loop = true;
@@ -75,8 +89,8 @@ export default class AudioEngine {
     	this.fades.push(fade);
     }
 
-    this.gain.gain.value = 0;
-    this.mute.gain.value = 0;
+    this.gainNode.gain.value = 0;
+    this.muteNode.gain.value = 0;
     this.master.gain.value = 1;
 
     this.fadeToNewSound(-1);
@@ -93,19 +107,10 @@ export default class AudioEngine {
 
     if (index > -1 && index < this.labels.length) {
       const currentValue = this.fades[index].gain.value;
-      this.fades[index].gain.cancelScheduledValues(now)        
+      this.fades[index].gain.cancelScheduledValues(now)
       this.fades[index].gain.setValueAtTime(currentValue, now);
       this.fades[index].gain.linearRampToValueAtTime(1, now + this._fadeInTime);
     }
-  }
-
-  enableSounds(onOff) {
-    const now = audioContext.currentTime;
-    const val = onOff ? 1.0 : 0;
-    const currentValue = this.mute.gain.value;
-    this.mute.gain.cancelScheduledValues(now);
-    this.mute.gain.setValueAtTime(currentValue, now);
-    this.mute.gain.linearRampToValueAtTime(val, now + 1);
   }
 
   setMasterVolume(volVal) {
@@ -119,9 +124,9 @@ export default class AudioEngine {
     const minOut = 0;
     const maxOut = 1;
     const factor = 1.;
-    let scaledVal = this._scaleValue(eventValue, minIn, maxIn, minOut, maxOut);
+    const scaledVal = this._scaleValue(eventValue, minIn, maxIn, minOut, maxOut);
 
-    this.gain.gain.value = this._clip(scaledVal, 0, 1);
+    this.gainNode.gain.value = this._clip(scaledVal, 0, 1);
   }
 
   _scaleValue(val, minIn, maxIn, minOut, maxOut, factor = 1, sigmoid = false) {
@@ -143,7 +148,7 @@ export default class AudioEngine {
       return this._scale(scaledVal, 0, 1, minOut, maxOut);
     } else {
       return this._scale(val, minIn, maxIn, minOut, maxOut);
-    } 
+    }
   }
 
   _scale(val, minIn, maxIn, minOut, maxOut) {
@@ -156,3 +161,5 @@ export default class AudioEngine {
     return Math.min(Math.max(val, min), max);
   }
 }
+
+export default AudioEngine;

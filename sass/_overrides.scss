@@ -1,292 +1,369 @@
 // Entry point for application specific styles
 
-#service-login {
-  input[type=text], input[type=password], .btn {
-    width: 100%;
-    margin-bottom: 12px;
-  }
+$green: #40de56;
 
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+.btn {
+  width: 100%;
+  height: 36px;
+  margin-bottom: 12px;
+}
+
+@include keyframes(ligth-blink) {
+  0% { opacity: 0.7; }
+  50% { opacity: 0.9; }
+  100% { opacity: 0.7; }
+}
+
+#service-simple-login {
   input[type=text], input[type=password] {
     font-size: 1.4rem;
     height: 30px;
     text-align: center;
     color: #343434;
+    width: 100%;
+    margin-bottom: 12px;
   }
 
-  label {
-    font-size: 1.4rem;
-    color: #bbb;
+  .section-center {
+    position: relative;
   }
 
-  #errorMessage {
-    font-size: 1.4rem;
-    color: #f00;
+  .error {
+    font-size: 1rem;
+    color: orange;
+    position: absolute;
+    top: -24px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .grey {
+    color: #bcbcbc;
+    font-size: 1rem;
+    display: block;
   }
 }
 
 //============================================================================//
 
-$navHeight: 40px;
-$eltTopMargin: 0px;
-$eltBottomMargin: 5px;//10px;
-$maxWidth: 800px;
-
-.section-top {
-  max-width: $maxWidth;
-  margin: auto;
-  padding-top: $eltBottomMargin;
-}
-
-.designer {
-  .section-top {
-    padding-top: $navHeight + $eltBottomMargin;
-  }
-}
-
-.player #modelsDiv {
-  font-size: 2em;
-  height: auto;
-  margin: 0;
-  // display: flex;
-  display: inline-block;
-  vertical-align: middle;
-
-  label {
-    display: inline-block;
-    vertical-align: middle;
-    padding-bottom: 10px;
-  }
-
-  select {
-    width: 100%;
-    height: auto;
-  }
-}
-
 // body.designer, html.designer {
 //   height: 100%;
 // }
 
-.player, .designer {
+$navHeight: 40px;
+$eltTopMargin: 0px;
+$eltBottomMargin: 5px;//10px;
 
-  $recHeight: 100px;
-  $eltHeight: 30px;
-  $configEltHeight: 25px;
+.player, .designer {
+  $elmHeight: 36px;
+  $configElmHeight: 25px;
   $btnBorderRadius: 15px;
-  $backgroundColor: #262626;
-  $navBackgroundColor: #444;
+  $backgroundColor: #000000;
+  $navBackgroundColor: #262626;
+  $overlayBackgroundColor: #454545;
 
   font-size: 1.4em;
   background-color: $backgroundColor;
 
-  .foreground {
-    position: relative;
-    background-color: $backgroundColor;
-  }
-
   #nav {
-    z-index: 2;
+    z-index: 3;
     width: 100%;
     display: block;
     position: fixed;
-    background-color: $navBackgroundColor;
     height: $navHeight;
+    background: $navBackgroundColor url(../img/burger.png) 50% 50% no-repeat;
+    background-size: contain;
   }
 
-  #openConfigBtn {
-    //z-index: 1;
-    position: relative;
-    display: block; // Display block instead of inline
-    top: 0px;
+  h2 {
+    font-size: 1.3rem;
+    font-weight: normal;
+    padding: 12px 0 16px 0;
     text-align: center;
-    text-decoration: none;
-    color: #919191;
-    font-size: 30px;
+    border-top: 1px solid #efefef;
+  }
 
-    img {
-      $vPadding: $navHeight * 0.33 * 0.5;
-      padding: $vPadding 0px $vPadding 0px;
-      max-height: $navHeight * 0.66;
-      //filter: opacity(50%);
+  // hr {
+  //   display: inline-block;
+  //   width: 100%;
+  // }
+
+  #main {
+    display: block;
+    box-sizing: border-box;
+    padding: $navHeight + 10 10px 10px 10px;
+    position: relative;
+
+    .labels-wrapper {
+      margin: 20px 0;
     }
   }
 
-  .section-center, .section-bottom {
+  #overlay {
+    font-size: 12px;
+    box-sizing: border-box;
     display: block;
-    position: absolute;
-    height: 0;
-    padding: 0;
-    margin: 0;
-    border: 0;
-    max-height: 0;
-  }
-
-  .section-underlay {
-    // margin-top: $navHeight;
-    // position: absolute;
-    // padding-top: $navHeight;
-    // height: 100%;
-  }
-
-  .section-overlay {
-    max-height: 0;
+    border: none;
+    background-color: $overlayBackgroundColor;
     width: 100%;
-    margin-left: auto;
-    margin-right: auto;
+    max-height: 0;
     position: absolute;
     z-index: 1;
     left: 0;
     top: 0;
-    background-color: $navBackgroundColor;
-    overflow: hidden;
-    //transition: 0.3s;
+    overflow: auto;
+    padding: 0;
+
+    &.active {
+      height: 100%;
+      max-height: 100%;
+    }
+
+    .overlay-content {
+      position: relative;
+      padding: $navHeight 10px;
+      overflow: auto;
+    }
   }
 
-  .section-overlay.active {
-    // height: inherit;
-    // height: 100%;
-    height: inherit;
-    min-height: calc(100% - #{$navHeight});// - #{$eltBottomMargin});
-    max-height: 1200px;
-    padding-top: $navHeight - $eltBottomMargin;
-  }
 
-  .overlay-content {
-    // http://stackoverflow.com/questions/114543/how-to-horizontally-center-a-div-in-another-div
-    position: relative;
-    padding: 0px 10px 0px 10px;
-    max-width: $maxWidth;
+  #rec-btn {
+    width: 120px;
+    height: 120px;
     margin: 0 auto;
-  }
-
-  select, input {
-    width: 100%;
-    height: $eltHeight;
-    margin-top: $eltTopMargin;
-    margin-bottom: $eltBottomMargin;
-    margin-left: 16px;
-  }
-
-  input {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
-  button {
-    border: 0px;
-    background-color: #def;
-    font-size: 1.6em;
-
-    width: 100%;
-    height: $eltHeight;
-    margin-top: $eltTopMargin;
-    margin-bottom: $eltBottomMargin;
-
-    border-radius: $btnBorderRadius;
-    -moz-border-radius: $btnBorderRadius;
-    -webkit-border-radius: $btnBorderRadius;
-  }
-
-  canvas#likelihoods {
+    border-radius: 3px;
+    background-color: #ffffff;
+    font-size: 1.4rem;
+    outline: none;
+    border: 1px solid #eeeeee;
     overflow: hidden;
-  }
-
-  .canvasDiv {
-    display: block;
     position: relative;
-    clear: both;
-    max-height: 100px;
-    overflow: hidden;
-    margin-top: $eltTopMargin;
-    margin-bottom: $eltBottomMargin;
-  }
-
-  hr {
-    display: inline-block;
-    width: 100%;
-  }
-
-  p {
-    text-align: center;
-    margin-top: 5px;
-    margin-bottom: 0px;
-    padding-bottom: 0px;
-  }
-
-  .toggleDiv, .selectDiv, .triggerDiv {
-    white-space: nowrap;
-    height: $eltHeight;
-    line-height: $eltHeight;
-    margin-top: $eltTopMargin;
-    margin-bottom: $eltBottomMargin;
-  }
-
-  .toggleDiv, .triggerDiv {
-    float: left;
-    clear: both;
-  }
-
-  .selectDiv {
-    width: 100%;
-    height: $configEltHeight;
-    display: inline;
-    text-align: left;
-    float: right;
-    clear: both;
-
-    label {
-      //display: inline-block;
-      //width: 66%;
-      //float: left;
-      //padding-right: 20px;
-    }
-
-    select, input {
-      display: block;
-      height: $configEltHeight;
-      margin-top: 0px;
-      //margin-left: 10%;
-      width: auto;
-      float: right;
-    }
-
-    input {
-      max-width: 30%;
-    }
-  }
-
-  .toggleBtn, .triggerBtn {
     display: block;
-    text-align: center;
-    width: $eltHeight;
-    height: $eltHeight;
-    margin-right: 12px;
-    float: left;
+    border-radius: 50%;
+
+    p {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      color: white;
+      line-height: 110px;
+    }
+
+    .bg {
+      background-color: #cd0000;
+      opacity: 0.7;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+    }
+
+    &.armed .bg {
+      @include animation('ligth-blink 1.4s ease-in-out infinite');
+    }
+
+    &.active .bg {
+      opacity: 1;
+    }
   }
 
-  .toggleBtn.active:before {
-    display: block;
-    // position: absolute;
-    padding: 0 0;
-    top: 0px;
-    left: 0px;
-    content: 'X';
+  canvas {
+    position: absolute;
+    bottom: 0;
+    left: 0;
   }
+
+  // components
+  .btn {
+    // width: 100%;
+    margin-bottom: 12px;
+    // height: $elmHeight;
+  }
+
+  .toggle-container {
+    height: 33px;
+    padding: 0 0 0 50px;
+    line-height: 33px;
+    position: relative;
+
+    .toggle-btn {
+      width: 31px;
+      height: 31px;
+      border-radius: 50px;
+      border: 2px solid $green;
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      div {
+        width: 25px;
+        height: 25px;
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        border-radius: 50%;
+        background-color: $green;
+        opacity: 0;
+        transition: opacity 50ms;
+      }
+    }
+
+    &.active .toggle-btn div {
+      opacity: 0.9;
+    }
+  }
+
+  .select-container {
+    height: $elmHeight;
+    line-height: $elmHeight;
+    position: relative;
+    margin-bottom: 12px;
+    display: block;
+    width: 100%;
+
+    select {
+      height: $elmHeight;
+      width: 65%;
+      position: absolute;
+      top: 0;
+      right: 0;
+      border-radius: 2px;
+    }
+  }
+
+  .text-container {
+    height: $elmHeight;
+    line-height: $elmHeight;
+    position: relative;
+    margin-bottom: 12px;
+    display: block;
+    width: 100%;
+
+    input[type=text], input[type=number] {
+      height: $elmHeight;
+      width: 50%;
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 0 5px;
+    }
+  }
+
+  // select, input {
+  //   width: 100%;
+  //   margin: 12px 0;
+
+  // }
+
+
+  // .select-container {
+  //   width: 100%;
+  //   height: $configElmHeight;
+  //   display: inline;
+  //   text-align: left;
+  //   float: right;
+  //   clear: both;
+
+  //   label {
+  //     //display: inline-block;
+  //     //width: 66%;
+  //     //float: left;
+  //     //padding-right: 20px;
+  //   }
+
+  //   select, input {
+  //     display: block;
+  //     height: $configElmHeight;
+  //     margin-top: 0px;
+  //     //margin-left: 10%;
+  //     width: auto;
+  //     float: right;
+  //   }
+
+  //   input {
+  //     max-width: 30%;
+  //   }
+  // }
+
+  // #recBtn, #sound-onoff, #intensity-onoff {
+  //   height: $recHeight;
+  // }
+
+  // #recBtn.active, #recBtn.armed.active {
+  //   background-color: #d00;
+  // }
+
+  // #recBtn.armed {
+  //   background-color: #d77;
+  // }
+
+  // ------------------------------------------------
+  // input {
+  //   padding-left: 10px;
+
+  // }
+
+  // button {
+  //   border: 0px;
+  //   background-color: #def;
+  //   font-size: 1.6em;
+
+  //   width: 100%;
+  //   height: $elmHeight;
+  //   margin-top: $eltTopMargin;
+  //   margin-bottom: $eltBottomMargin;
+
+  //   border-radius: $btnBorderRadius;
+  //   -moz-border-radius: $btnBorderRadius;
+  //   -webkit-border-radius: $btnBorderRadius;
+  // }
+
+  // .toggleDiv, .select-container, .triggerDiv {
+  //   white-space: nowrap;
+  //   height: $elmHeight;
+  //   line-height: $elmHeight;
+  //   margin-top: $eltTopMargin;
+  //   margin-bottom: $eltBottomMargin;
+  // }
+
+  // .toggleDiv, .triggerDiv {
+  //   float: left;
+  //   clear: both;
+  // }
+
+  // .toggleBtn, .triggerBtn {
+  //   display: block;
+  //   text-align: center;
+  //   width: $elmHeight;
+  //   height: $elmHeight;
+  //   margin-right: 12px;
+  //   float: left;
+  // }
+
+  // .toggleBtn.active:before {
+  //   display: block;
+  //   // position: absolute;
+  //   padding: 0 0;
+  //   top: 0px;
+  //   left: 0px;
+  //   content: 'X';
+  // }
 
   .triggerBtn.active:before {
     background-color: #00f; //if we want to make it blink
-  }
-
-  #recBtn, #sound-onoff, #intensity-onoff {
-    height: $recHeight;
-  }
-
-  #recBtn.active, #recBtn.armed.active {
-    background-color: #d00;
-  }
-
-  #recBtn.armed {
-    background-color: #d77;
   }
 
   #sound-onoff.active, #intensity-onoff.active {
@@ -296,14 +373,14 @@ $maxWidth: 800px;
   .audioDiv {
     float: left;
     width: 100%;
-    height: $eltHeight;
+    height: $elmHeight;
     // clear: both;
   }
 
   #audioSliderDiv {
     display: flex;
-    height: $eltHeight;
-    line-height: $eltHeight;
+    height: $elmHeight;
+    line-height: $elmHeight;
   }
 
   input[type=range] {

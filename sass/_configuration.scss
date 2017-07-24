@@ -7,16 +7,21 @@ $foregroundColor: #ffffff;
 $textColor: rgba(255, 255, 255, 0.9);
 $borderSize: 1px;
 $borderRadius: 2px;
-$mainFont: Quicksand, arial, sans-serif;
 $loadingProgressBarHeight: 10px;
 
 // -----------------------------------------------------------------
 // IMPORTS FONTS
 // -----------------------------------------------------------------
 
-@include font-face('Quicksand', 100, 'Quicksand-Light');
-@include font-face('Quicksand', 400, 'Quicksand-Regular');
-@include font-face('Quicksand', 700, 'Quicksand-Bold');
+// @include font-face('Quicksand', 100, 'Quicksand-Light');
+// @include font-face('Quicksand', 400, 'Quicksand-Regular');
+// @include font-face('Quicksand', 700, 'Quicksand-Bold');
+
+@include font-face('Lato', 100, 'Lato-Hairline');
+@include font-face('Lato', 400, 'Lato-Light');
+@include font-face('Lato', 700, 'Lato-Bold');
+
+$mainFont: Lato, arial, sans-serif;
 
 
 // -----------------------------------------------------------------

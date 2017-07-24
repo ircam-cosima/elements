@@ -1,18 +1,18 @@
-import { Experience } from 'soundworks/server';
-import { Login } from './services/Login';
-import ModelsRetriever from './shared/ModelsRetriever';
-import xmm from 'xmm-node';
 import fs from 'fs';
+import xmm from 'xmm-node';
+import { Experience } from 'soundworks/server';
+import ModelsRetriever from './shared/ModelsRetriever';
+import SimpleLogin from './shared/services/SimpleLogin';
 
 // server-side 'designer' experience.
-export default class DesignerExperience extends Experience {
+class DesignerExperience extends Experience {
   constructor(clientType) {
     super(clientType);
 
-    this.checkin = this.require('checkin');
+    // this.checkin = this.require('checkin');
     this.sharedConfig = this.require('shared-config');
     this.audioBufferManager = this.require('audio-buffer-manager');
-    this.login = this.require('login');
+    this.login = this.require('simple-login');
 
     this.xmms = new Map();
   }
@@ -34,12 +34,12 @@ export default class DesignerExperience extends Experience {
   }
 
   _getModel(client) {
-    const username = client.activities['service:login'].username;
+    const uuid = client.activities['service:login'].user.uuid;
 
     let set = {};
     try {
       set = JSON.parse(fs.readFileSync(
-        `./public/exports/sets/${username}TrainingSet.json`,
+        `./public/exports/sets/${uuid}TrainingSet.json`,
         'utf-8'
       ));
     } catch (e) {
@@ -51,7 +51,7 @@ export default class DesignerExperience extends Experience {
     let config = {};
     try {
       config = JSON.parse(fs.readFileSync(
-        `./public/exports/configs/${username}ModelConfig.json`,
+        `./public/exports/configs/${uuid}ModelConfig.json`,
         'utf-8'
       ));
     } catch (e) {
@@ -90,18 +90,14 @@ export default class DesignerExperience extends Experience {
       const cmd = args.cmd;
 
       switch (cmd) {
-        case 'label': {
+        case 'label':
           this.xmms[client].removePhrasesOfLabel(args.data);
-        }
-        break;
-
-        case 'model': {
+          break;
+        case 'model':
           this.xmms[client].clearTrainingSet();
-        }
-        break;
-
+          break;
         default:
-        break;
+          break;
       }
 
       this._updateModelAndSet(client);
@@ -109,23 +105,23 @@ export default class DesignerExperience extends Experience {
   }
 
   _updateModelAndSet(client) {
-    const username = client.activities['service:login'].username;
+    const uuid = client.activities['service:login'].user.uuid;
 
     this.xmms[client].train((err, model) => {
       fs.writeFileSync(
-       `./public/exports/sets/${username}TrainingSet.json`,
+       `./public/exports/sets/${uuid}TrainingSet.json`,
        JSON.stringify(this.xmms[client].getTrainingSet(), null, 2),
        'utf-8'
       );
 
       fs.writeFileSync(
-       `./public/exports/configs/${username}ModelConfig.json`,
+       `./public/exports/configs/${uuid}ModelConfig.json`,
        JSON.stringify(this.xmms[client].getConfig(), null, 2),
        'utf-8'
       );
 
       fs.writeFileSync(
-       `./public/exports/models/${username}Model.json`,
+       `./public/exports/models/${uuid}Model.json`,
        JSON.stringify(this.xmms[client].getModel(), null, 2),
        'utf-8'
       );
@@ -135,6 +131,8 @@ export default class DesignerExperience extends Experience {
       ModelsRetriever.getModels((err, models) => {
         this.broadcast('player', null, 'models', models);
       });
-    });    
+    });
   }
 }
+
+export default DesignerExperience;
