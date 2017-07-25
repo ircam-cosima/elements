@@ -44,7 +44,6 @@ class SimpleLogin extends Service {
 
     this.receive('login-ack', this._onLoginAck);
     this.receive('login-error', this._onLoginError);
-    this.receive('confirm-ack', this._onConfirmAck);
     this.receive('logout-ack', this._onLogoutAck);
 
     const user = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
@@ -67,7 +66,6 @@ class SimpleLogin extends Service {
 
     this.stopReceiving('login-ack', this._onLoginAck);
     this.stopReceiving('login-error', this._onLoginError);
-    this.stopReceiving('confirm-ack', this._onConfirmAck);
     this.stopReceiving('logout-ack', this._onLogoutAck);
 
     this.hide();
@@ -84,6 +82,7 @@ class SimpleLogin extends Service {
 
   // server ack that username is available
   _onLoginAck(user) {
+    console.log(user);
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(user));
 
     this.user = user;
@@ -107,6 +106,7 @@ class SimpleLogin extends Service {
 	}
 
 	_onLogoutAck() {
+    console.log('logout');
     localStorage.removeItem(LOCAL_STORAGE_KEY);
 
     this.user = null;

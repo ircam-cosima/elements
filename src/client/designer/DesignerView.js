@@ -68,6 +68,11 @@ const viewTemplate = `
         <label class="text-container">Off Delay:
           <input id="off-delay" type="number" value="<%= record.offDelay %>" />
         </label>
+
+        <h2>User</h2>
+
+        <button class="btn" id="persist-user">persist user</button>
+        <button class="btn" id="delete-user">delete user</button>
       </div>
     </section>
 
@@ -110,11 +115,13 @@ class DesignerView extends CanvasView {
   constructor(content, events, options) {
     super(viewTemplate, content, events, options);
 
-    this._configUpdateCallback = null;
-    this._clearLabelCallback = null;
-    this._clearModelCallback = null;
-    this._muteCallback = null;
-    this._recordCallback = null;
+    this._configUpdateCallback = () => {};
+    this._clearLabelCallback = () => {};
+    this._clearModelCallback = () => {};
+    this._muteCallback = () => {};
+    this._recordCallback = () => {};
+    this._persistUserCallback = () => {};
+    this._deleteUserCallback = () => {};
 
     this.installEvents({
       'touchstart #rec-btn': () => {
@@ -190,6 +197,8 @@ class DesignerView extends CanvasView {
 
         this._muteCallback(!active);
       },
+      'touchstart #persist-user': () => this._persistUserCallback(),
+      'touchstart #delete-user': () => this._deleteUserCallback(),
     });
   }
 
@@ -313,6 +322,14 @@ class DesignerView extends CanvasView {
 
   setMuteCallback(callback) {
     this._muteCallback = callback;
+  }
+
+  setPersistUserCallback(callback) {
+    this._persistUserCallback = callback;
+  }
+
+  setDeleteUserCallback(callback) {
+    this._deleteUserCallback = callback;
   }
 };
 

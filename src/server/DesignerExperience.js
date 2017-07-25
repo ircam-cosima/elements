@@ -24,19 +24,19 @@ class DesignerExperience extends Experience {
   enter(client) {
     super.enter(client);
 
-    designerStore.add(client.activities['service:login'].user);
-
     this._getModel(client);
 
     this.receive(client, 'configuration', this._onNewConfig(client));
     this.receive(client, 'phrase', this._onNewPhrase(client));
     this.receive(client, 'clear', this._onClearOperation(client));
+    this.receive(client, 'persist-user', this._onPersistUser(client));
+    this.receive(client, 'delete-user', this._onDeleteUser(client));
   }
 
   exit(client) {
     // @todo - define the expected behavior
     // const user = client.activities['service:login'].user;
-    // designerStore.delete(user);
+    // designerStore.remove(user);
     // this.comm.emit('models-updated');
 
     this.xmms.delete(client);
@@ -122,6 +122,22 @@ class DesignerExperience extends Experience {
 
       this.comm.emit('models-updated');
     });
+  }
+
+  _onPersistUser(client) {
+    return () => {
+      const user = client.activities['service:login'].user;
+      designerStore.persist(user);
+    }
+  }
+
+  _onDeleteUser(client) {
+    return () => {
+      const user = client.activities['service:login'].user;
+      console.log('delete');
+      designerStore.delete(user);
+      console.log('delete after');
+    }
   }
 }
 

@@ -1,8 +1,10 @@
 import { Service, serviceManager } from 'soundworks/server';
+import designerStore from '../designerStore';
 import uuidv4 from 'uuid/v4';
 
 const SERVICE_ID = 'service:simple-login';
 
+let _user;
 
 class SimpleLogin extends Service {
   constructor() {
@@ -39,17 +41,18 @@ class SimpleLogin extends Service {
   /** @private */
   _onLogin(client) {
     return (username) => {
-      const index = Object.keys(this.users).indexOf(username);
-      const exists = (index !== -1) ? true : false;
+      let user = designerStore.getConnectedUserByUsername(username);
 
-      if (!exists) {
-        const user = {
-          name: username,
-          uuid: uuidv4(),
-        };
+      if (user === null) {
+        user = designerStore.getPersistedUserByUsername(username);
+
+        if (user === null)
+          user = { name: username, uuid: uuidv4() };
 
         client.activities['service:login'].user = user;
-        this.users[username] = user;
+        designerStore.add(user);
+
+        _user = user;
 
         this.send(client, 'login-ack', user);
       } else {
@@ -61,14 +64,22 @@ class SimpleLogin extends Service {
   /** @private */
   _onConfirm(client) {
     return (user) => {
-      const registeredUser = this.users[user.name];
+      const connectedUser = designerStore.getConnectedUserByUsername(user.name);
 
-      if (
-          registeredUser === undefined ||
-          (user.name === registeredUser.name && user.uuid === registeredUser.uuid)
-      ) {
+      if (connectedUser === null) {
+        const persistedUser = designerStore.getPersistedUserByUsername(user.name);
+
+        if (persistedUser)
+          user = persistedUser;
+
         client.activities['service:login'].user = user;
-        this.users[user.name] = user;
+        designerStore.add(user);
+
+        this.send(client, 'login-ack', user);
+      } else if (user.name === connectedUser.name && user.uuid === connectedUser.uuid) {
+        user = connectedUser;
+        client.activities['service:login'].user = user;
+        designerStore.add(user);
 
         this.send(client, 'login-ack', user);
       } else {
@@ -81,7 +92,7 @@ class SimpleLogin extends Service {
   _onLogout(client) {
     return (user) => {
       client.activities['service:login'].user = null;
-      delete this.users[user.name];
+      designerStore.remove(user);
 
       this.send(client, 'logout-ack');
     };

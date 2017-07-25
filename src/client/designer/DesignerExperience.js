@@ -45,6 +45,9 @@ class DesignerExperience extends soundworks.Experience {
     this._motionCallback = this._motionCallback.bind(this);
     this._intensityCallback = this._intensityCallback.bind(this);
     this._mute = this._mute.bind(this);
+
+    this._persistUser = this._persistUser.bind(this);
+    this._deleteUser = this._deleteUser.bind(this);
   }
 
   start() {
@@ -72,6 +75,8 @@ class DesignerExperience extends soundworks.Experience {
     this.view.setClearLabelCallback(this._onClearLabel);
     this.view.setClearModelCallback(this._onClearModel);
     this.view.setMuteCallback(this._mute);
+    this.view.setPersistUserCallback(this._persistUser);
+    this.view.setDeleteUserCallback(this._deleteUser);
 
     // rendering
     this.renderer = new LikelihoodsRenderer(this.view);
@@ -245,6 +250,14 @@ class DesignerExperience extends soundworks.Experience {
 
   _mute(mute) {
     this.audioEngine.mute = mute;
+  }
+
+  _persistUser() {
+    this.send('persist-user');
+  }
+
+  _deleteUser() {
+    this.send('delete-user');
   }
 };
 

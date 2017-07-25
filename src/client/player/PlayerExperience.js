@@ -166,24 +166,25 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   _onReceiveModels(models) {
-    this.models = models;
-
-    this.view.model.models = this.models;
-    this.view.render('.select-container');
-
     const uuids = Object.keys(models);
-    const index = uuids.indexOf(this.currentModelId);
 
-    // @todo - review that
-    if (this.currentModelId && index !== -1)
-      this.currentModelId = uuids[index];
-    else
-      this.currentModelId = uuids[0];
+    if (uuids.length > 0) {
+      this.models = models;
+      this.view.model.models = this.models;
+      this.view.render('.select-container');
 
-    this.view.setModelItem(this.currentModelId);
+      const index = uuids.indexOf(this.currentModelId);
 
-    const model = this.models[this.currentModelId].model;
-    this.xmmDecoder.params.set('model', model);
+      if (this.currentModelId && index !== -1)
+        this.currentModelId = uuids[index];
+      else
+        this.currentModelId = uuids[0];
+
+      this.view.setModelItem(this.currentModelId);
+
+      const model = this.models[this.currentModelId].model;
+      this.xmmDecoder.params.set('model', model);
+    }
   }
 
   _onModelFilter(res) {

@@ -30,7 +30,7 @@ class PlayerExperience extends Experience {
     super.exit(client);
   }
 
-  _onModelsUpdate(designers) {
+  _onModelsUpdate() {
     const designers = designerStore.getList();
     const models = xmmStore.getModelByUsers(designers);
 
