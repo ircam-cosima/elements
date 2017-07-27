@@ -4,43 +4,45 @@ const audioContext = soundworks.audioContext;
 
 // simple moving average filter to smooth energy input
 class MvAvrg {
-	constructor() {
-		this.value = 0;
+  constructor() {
+    this.value = 0;
     this.avgFilterSize = 20;
-		this.filterIndex = 0;
+    this.filterIndex = 0;
 
     this.avgFilter = new Float32Array(this.avgFilterSize);
-    this.avgFilter.fill(0);
-	}
+    for (let i = 0; i < this.avgFilterSize; i++) {
+      this.avgFilter[i] = 0;
+    }
+  }
 
-	filter(value) {
-		this.value = value;
-		// apply filter on the time progression :
-		this.avgFilter[this.filterIndex] = value;
+  filter(value) {
+    this.value = value;
+    // apply filter on the time progression :
+    this.avgFilter[this.filterIndex] = value;
 
-		let filteredValue = 0;
+    let filteredValue = 0;
 
-		for (let i = 0; i < this.avgFilterSize; i++)
-			filteredValue += this.avgFilter[i];
+    for (let i = 0; i < this.avgFilterSize; i++)
+      filteredValue += this.avgFilter[i];
 
 
     filteredValue /= this.avgFilterSize;
-		this.filterIndex = (this.filterIndex + 1) % this.avgFilterSize;
+    this.filterIndex = (this.filterIndex + 1) % this.avgFilterSize;
 
-		return filteredValue;
-	}
+    return filteredValue;
+  }
 
-	reset() {
-		for (var i = 0; i < this.avgFilterSize; i++)
-			this.avgFilter[i] = this.value;
-	}
+  reset() {
+    for (var i = 0; i < this.avgFilterSize; i++)
+      this.avgFilter[i] = this.value;
+  }
 }
 
 //========================= the audio engine class : =========================//
 
 class AudioEngine {
-	constructor(classes) {
-		this._fadeInTime = 0.5;
+  constructor(classes) {
+    this._fadeInTime = 0.5;
     this._fadeOutTime = 1;
 
     this.labels = Object.keys(classes);
@@ -59,7 +61,7 @@ class AudioEngine {
     this.mvAvrg = new MvAvrg();
 
     this.mute = false;
-	}
+  }
 
   set mute(mute) {
     const now = audioContext.currentTime;
@@ -71,22 +73,22 @@ class AudioEngine {
     this.muteNode.gain.linearRampToValueAtTime(val, now + 1);
   }
 
-	start() {
+  start() {
     this.fades = [];
     for (let i = 0; i < this.labels.length; i++) {
-    	const src = audioContext.createBufferSource();
-    	src.buffer = this.buffers[this.labels[i]];
+      const src = audioContext.createBufferSource();
+      src.buffer = this.buffers[this.labels[i]];
 
-    	const fade = audioContext.createGain();
+      const fade = audioContext.createGain();
 
-    	src.connect(fade);
-    	fade.connect(this.muteNode);
+      src.connect(fade);
+      fade.connect(this.muteNode);
 
-    	fade.gain.value = 0;
-    	src.loop = true;
-    	src.start(audioContext.currentTime);
+      fade.gain.value = 0;
+      src.loop = true;
+      src.start(audioContext.currentTime);
 
-    	this.fades.push(fade);
+      this.fades.push(fade);
     }
 
     this.gainNode.gain.value = 0;
@@ -94,7 +96,7 @@ class AudioEngine {
     this.master.gain.value = 1;
 
     this.fadeToNewSound(-1);
-	}
+  }
 
   fadeToNewSound(index) {
     const now = audioContext.currentTime;
@@ -114,7 +116,7 @@ class AudioEngine {
   }
 
   setMasterVolume(volVal) {
-  	this.master.gain.setValueAtTime(volVal, audioContext.currentTime);
+    this.master.gain.setValueAtTime(volVal, audioContext.currentTime);
   }
 
   setGainFromIntensity(value) {
