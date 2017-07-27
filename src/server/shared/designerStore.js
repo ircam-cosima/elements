@@ -49,12 +49,15 @@ const designerStore = {
       if (user.name === connectedUser.name && user.uuid === connectedUser.uuid)
         this.connectedUsers.delete(connectedUser);
     });
-
-    console.log('delete', this.connectedUsers.size);
   },
 
   getList() {
-    return this.connectedUsers;
+    const list = new Set();
+
+    this.persistedUsers.forEach(user => list.add(user));
+    this.connectedUsers.forEach(user => list.add(user));
+
+    return list;
   },
 
   //
