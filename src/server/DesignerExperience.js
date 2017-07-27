@@ -76,7 +76,7 @@ class DesignerExperience extends Experience {
 
       // as type may change we create a new xmm instance
       const newXmm = new Xmm(type, config);
-      newXmm.setTraininSet(trainingSet);
+      newXmm.setTrainingSet(trainingSet);
       // replace old instance with new instance
       this.xmms.set(client, newXmm);
 
