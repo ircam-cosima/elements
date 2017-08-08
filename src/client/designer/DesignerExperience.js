@@ -178,11 +178,12 @@ class DesignerExperience extends soundworks.Experience {
     this.view.stopRecording();
     this.autoTrigger.setState('off');
 
+    const phrase = this.phraseRecorder.getRecordedPhrase();
+    if (phrase.length === 0) return;
+
     this.view.confirm('send').then(() => {
       const label = this.view.getCurrentLabel();
       this.phraseRecorder.setPhraseLabel(label);
-
-      const phrase = this.phraseRecorder.getRecordedPhrase();
 
       this.send('phrase', { cmd: 'add', data: phrase });
     }).catch((err) => {
