@@ -26,11 +26,11 @@ export default {
   // define from where the assets (static files) should be loaded, these value
   // could also refer to a separate server for scalability reasons. This value
   // should also be used client-side to configure the `audio-buffer-manager` service.
-  // assetsDomain: '/',
-  assetsDomain: '/apps/elements/',
+  assetsDomain: '/',
+  // assetsDomain: '/apps/elements/',
 
   // port used to open the http server, in production this value is typically 80
-  port: 9000,
+  port: 8000,
 
 
   // define if the server should use gzip compression for static files
@@ -60,8 +60,8 @@ export default {
   websockets: {
     // url: '',
     transports: ['websocket'],
-    // path: ''
-    path: '/apps/elements/socket.io',
+    path: ''
+    // path: '/apps/elements/socket.io',
     // @note: EngineIO defaults
     // pingTimeout: 3000,
     // pingInterval: 1000,
