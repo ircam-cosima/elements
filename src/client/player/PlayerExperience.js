@@ -57,7 +57,7 @@ class PlayerView extends soundworks.View {
 
         this._intensityCallback(!active);
       },
-      'change #model-select': () => {
+      'change #select-model': () => {
         const value = this.$selectModel.value;
         this._modelChangeCallback(value);
       },
@@ -203,7 +203,8 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   _onModelChange(value) {
-    const model = this.models[this.currentModelId].model;
+    console.log(value);
+    const model = this.models[value].model;
 
     this.currentModelId = value;
     this.xmmDecoder.params.set('model', model);
