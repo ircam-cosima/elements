@@ -90,10 +90,10 @@ class DesignerExperience extends soundworks.Experience {
       description: ['accelGravX', 'accelGravY', 'accelGravZ'], // 'gyrAlpha', 'gyrBeta', 'gyrGamma']
     });
 
-    this.featurizer = new FeaturizerLfo({
-      descriptors: [ 'accIntensity' ],
-      callback: this._intensityCallback
-    });
+    // this.featurizer = new FeaturizerLfo({
+    //   descriptors: [ 'accIntensity' ],
+    //   callback: this._intensityCallback
+    // });
 
     this.phraseRecorder = new PhraseRecorderLfo({
       columnNames: ['accelGravX', 'accelGravY', 'accelGravZ'],
@@ -102,12 +102,13 @@ class DesignerExperience extends soundworks.Experience {
 
     this.onOffDecoder = new lfo.operator.OnOff();
     this.onOffDecoder.setState('on');
+
     this.xmmDecoder = new XmmDecoderLfo({
       likelihoodWindow: 20,
       callback: this._onModelFilter
     });
 
-    this.devicemotionIn.connect(this.featurizer);
+    // this.devicemotionIn.connect(this.featurizer);
     this.devicemotionIn.connect(this.phraseRecorder);
     this.devicemotionIn.connect(this.onOffDecoder);
     this.onOffDecoder.connect(this.xmmDecoder);

@@ -60,7 +60,6 @@ const designerStore = {
     return list;
   },
 
-  //
   getConnectedUserByUsername(username) {
     let user = null;
 
@@ -82,12 +81,6 @@ const designerStore = {
 
     return user;
   },
-
-  // save user in some json that should be loaded by the designer experience
-  // and / or given to the login service
-  // persist(user) {}
-
-
 };
 
 designerStore.init();
