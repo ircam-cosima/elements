@@ -15,4 +15,7 @@ const sounds = {
   silence: 'sounds/silence.mp3',
 };
 
-export { sounds };
+// const trainingUrl = 'https://como.ircam.fr/api/v1/train';
+const trainingUrl = '/train';
+
+export { sounds, trainingUrl };

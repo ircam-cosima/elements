@@ -5,10 +5,10 @@ import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
 import AudioEngine from '../shared/AudioEngine';
 import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 import DesignerView from './DesignerView';
-import FeaturizerLfo from '../shared/FeaturizerLfo';
+import * as imlMotion from 'iml-motion';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
 import SimpleLogin from '../shared/services/SimpleLogin';
-import { sounds } from  '../shared/config';
+import { sounds, trainingUrl } from  '../shared/config';
 
 const audioContext = soundworks.audioContext;
 
@@ -37,13 +37,13 @@ class DesignerExperience extends soundworks.Experience {
     this._onRecord = this._onRecord.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
     this._onClearModel = this._onClearModel.bind(this);
-    this._onReceiveModel = this._onReceiveModel.bind(this);
-    this._onModelFilter = this._onModelFilter.bind(this);
+    this._onNewTrainingData = this._onNewTrainingData.bind(this);
 
     this._startRecording = this._startRecording.bind(this);
     this._stopRecording = this._stopRecording.bind(this);
-    this._motionCallback = this._motionCallback.bind(this);
-    this._intensityCallback = this._intensityCallback.bind(this);
+    this._feedDecoder = this._feedDecoder.bind(this);
+    this._feedRecorder = this._feedRecorder.bind(this);
+    this._feedIntensity = this._feedIntensity.bind(this);
     this._mute = this._mute.bind(this);
 
     this._persistUser = this._persistUser.bind(this);
@@ -54,8 +54,8 @@ class DesignerExperience extends soundworks.Experience {
     super.start(); // don't forget this
 
     const autoTriggerDefaults = {
-      highThreshold: 0.7,
-      lowThreshold: 0.2,
+      highThreshold: 0.5,
+      lowThreshold: 0.01,
       offDelay: 500,
     }
 
@@ -80,38 +80,47 @@ class DesignerExperience extends soundworks.Experience {
 
     // rendering
     this.renderer = new LikelihoodsRenderer(this.view);
+
+    // audio engine
     this.audioEngine = new AudioEngine(this.audioBufferManager.data);
 
-    // lfo chain
-    this.devicemotionIn = new lfo.source.EventIn({
+    // preprocessing
+    this.preProcess = new imlMotion.ProcessedSensors();
+
+    // LFOs
+    this.eventIn = new lfo.source.EventIn({
+      frameRate: this.preProcess.frameRate,
+      frameSize: 8,
       frameType: 'vector',
-      frameSize: 3, // 6,
-      frameRate: 1, // this.motionInput.period doesn't seem available anymore
-      description: ['accelGravX', 'accelGravY', 'accelGravZ'], // 'gyrAlpha', 'gyrBeta', 'gyrGamma']
+    });
+    this.decoderOnOff = new lfo.operator.OnOff({ state: 'on' });
+    this.decoderBridge = new lfo.sink.Bridge({
+      processFrame: frame => this._feedDecoder(frame.data),
+    });
+    this.recorderBridge = new lfo.sink.Bridge({
+      processFrame: frame => this._feedRecorder(frame.data),
+    });
+    this.intensitySelect = new lfo.operator.Select({ index: 0 });
+    this.intensityBridge = new lfo.sink.Bridge({
+      processFrame: frame => this._feedIntensity(frame.data[0]),
     });
 
-    // this.featurizer = new FeaturizerLfo({
-    //   descriptors: [ 'accIntensity' ],
-    //   callback: this._intensityCallback
-    // });
+    this.preProcess.addListener(data => this.eventIn.process(null, data));
 
-    this.phraseRecorder = new PhraseRecorderLfo({
-      columnNames: ['accelGravX', 'accelGravY', 'accelGravZ'],
-                     // 'rotAlpha', 'rotBeta', 'rotGamma']
+    this.eventIn.connect(this.decoderOnOff);
+    this.decoderOnOff.connect(this.decoderBridge);
+    this.eventIn.connect(this.recorderBridge);
+    this.eventIn.connect(this.intensitySelect);
+    this.intensitySelect.connect(this.intensityBridge);
+
+    // recording and decoding
+    this.trainingData = new imlMotion.TrainingData();
+    this.xmmDecoder = new imlMotion.XmmProcessor({
+      url: trainingUrl,
     });
-
-    this.onOffDecoder = new lfo.operator.OnOff();
-    this.onOffDecoder.setState('on');
-
-    this.xmmDecoder = new XmmDecoderLfo({
+    this.xmmDecoder.setConfig({
       likelihoodWindow: 20,
-      callback: this._onModelFilter
-    });
-
-    // this.devicemotionIn.connect(this.featurizer);
-    this.devicemotionIn.connect(this.phraseRecorder);
-    this.devicemotionIn.connect(this.onOffDecoder);
-    this.onOffDecoder.connect(this.xmmDecoder);
+    })
 
     this.autoTrigger = new AutoMotionTrigger({
       highThreshold: autoTriggerDefaults.highThreshold,
@@ -121,24 +130,38 @@ class DesignerExperience extends soundworks.Experience {
       stopCallback: this._stopRecording,
     });
 
-    this.receive('model', this._onReceiveModel);
+    this.receive('training-data', this._onNewTrainingData);
 
     this.show().then(() => {
-      this.devicemotionIn.start();
-
-      // init rendering
       this.view.addRenderer(this.renderer);
       this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
 
       this.audioEngine.start();
 
-      if (this.motionInput.isAvailable('devicemotion'))
-        this.motionInput.addListener('devicemotion', this._motionCallback);
+      Promise.all([this.eventIn.init(), this.preProcess.init()])
+        .then(() => {
+          // start graphs
+          this.preProcess.start();
+          this.eventIn.start();
+        })
+        .catch(err => console.error(err.stack));
     });
   }
 
-  _onConfigUpdate(type, xmmConfig, recordConfig) {
-    this.send('configuration', { type: type, config: xmmConfig });
+  _onNewTrainingData(trainingData) {
+    if (trainingData.config !== null)
+      this.xmmDecoder.setConfig(trainingData.config);
+
+    if (trainingData.trainingSet !== null) {
+      this.trainingData.setTrainingSet(trainingData.trainingSet);
+
+      this._updateModelAndSet(false);
+    }
+  }
+
+  _onConfigUpdate(xmmConfig, recordConfig) {
+    this.xmmDecoder.setConfig(xmmConfig);
+    this._updateModelAndSet();
 
     this.autoTrigger.highThreshold = recordConfig.highThreshold;
     this.autoTrigger.lowThreshold = recordConfig.lowThreshold;
@@ -159,75 +182,46 @@ class DesignerExperience extends soundworks.Experience {
   _startRecording() {
     // set to play currently selected sound by interrupting recognition
     // and forcing current label
-    this.onOffDecoder.setState('off');
+    this.decoderOnOff.setState('off');
 
     this.likeliest = this.view.getCurrentLabel();
     const labelIndex = this.labels.indexOf(this.likeliest);
     this.audioEngine.fadeToNewSound(labelIndex);
 
     // start recording
-    this.phraseRecorder.start();
+    this.trainingData.startRecording(this.likeliest);
     this.view.startRecording();
   }
 
   _stopRecording() {
     // stop recording
-    this.phraseRecorder.stop();
+    this.trainingData.stopRecording();
     // enable recognition back
-    this.onOffDecoder.setState('on');
+    this.decoderOnOff.setState('on');
 
     this.view.stopRecording();
     this.autoTrigger.setState('off');
 
     this.view.confirm('send').then(() => {
-      const label = this.view.getCurrentLabel();
-      this.phraseRecorder.setPhraseLabel(label);
-      const phrase = this.phraseRecorder.getRecordedPhrase();
-
-      if (phrase.length === 0)
-        return;
-
-      this.send('phrase', { cmd: 'add', data: phrase });
+      this._updateModelAndSet();
+    }, () => { // if cancelled (reject)
+      this.trainingData.deleteRecording(this.trainingData.length - 1);
     }).catch((err) => {
       if (err instanceof Error)
         console.error(err.stack)
     });
   }
 
-  _onClearLabel(label) {
-    // @todo - crashes the server when no label to clear
-    this.view.confirm('clear-label', label).then(() => {
-      this.send('clear', { cmd: 'label', data: label });
-    }).catch(() => {});
+  _feedRecorder(data) {
+    this.trainingData.addElement(data);
   }
 
-  _onClearModel() {
-    this.view.confirm('clear-all').then(() => {
-      this.send('clear', { cmd: 'model' });
-    }).catch(() => {});
-  }
+  _feedDecoder(data) {
+    const results = this.xmmDecoder.run(data);
 
-  _motionCallback(eventValues) {
-    const values = eventValues.slice(0, 3);
-    this.devicemotionIn.process(audioContext.currentTime, values);
-  }
-
-  _onReceiveModel(model) {
-    const config = model ? model.configuration.default_parameters : {};
-    config.modelType = config.states ? 'hhmm' : 'gmm';
-    this.view.setConfig(config);
-
-    const currentLabels = model.models.map(model => model.label);
-    this.view.setCurrentLabels(currentLabels);
-
-    this.xmmDecoder.params.set('model', model);
-  }
-
-  _onModelFilter(results) {
     const likelihoods = results ? results.likelihoods : [];
     const likeliest = results ? results.likeliestIndex : -1;
-    const label = results ? results.likeliest : null;
-    // const alphas = results ? results.alphas : [[]];
+    const label = results ? results.likeliest : 'unknown';
 
     const formattedResults = {
       label: label,
@@ -246,9 +240,51 @@ class DesignerExperience extends soundworks.Experience {
     }
   }
 
-  _intensityCallback(values) {
-    this.autoTrigger.push(values[0]);
-    this.audioEngine.setGainFromIntensity(values[0]);
+  _feedIntensity(value) {
+    this.autoTrigger.push(value * 100);
+    this.audioEngine.setGainFromIntensity(value * 100);
+  }
+
+  _onClearLabel(label) {
+    this.view.confirm('clear-label', label).then(() => {
+      this.trainingData.deleteRecordingsOfLabel(label);
+      this._updateModelAndSet();
+    }).catch(() => {});
+  }
+
+  _onClearModel() {
+    this.view.confirm('clear-all').then(() => {
+      this.trainingData.clear();
+      this._updateModelAndSet();
+      this.send('clear');
+    }).catch(() => {});
+  }
+
+  _updateModelAndSet(persist = true) {
+    const trainingSet = this.trainingData.getTrainingSet();
+    this.xmmDecoder.train(trainingSet)
+      .then(response => {
+        const model = response.model;
+        const config = this.xmmDecoder.getConfig();
+        const currentLabels = model.payload.models.map(model => model.label);
+        const viewConfig = object.assign({}, config.payload, {
+          modelType: config.target.split(':')[1],
+        });
+
+        this.view.setConfig(viewConfig);
+        this.view.setCurrentLabels(currentLabels);
+
+        if (persist) {
+          const trainingSet = this.trainingData.getTrainingSet();
+
+          this.send('training-data', {
+            config: config,
+            trainingSet: trainingSet,
+            model: model,
+          });
+        }
+      })
+      .catch(err => console.error(err.stack));
   }
 
   _mute(mute) {

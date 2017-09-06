@@ -140,9 +140,9 @@ class DesignerView extends CanvasView {
           this.$overlay.classList.add('active');
         } else {
           const $el = this.$el;
-          const type = $el.querySelector('#model-select').value;
 
           const xmmConfig = {
+            type: $el.querySelector('#model-select').value,
             gaussians: parseFloat($el.querySelector('#gauss-select').value),
             covariance_mode: $el.querySelector('#cov-mode-select').value,
             absolute_regularization: parseFloat($el.querySelector('#abs-reg').value),
@@ -157,7 +157,7 @@ class DesignerView extends CanvasView {
             offDelay: Math.max(20, $el.querySelector('#off-delay').value),
           };
 
-          this._configCallback(type, xmmConfig, recordConfig);
+          this._configCallback(xmmConfig, recordConfig);
           this.$overlay.classList.remove('active');
         }
       },
@@ -257,9 +257,9 @@ class DesignerView extends CanvasView {
 
     $el.querySelector('#model-select').value = config.modelType;
     $el.querySelector('#gauss-select').value = config.gaussians;
-    $el.querySelector('#cov-mode-select').selectedIndex = config.covariance_mode;
-    $el.querySelector('#abs-reg').value = config.absolute_regularization;
-    $el.querySelector('#rel-reg').value = config.relative_regularization;
+    $el.querySelector('#cov-mode-select').selectedIndex = config.covarianceMode;
+    $el.querySelector('#abs-reg').value = config.absoluteRegularization;
+    $el.querySelector('#rel-reg').value = config.relativeRegularization;
     $el.querySelector('#states-select').value = config.states || 1;
     $el.querySelector('#trans-mode-select').selectedIndex = config.transition_mode || 0;
   }

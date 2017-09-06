@@ -11,7 +11,7 @@ const xmmStore = {
   getTrainingSet(user) {
     const uuid = user.uuid;
     const filename = path.join(basePath, 'sets', `${uuid}-training-set.json`);
-    let trainingSet = {};
+    let trainingSet = null;
 
     if (fs.existsSync(filename)) {
       const content = fs.readFileSync(filename);
@@ -24,7 +24,7 @@ const xmmStore = {
   getConfig(user) {
     const uuid = user.uuid;
     const filename = path.join(basePath, 'configs', `${uuid}-config.json`);
-    let config = {};
+    let config = null;
 
     if (fs.existsSync(filename)) {
       const content = fs.readFileSync(filename);
@@ -37,7 +37,7 @@ const xmmStore = {
   getModel(user) {
     const uuid = user.uuid;
     const filename = path.join(basePath, 'models', `${uuid}-model.json`);
-    let model = {};
+    let model = null;
 
     if (fs.existsSync(filename)) {
       const content = fs.readFileSync(filename);

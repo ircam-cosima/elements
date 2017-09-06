@@ -23,7 +23,9 @@
   },
   "dependencies": {
     "babel-runtime": "^6.6.1",
+    "body-parser": "^1.17.2",
     "debug": "^2.6.4",
+    "iml-motion": "github:ircam-rnd/iml-motion",
     "motion-features": "ircam-rnd/motion-features",
     "soundworks": "collective-soundworks/soundworks#v2.0.0",
     "source-map-support": "^0.4.0",
