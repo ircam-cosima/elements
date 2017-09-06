@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "babel-runtime": "^6.6.1",
+    "basic-controllers": "github:ircam-jstools/basic-controllers",
     "chalk": "^2.1.0",
     "debug": "^2.6.4",
     "motion-features": "ircam-rnd/motion-features",
