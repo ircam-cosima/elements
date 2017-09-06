@@ -11,16 +11,22 @@ import SimpleLogin from '../shared/services/SimpleLogin';
 import { sounds, trainingUrl } from  '../shared/config';
 
 const audioContext = soundworks.audioContext;
+const client = soundworks.client;
 
 class DesignerExperience extends soundworks.Experience {
-  constructor(assetsDomain) {
+  constructor(config) {
     super();
+
+    this.config = config;
+    this.labels = Object.keys(sounds);
+    this.likeliest = undefined;
+    this.isStreamingSensors = false;
 
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.login = this.require('simple-login');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
-      assetsDomain: assetsDomain,
+      assetsDomain: config.assetsDomain,
       files: sounds,
     });
 
@@ -28,10 +34,10 @@ class DesignerExperience extends soundworks.Experience {
       descriptors: ['devicemotion']
     });
 
-    this.labels = Object.keys(sounds);
-    this.likeliest = undefined;
+    // stream sensors
+    if (config.env !== 'production')
+      this.rawSocket = this.require('raw-socket');
 
-    this.assetsDomain = assetsDomain;
 
     this._onConfigUpdate = this._onConfigUpdate.bind(this);
     this._onRecord = this._onRecord.bind(this);
@@ -53,6 +59,12 @@ class DesignerExperience extends soundworks.Experience {
   start() {
     super.start(); // don't forget this
 
+    if (this.config.env !== 'production' &&
+        client.urlParams &&
+        client.urlParams[0] === 'stream') {
+      this.isStreamingSensors = true;
+    }
+
     const autoTriggerDefaults = {
       highThreshold: 0.5,
       lowThreshold: 0.01,
@@ -61,7 +73,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.view = new DesignerView({
         sounds: sounds,
-        assetsDomain: this.assetsDomain,
+        assetsDomain: this.config.assetsDomain,
         record: autoTriggerDefaults,
       }, {}, {
         preservePixelRatio: true,
@@ -115,6 +127,14 @@ class DesignerExperience extends soundworks.Experience {
 
     this.xmmDecoder = new imlMotion.XmmProcessor({ url: trainingUrl });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
+
+    if (this.isStreamingSensors) {
+      const bridge = new lfo.sink.Bridge({
+        processFrame: frame => this.rawSocket.send('sensors', frame.data),
+      });
+
+      this.devicemotionIn.connect(bridge);
+    }
 
     this.autoTrigger = new AutoMotionTrigger({
       highThreshold: autoTriggerDefaults.highThreshold,

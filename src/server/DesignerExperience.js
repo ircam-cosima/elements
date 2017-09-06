@@ -8,13 +8,20 @@ const cwd = process.cwd();
 
 // server-side 'designer' experience.
 class DesignerExperience extends Experience {
-  constructor(clientType, comm) {
+  constructor(clientType, comm, config) {
     super(clientType);
 
     this.comm = comm;
+    this.config = config;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.login = this.require('simple-login');
+
+    if (config.env !== 'production') {
+      this.rawSocket = this.require('raw-socket', {
+        protocol: { channel: 'sensors', type: 'Float32' },
+      });
+    }
 
     this.xmms = new Map(); // `set`, `get`, `delete`
   }
@@ -29,6 +36,14 @@ class DesignerExperience extends Experience {
     this.receive(client, 'training-data', this._onNewTrainingData(client));
     this.receive(client, 'persist-user', this._onPersistUser(client));
     this.receive(client, 'delete-user', this._onDeleteUser(client));
+
+    if (this.config.env !== 'production') {
+      // listen for client sensor streaming, the client is using `#stream`
+      this.rawSocket.receive(client, 'sensors', data => {
+        // send to visualizer experience
+        this.comm.emit('designer-sensors', data);
+      });
+    }
   }
 
   exit(client) {

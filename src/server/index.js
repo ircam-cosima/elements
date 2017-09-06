@@ -4,9 +4,13 @@ import path from 'path';
 import * as soundworks from 'soundworks/server';
 import PlayerExperience from './PlayerExperience';
 import DesignerExperience from './DesignerExperience';
+<<<<<<< HEAD
 import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'iml-motion/common';
 import xmm from 'xmm-node';
 import bodyParser from 'body-parser';
+=======
+import VisualizerExperience from './VisualizerExperience';
+>>>>>>> added visualizer, designer stream to visualizer, riot input
 
 const configName = process.env.ENV || 'default';
 const configPath = path.join(__dirname, 'config', configName);
@@ -41,8 +45,11 @@ server.setClientConfigDefinition((clientType, config, httpRequest) => {
 
 const comm = new EventEmitter();
 
-const designer = new DesignerExperience('designer', comm);
+const designer = new DesignerExperience('designer', comm, config);
 const player = new PlayerExperience('player', comm);
+
+if (config.env !== 'production')
+  const visualizer = new VisualizerExperience('visualizer', comm, config.osc);
 
 server.start();
 
