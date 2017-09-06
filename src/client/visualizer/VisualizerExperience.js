@@ -93,13 +93,33 @@ class VisualizerExperience extends soundworks.Experience {
       // controls
       // --------------------------------------------------
 
-      const testToggle = new controllers.Toggle({
-        label: 'enable x',
+      const xToggle = new controllers.Toggle({
+        label: 'enable X',
         active: true,
         container: '#controls',
         callback: (active) => {
           const value = active === true ? 1 : 0;
           displayFilter[0] = value;
+        }
+      });
+
+      const yToggle = new controllers.Toggle({
+        label: 'enable Y',
+        active: true,
+        container: '#controls',
+        callback: (active) => {
+          const value = active === true ? 1 : 0;
+          displayFilter[1] = value;
+        }
+      });
+
+      const zToggle = new controllers.Toggle({
+        label: 'enable Z',
+        active: true,
+        container: '#controls',
+        callback: (active) => {
+          const value = active === true ? 1 : 0;
+          displayFilter[2] = value;
         }
       });
     });
