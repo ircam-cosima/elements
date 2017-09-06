@@ -4,6 +4,7 @@ import path from 'path';
 import * as soundworks from 'soundworks/server';
 import PlayerExperience from './PlayerExperience';
 import DesignerExperience from './DesignerExperience';
+import VisualizerExperience from './VisualizerExperience';
 
 const configName = process.env.ENV || 'default';
 const configPath = path.join(__dirname, 'config', configName);
@@ -37,7 +38,12 @@ soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) =>
 
 const comm = new EventEmitter();
 
-const designer = new DesignerExperience('designer', comm);
+const designer = new DesignerExperience('designer', comm, config);
 const player = new PlayerExperience('player', comm);
+
+// allow visualizer only in non production environnement
+if (config.env !== 'production') {
+  const visualizer = new VisualizerExperience('visualizer', comm, config.osc);
+}
 
 soundworks.server.start();
