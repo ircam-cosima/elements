@@ -104,6 +104,8 @@ class PlayerExperience extends soundworks.Experience {
       descriptors: ['devicemotion']
     });
 
+    // this.rawSocket = this.require('raw-socket');
+
     this.labels = Object.keys(sounds);
     this.likeliest = undefined;
 
@@ -149,7 +151,6 @@ class PlayerExperience extends soundworks.Experience {
     if (this.motionInput.isAvailable('devicemotion'))
       this.motionInput.addListener('devicemotion', this._motionCallback);
 
-    // as show can be async, we make sure that the view is actually rendered
     this.show();
   }
 
@@ -191,7 +192,7 @@ class PlayerExperience extends soundworks.Experience {
     const likelihoods = res ? res.likelihoods : [];
     const likeliest = res ? res.likeliestIndex : -1;
     const label = res ? res.likeliest : 'unknown';
-    // const alphas = res ? res.alphas : [[]];// res.alphas[likeliest];
+    // const alphas = res ? res.alphas : [[]]; // res.alphas[likeliest];
 
     if (this.likeliest !== label) {
       const index = this.labels.indexOf(label);
