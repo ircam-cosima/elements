@@ -103,6 +103,8 @@ class PlayerExperience extends soundworks.Experience {
       descriptors: ['devicemotion']
     });
 
+    // this.rawSocket = this.require('raw-socket');
+
     this.labels = Object.keys(sounds);
     this.likeliest = undefined;
 
@@ -160,7 +162,6 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   _onReceiveModels(models) {
-    console.log(models);
     const uuids = Object.keys(models);
 
     if (uuids.length > 0) {
@@ -184,8 +185,6 @@ class PlayerExperience extends soundworks.Experience {
 
   _feedDecoder(data) {
     const res = this.xmmDecoder.run(data);
-    // console.log(res);
-
     const likelihoods = res ? res.likelihoods : [];
     const likeliest = res ? res.likeliestIndex : -1;
     const label = res ? res.likeliest : 'unknown';

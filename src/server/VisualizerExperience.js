@@ -41,13 +41,8 @@ class VisualizerExperience extends soundworks.Experience {
     console.log(chalk.grey(`[OSC] R-ioT received on port  ${this.oscConfig.receivePort}`));
   }
 
-  enter(client) {
-
-  }
-
-  exit(client) {
-
-  }
+  enter(client) {}
+  exit(client) {}
 }
 
 export default VisualizerExperience;
