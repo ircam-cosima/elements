@@ -1,8 +1,7 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
-import { XmmDecoderLfo } from 'xmm-lfo';
+import * as imlMotion from 'iml-motion';
 import { sounds } from  '../shared/config';
-import PreProcess from '../shared/PreProcess';
 import AudioEngine from '../shared/AudioEngine';
 
 const audioContext = soundworks.audioContext;
@@ -113,11 +112,10 @@ class PlayerExperience extends soundworks.Experience {
 
     this._onReceiveModels = this._onReceiveModels.bind(this);
     this._onModelChange = this._onModelChange.bind(this);
-    this._onModelFilter = this._onModelFilter.bind(this);
-    this._motionCallback = this._motionCallback.bind(this);
-    this._intensityCallback = this._intensityCallback.bind(this);
-    this._onMuteChange = this._onMuteChange.bind(this);
-    this._onIntensityChange = this._onIntensityChange.bind(this);
+    this._feedDecoder = this._feedDecoder.bind(this);
+    this._updateIntensity = this._updateIntensity.bind(this);
+    this._onMuteToggle = this._onMuteToggle.bind(this);
+    this._onIntensityToggle = this._onIntensityToggle.bind(this);
   }
 
   start() {
@@ -131,41 +129,38 @@ class PlayerExperience extends soundworks.Experience {
     });
 
     this.view.setModelChangeCallback(this._onModelChange);
-    this.view.setMuteCallback(this._onMuteChange);
-    this.view.setIntensityCallback(this._onIntensityChange);
+    this.view.setMuteCallback(this._onMuteToggle);
+    this.view.setIntensityCallback(this._onIntensityToggle);
 
     this.audioEngine = new AudioEngine(this.audioBufferManager.data);
-    this.audioEngine.start();
 
     // lfo preprocessing
-    this.xmmDecoder = new XmmDecoderLfo({
-      likelihoodWindow: 20,
-      callback: this._onModelFilter,
+    this.processedSensors = new imlMotion.ProcessedSensors();
+    this.processedSensors.addListener(data => {
+      this._feedDecoder(data);
+      this._updateIntensity(data[0]);
     });
-    this.preProcess = new PreProcess(this._intensityCallback);
-    this.preProcess.connect(this.xmmDecoder);
-    this.preProcess.start();
 
-    if (this.motionInput.isAvailable('devicemotion'))
-      this.motionInput.addListener('devicemotion', this._motionCallback);
+    this.xmmDecoder = new imlMotion.XmmProcessor({ url: null });
+    this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
-    // as show can be async, we make sure that the view is actually rendered
-    this.show();
+    Promise.all([this.show(), this.processedSensors.init()])
+      .then(() => {
+        this.audioEngine.start();
+        this.processedSensors.start();
+      })
+      .catch(err => console.error(err.stack));
   }
 
-  _motionCallback(eventValues) {
-    const values = eventValues.slice(0, 3);
-    this.preProcess.process(audioContext.currentTime, values);
-  }
-
-  _intensityCallback(frame) {
+  _updateIntensity(value) {
     if (this.enableIntensity)
-      this.audioEngine.setGainFromIntensity(frame.data[0]);
+      this.audioEngine.setGainFromIntensity(intensity * 100);
     else
       this.audioEngine.setGainFromIntensity(1);
   }
 
   _onReceiveModels(models) {
+    console.log(models);
     const uuids = Object.keys(models);
 
     if (uuids.length > 0) {
@@ -183,15 +178,17 @@ class PlayerExperience extends soundworks.Experience {
       this.view.setModelItem(this.currentModelId);
 
       const model = this.models[this.currentModelId].model;
-      this.xmmDecoder.params.set('model', model);
+      this.xmmDecoder.setModel(model);
     }
   }
 
-  _onModelFilter(res) {
+  _feedDecoder(data) {
+    const res = this.xmmDecoder.run(data);
+    // console.log(res);
+
     const likelihoods = res ? res.likelihoods : [];
     const likeliest = res ? res.likeliestIndex : -1;
     const label = res ? res.likeliest : 'unknown';
-    // const alphas = res ? res.alphas : [[]];// res.alphas[likeliest];
 
     if (this.likeliest !== label) {
       const index = this.labels.indexOf(label);
@@ -207,14 +204,14 @@ class PlayerExperience extends soundworks.Experience {
     const model = this.models[value].model;
 
     this.currentModelId = value;
-    this.xmmDecoder.params.set('model', model);
+    this.xmmDecoder.setModel(model);
   }
 
-  _onMuteChange(bool) {
+  _onMuteToggle(bool) {
     this.audioEngine.mute = bool;
   }
 
-  _onIntensityChange(bool) {
+  _onIntensityToggle(bool) {
     this.enableIntensity = bool;
   }
 };

@@ -1,11 +1,11 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/common';
-import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
+import * as imlMotion from 'iml-motion';
+// import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
 
 import AudioEngine from '../shared/AudioEngine';
 import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 import DesignerView from './DesignerView';
-import * as imlMotion from 'iml-motion';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
 import SimpleLogin from '../shared/services/SimpleLogin';
 import { sounds, trainingUrl } from  '../shared/config';
@@ -80,47 +80,41 @@ class DesignerExperience extends soundworks.Experience {
 
     // rendering
     this.renderer = new LikelihoodsRenderer(this.view);
-
-    // audio engine
     this.audioEngine = new AudioEngine(this.audioBufferManager.data);
 
     // preprocessing
-    this.preProcess = new imlMotion.ProcessedSensors();
+    this.processedSensors = new imlMotion.ProcessedSensors();
 
-    // LFOs
     this.eventIn = new lfo.source.EventIn({
-      frameRate: this.preProcess.frameRate,
+      frameRate: 0,
       frameSize: 8,
       frameType: 'vector',
     });
+
     this.decoderOnOff = new lfo.operator.OnOff({ state: 'on' });
+
     this.decoderBridge = new lfo.sink.Bridge({
       processFrame: frame => this._feedDecoder(frame.data),
     });
+
     this.recorderBridge = new lfo.sink.Bridge({
       processFrame: frame => this._feedRecorder(frame.data),
     });
-    this.intensitySelect = new lfo.operator.Select({ index: 0 });
-    this.intensityBridge = new lfo.sink.Bridge({
-      processFrame: frame => this._feedIntensity(frame.data[0]),
-    });
 
-    this.preProcess.addListener(data => this.eventIn.process(null, data));
+    this.processedSensors.addListener(data => {
+      this.eventIn.process(null, data);
+      this._feedIntensity(data[0]);
+    });
 
     this.eventIn.connect(this.decoderOnOff);
     this.decoderOnOff.connect(this.decoderBridge);
     this.eventIn.connect(this.recorderBridge);
-    this.eventIn.connect(this.intensitySelect);
-    this.intensitySelect.connect(this.intensityBridge);
 
     // recording and decoding
     this.trainingData = new imlMotion.TrainingData();
-    this.xmmDecoder = new imlMotion.XmmProcessor({
-      url: trainingUrl,
-    });
-    this.xmmDecoder.setConfig({
-      likelihoodWindow: 20,
-    })
+
+    this.xmmDecoder = new imlMotion.XmmProcessor({ url: trainingUrl });
+    this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
     this.autoTrigger = new AutoMotionTrigger({
       highThreshold: autoTriggerDefaults.highThreshold,
@@ -132,20 +126,17 @@ class DesignerExperience extends soundworks.Experience {
 
     this.receive('training-data', this._onNewTrainingData);
 
-    this.show().then(() => {
-      this.view.addRenderer(this.renderer);
-      this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
+    Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
+      .then(() => {
+        this.view.addRenderer(this.renderer);
+        this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
 
-      this.audioEngine.start();
+        this.audioEngine.start();
 
-      Promise.all([this.eventIn.init(), this.preProcess.init()])
-        .then(() => {
-          // start graphs
-          this.preProcess.start();
-          this.eventIn.start();
-        })
-        .catch(err => console.error(err.stack));
-    });
+        this.processedSensors.start();
+        this.eventIn.start();
+      })
+      .catch(err => console.error(err.stack));
   }
 
   _onNewTrainingData(trainingData) {
@@ -262,13 +253,15 @@ class DesignerExperience extends soundworks.Experience {
 
   _updateModelAndSet(persist = true) {
     const trainingSet = this.trainingData.getTrainingSet();
+
     this.xmmDecoder.train(trainingSet)
       .then(response => {
         const model = response.model;
         const config = this.xmmDecoder.getConfig();
+        console.log(config);
         const currentLabels = model.payload.models.map(model => model.label);
-        const viewConfig = object.assign({}, config.payload, {
-          modelType: config.target.split(':')[1],
+        const viewConfig = Object.assign({}, config.payload, {
+          modelType: config.target.name.split(':')[1],
         });
 
         this.view.setConfig(viewConfig);
