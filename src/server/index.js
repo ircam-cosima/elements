@@ -45,8 +45,9 @@ const comm = new EventEmitter();
 const designer = new DesignerExperience('designer', comm, config);
 const player = new PlayerExperience('player', comm);
 
-if (config.env !== 'production')
+if (config.env !== 'production') {
   const visualizer = new VisualizerExperience('visualizer', comm, config.osc);
+}
 
 server.start();
 
