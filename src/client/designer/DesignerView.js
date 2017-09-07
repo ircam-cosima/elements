@@ -81,6 +81,9 @@ const viewTemplate = `
         <div class="toggle-container" id="mute">
           <div class="toggle-btn"><div></div></div> Mute
         </div>
+        <div class="toggle-container" id="intensity">
+          <div class="toggle-btn"><div></div></div> Intensity
+        </div>
 
         <div class="labels-wrapper">
           <label class="select-container">Label:
@@ -197,6 +200,17 @@ class DesignerView extends CanvasView {
 
         this._muteCallback(!active);
       },
+      'touchstart #intensity': () => {
+        const $btn = this.$intensityBtn;
+        const active = $btn.classList.contains('active');
+
+        if (!active)
+          $btn.classList.add('active');
+        else
+          $btn.classList.remove('active');
+
+        this._intensityCallback(!active);
+      },
       'touchstart #persist-user': () => this._persistUserCallback(),
       'touchstart #delete-user': () => this._deleteUserCallback(),
     });
@@ -209,6 +223,7 @@ class DesignerView extends CanvasView {
     this.$recBtn = this.$el.querySelector('#rec-btn');
     this.$recBtnTxt = this.$el.querySelector('#rec-btn p');
     this.$muteBtn = this.$el.querySelector('#mute');
+    this.$intensityBtn = this.$el.querySelector('#intensity');
     this.$labelSelect = this.$el.querySelector('#label-select');
     this.$clearLabel = this.$el.querySelector('#clear-label');
     this.$clearAll = this.$el.querySelector('#clear-all');
@@ -235,7 +250,6 @@ class DesignerView extends CanvasView {
         break;
     }
 
-    // @todo - replace with clean modal dialog
     const promise = new Promise((resolve, reject) => {
       const model = { msg };
       const dialog = new ModalDialog(model, resolve, reject);
@@ -244,10 +258,6 @@ class DesignerView extends CanvasView {
       dialog.show();
       dialog.appendTo(this.$el);
     });
-
-    // promise
-    //   .then(() => console.log(`"${msg}" succeded`))
-    //   .catch(err => console.log(`"${msg}" canceled`));
 
     return promise;
   }
@@ -330,6 +340,10 @@ class DesignerView extends CanvasView {
 
   setDeleteUserCallback(callback) {
     this._deleteUserCallback = callback;
+  }
+
+  setIntensityCallback(callback) {
+    this._intensityCallback = callback;
   }
 };
 

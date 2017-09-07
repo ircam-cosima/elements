@@ -67,7 +67,7 @@ $elmHeight: 36px;
 
 .toggle-container {
   height: 33px;
-  padding: 0 0 0 50px;
+  padding: 0 0 10px 50px;
   line-height: 33px;
   position: relative;
 
@@ -320,10 +320,6 @@ $elmHeight: 36px;
   font-size: 1.4em;
   padding: 10px;
   box-sizing: border-box;
-
-  .toggle-container {
-    margin-bottom: 12px;
-  }
 }
 
 
