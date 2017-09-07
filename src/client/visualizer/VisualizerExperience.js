@@ -15,7 +15,7 @@ const template = `
 `;
 
 // filter which sensor is displayed
-const displayFilter = [1, 1, 1];
+const displayFilter = [1, 1, 1, 1, 1, 1, 1, 1];
 
 class VisualizerExperience extends soundworks.Experience {
   constructor() {
@@ -39,7 +39,7 @@ class VisualizerExperience extends soundworks.Experience {
 
       this.phoneEventIn = new lfo.source.EventIn({
         frameType: 'vector',
-        frameSize: 3,
+        frameSize: 8,
         frameRate: 0,
       });
 
@@ -48,8 +48,8 @@ class VisualizerExperience extends soundworks.Experience {
       });
 
       this.phoneDisplay = new lfo.sink.BpfDisplay({
-        min: -9.81,
-        max: 9.81,
+        min: -1,
+        max: 1,
         width: 600,
         height: 300,
         duration: 10,
@@ -67,7 +67,7 @@ class VisualizerExperience extends soundworks.Experience {
 
       this.riotEventIn = new lfo.source.EventIn({
         frameType: 'vector',
-        frameSize: 3,
+        frameSize: 8,
         frameRate: 0,
       });
 
@@ -93,33 +93,38 @@ class VisualizerExperience extends soundworks.Experience {
       // controls
       // --------------------------------------------------
 
-      const xToggle = new controllers.Toggle({
-        label: 'enable X',
+      const intensityToggle = new controllers.Toggle({
+        label: 'enable Intensity',
         active: true,
         container: '#controls',
         callback: (active) => {
           const value = active === true ? 1 : 0;
           displayFilter[0] = value;
-        }
-      });
-
-      const yToggle = new controllers.Toggle({
-        label: 'enable Y',
-        active: true,
-        container: '#controls',
-        callback: (active) => {
-          const value = active === true ? 1 : 0;
           displayFilter[1] = value;
         }
       });
 
-      const zToggle = new controllers.Toggle({
-        label: 'enable Z',
+      const bandpassToggle = new controllers.Toggle({
+        label: 'enable Bandpass',
         active: true,
         container: '#controls',
         callback: (active) => {
           const value = active === true ? 1 : 0;
           displayFilter[2] = value;
+          displayFilter[3] = value;
+          displayFilter[4] = value;
+        }
+      });
+
+      const orientationToggle = new controllers.Toggle({
+        label: 'enable Orientation',
+        active: true,
+        container: '#controls',
+        callback: (active) => {
+          const value = active === true ? 1 : 0;
+          displayFilter[5] = value;
+          displayFilter[6] = value;
+          displayFilter[7] = value;
         }
       });
     });

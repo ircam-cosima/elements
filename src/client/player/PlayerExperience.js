@@ -211,6 +211,7 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   _onIntensityToggle(bool) {
+    console.log(bool);
     this.enableIntensity = bool;
   }
 };

@@ -128,21 +128,8 @@ class DesignerExperience extends soundworks.Experience {
     this.xmmDecoder = new imlMotion.XmmProcessor({ url: trainingUrl });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
-    if (this.isStreamingSensors) {
-      const bridge = new lfo.sink.Bridge({
-        processFrame: frame => this.rawSocket.send('sensors', frame.data),
-      });
-
-      this.devicemotionIn.connect(bridge);
-    }
-
-    if (this.isStreamingSensors) {
-      const bridge = new lfo.sink.Bridge({
-        processFrame: frame => this.rawSocket.send('sensors', frame.data),
-      });
-
-      this.devicemotionIn.connect(bridge);
-    }
+    if (this.isStreamingSensors)
+      this.processedSensors.addListener(data => this.rawSocket.send('sensors', data));
 
     this.autoTrigger = new AutoMotionTrigger({
       highThreshold: autoTriggerDefaults.highThreshold,
