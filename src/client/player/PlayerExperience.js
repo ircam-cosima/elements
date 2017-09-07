@@ -156,7 +156,7 @@ class PlayerExperience extends soundworks.Experience {
 
   _updateIntensity(value) {
     if (this.enableIntensity)
-      this.audioEngine.setGainFromIntensity(intensity * 100);
+      this.audioEngine.setGainFromIntensity(value * 100);
     else
       this.audioEngine.setGainFromIntensity(1);
   }
@@ -199,7 +199,6 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   _onModelChange(value) {
-    console.log(value);
     const model = this.models[value].model;
 
     this.currentModelId = value;
@@ -211,7 +210,6 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   _onIntensityToggle(bool) {
-    console.log(bool);
     this.enableIntensity = bool;
   }
 };
