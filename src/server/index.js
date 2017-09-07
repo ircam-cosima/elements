@@ -4,13 +4,10 @@ import path from 'path';
 import * as soundworks from 'soundworks/server';
 import PlayerExperience from './PlayerExperience';
 import DesignerExperience from './DesignerExperience';
-<<<<<<< HEAD
 import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'iml-motion/common';
 import xmm from 'xmm-node';
 import bodyParser from 'body-parser';
-=======
 import VisualizerExperience from './VisualizerExperience';
->>>>>>> added visualizer, designer stream to visualizer, riot input
 
 const configName = process.env.ENV || 'default';
 const configPath = path.join(__dirname, 'config', configName);

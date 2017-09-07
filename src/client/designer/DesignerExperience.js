@@ -136,6 +136,14 @@ class DesignerExperience extends soundworks.Experience {
       this.devicemotionIn.connect(bridge);
     }
 
+    if (this.isStreamingSensors) {
+      const bridge = new lfo.sink.Bridge({
+        processFrame: frame => this.rawSocket.send('sensors', frame.data),
+      });
+
+      this.devicemotionIn.connect(bridge);
+    }
+
     this.autoTrigger = new AutoMotionTrigger({
       highThreshold: autoTriggerDefaults.highThreshold,
       lowThreshold: autoTriggerDefaults.lowThreshold,
