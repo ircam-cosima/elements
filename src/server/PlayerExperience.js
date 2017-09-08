@@ -9,6 +9,7 @@ class PlayerExperience extends Experience {
     this.comm = comm;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
+    this.sharedParams = this.require('shared-params');
 
     this._onModelsUpdate = this._onModelsUpdate.bind(this);
   }

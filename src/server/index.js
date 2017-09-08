@@ -2,11 +2,12 @@ import 'source-map-support/register'; // enable sourcemaps in node
 import { EventEmitter } from 'events';
 import path from 'path';
 import * as soundworks from 'soundworks/server';
-import PlayerExperience from './PlayerExperience';
-import DesignerExperience from './DesignerExperience';
 import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'iml-motion/common';
 import xmm from 'xmm-node';
 import bodyParser from 'body-parser';
+import ControllerExperience from './ControllerExperience';
+import DesignerExperience from './DesignerExperience';
+import PlayerExperience from './PlayerExperience';
 import VisualizerExperience from './VisualizerExperience';
 
 const configName = process.env.ENV || 'default';
@@ -42,6 +43,11 @@ server.setClientConfigDefinition((clientType, config, httpRequest) => {
 
 const comm = new EventEmitter();
 
+const sharedParams = soundworks.server.require('shared-params');
+sharedParams.addNumber('sensitivity', 'Sensitivity', 0, 2, 0.01, 1);
+
+// create the common server experience for both the soloists and the players
+const controller = new ControllerExperience('controller');
 const designer = new DesignerExperience('designer', comm, config);
 const player = new PlayerExperience('player', comm);
 
@@ -50,6 +56,8 @@ if (config.env !== 'production') {
 }
 
 server.start();
+
+/* * * * * * * * * * * * * REST API SIMULATION * * * * * * * * * * * * * * * */
 
 server.router.use(bodyParser.json({ limit: '50mb' }));
 server.router.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));

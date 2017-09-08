@@ -24,6 +24,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.login = this.require('simple-login');
+    this.sharedParams = this.require('shared-params');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: config.assetsDomain,
@@ -94,6 +95,8 @@ class DesignerExperience extends soundworks.Experience {
 
     // rendering
     this.renderer = new LikelihoodsRenderer(this.view);
+
+    // audio
     this.audioEngine = new AudioEngine(this.audioBufferManager.data);
 
     // preprocessing
@@ -140,6 +143,11 @@ class DesignerExperience extends soundworks.Experience {
       startCallback: this._startRecording,
       stopCallback: this._stopRecording,
     });
+
+    this.sharedParams.addParamListener('sensitivity', value => {
+      this.audioEngine.setMasterVolume(value);
+    });
+
 
     this.receive('training-data', this._onNewTrainingData);
 

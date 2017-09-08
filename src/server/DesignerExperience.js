@@ -16,6 +16,7 @@ class DesignerExperience extends Experience {
 
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.login = this.require('simple-login');
+    this.sharedParams = this.require('shared-params');
 
     if (config.env !== 'production') {
       this.rawSocket = this.require('raw-socket', {

@@ -94,6 +94,8 @@ class PlayerExperience extends soundworks.Experience {
     super();
 
     this.platform = this.require('platform', { features: ['web-audio'] });
+    this.sharedParams = this.require('shared-params');
+
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: assetsDomain,
       files: sounds,
@@ -145,6 +147,10 @@ class PlayerExperience extends soundworks.Experience {
 
     this.xmmDecoder = new imlMotion.XmmProcessor({ url: null });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
+
+    this.sharedParams.addParamListener('sensitivity', value => {
+      this.audioEngine.setMasterVolume(value);
+    });
 
     Promise.all([this.show(), this.processedSensors.init()])
       .then(() => {
