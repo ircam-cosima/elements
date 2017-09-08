@@ -113,6 +113,8 @@ class PlayerExperience extends soundworks.Experience {
     this.models = null;
     this.currentModelId = null;
     this.enableIntensity = false;
+    this._sensitivity = 1;
+
 
     this._onReceiveModels = this._onReceiveModels.bind(this);
     this._onModelChange = this._onModelChange.bind(this);
@@ -149,7 +151,7 @@ class PlayerExperience extends soundworks.Experience {
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
     this.sharedParams.addParamListener('sensitivity', value => {
-      this.audioEngine.setMasterVolume(value);
+      this._sensitivity = value;
     });
 
     Promise.all([this.show(), this.processedSensors.init()])
@@ -162,7 +164,7 @@ class PlayerExperience extends soundworks.Experience {
 
   _updateIntensity(value) {
     if (this.enableIntensity)
-      this.audioEngine.setGainFromIntensity(value * 100);
+      this.audioEngine.setGainFromIntensity(value * 100 * this._sensitivity);
     else
       this.audioEngine.setGainFromIntensity(1);
   }

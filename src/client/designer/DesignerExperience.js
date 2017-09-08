@@ -21,6 +21,7 @@ class DesignerExperience extends soundworks.Experience {
     this.labels = Object.keys(sounds);
     this.likeliest = undefined;
     this.isStreamingSensors = false;
+    this._sensitivity = 1;
 
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.login = this.require('simple-login');
@@ -145,7 +146,8 @@ class DesignerExperience extends soundworks.Experience {
     });
 
     this.sharedParams.addParamListener('sensitivity', value => {
-      this.audioEngine.setMasterVolume(value);
+      this._sensitivity = value;
+      // this.audioEngine.setMasterVolume(value);
     });
 
 
@@ -260,7 +262,7 @@ class DesignerExperience extends soundworks.Experience {
     this.autoTrigger.push(value * 100);
 
     if (this.enableIntensity)
-      this.audioEngine.setGainFromIntensity(value * 100);
+      this.audioEngine.setGainFromIntensity(value * 100 * this._sensitivity);
     else
       this.audioEngine.setGainFromIntensity(1);
   }
