@@ -10,6 +10,7 @@
   "license": "BSD-3-Clause",
   "version": "2.0.0",
   "scripts": {
+    "como": "npm run transpile && sudo PORT=80 node dist/server/index.js",
     "minify": "node ./bin/runner --minify",
     "prewatch": "npm run transpile",
     "start": "node ./bin/runner --start",

@@ -1,5 +1,11 @@
 # COMO - Elements
 
+## Launch the server on port 80 (default)
+
+`npm run como`
+
+> if some source file is changed (to add an audio file, etc.), restart the server.
+
 ## Clients
 
 - '/' - simple player
@@ -7,7 +13,7 @@
 - `/designer#stream` - stream sensors to `visualizer` and Max
 - `/visualizer` - display designer sensors if streamed, and R-ioT from Max
 
-> an minimal patch is present in `/max/comm.maxpat`
+> a minimal example patch is in `/max/comm.maxpat`
 
 ## Todos
 
