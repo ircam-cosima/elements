@@ -1,6 +1,6 @@
 // import soundworks (client side) and Soundfield experience
 import * as soundworks from 'soundworks/client';
-import ControllerExperience from './ControllerExperience';
+// import ControllerExperience from './ControllerExperience';
 import serviceViews from '../shared/serviceViews';
 
 function bootstrap() {
@@ -16,8 +16,10 @@ function bootstrap() {
       instance.view = serviceViews.get(id, config);
   });
 
-  // instanciate the experience of the `player`
-  const controller = new ControllerExperience();
+  // instanciate the experience of the `controller`
+  const controller = new soundworks.ControllerExperience();
+  controller.setGuiOptions('sensitivity', { type: 'slider', size: 'large' });
+
   // start the application
   soundworks.client.start();
 }
