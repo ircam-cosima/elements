@@ -8,7 +8,7 @@ const audioContext = soundworks.audioContext;
 
 const viewTemplate = `
   <label class="select-container">Session:
-    <select id="select-model">
+    <select id="select-designer">
       <% for (var uuid in models) { %>
       <option value="<%= uuid %>">
         <%= models[uuid].username %>
@@ -31,7 +31,7 @@ class PlayerView extends soundworks.View {
 
     this._muteCallback = () => {};
     this._intensityCallback = () => {};
-    this._modelChangeCallback = () => {};
+    this._designerChangeCallback = () => {};
 
     this.installEvents({
       'touchstart #mute': () => {
@@ -56,9 +56,9 @@ class PlayerView extends soundworks.View {
 
         this._intensityCallback(!active);
       },
-      'change #select-model': () => {
-        const value = this.$selectModel.value;
-        this._modelChangeCallback(value);
+      'change #select-designer': () => {
+        const value = this.$selectDesigner.value;
+        this._designerChangeCallback(value);
       },
     });
   }
@@ -68,7 +68,7 @@ class PlayerView extends soundworks.View {
 
     this.$muteBtn = this.$el.querySelector('#mute');
     this.$intensityBtn = this.$el.querySelector('#intensity');
-    this.$selectModel = this.$el.querySelector('#select-model');
+    this.$selectDesigner = this.$el.querySelector('#select-designer');
   }
 
   setMuteCallback(callback) {
@@ -79,12 +79,12 @@ class PlayerView extends soundworks.View {
     this._intensityCallback = callback;
   }
 
-  setModelChangeCallback(callback) {
-    this._modelChangeCallback = callback;
+  setDesignerChangeCallback(callback) {
+    this._designerChangeCallback = callback;
   }
 
   setModelItem(item) {
-    this.$selectModel.value = item;
+    this.$selectDesigner.value = item;
   }
 }
 
@@ -117,11 +117,11 @@ class PlayerExperience extends soundworks.Experience {
 
 
     this._onReceiveModels = this._onReceiveModels.bind(this);
-    this._onModelChange = this._onModelChange.bind(this);
     this._feedDecoder = this._feedDecoder.bind(this);
     this._updateIntensity = this._updateIntensity.bind(this);
-    this._onMuteToggle = this._onMuteToggle.bind(this);
-    this._onIntensityToggle = this._onIntensityToggle.bind(this);
+    this._updateModel = this._updateModel.bind(this);
+    this._toggleMute = this._toggleMute.bind(this);
+    this._toggleIntensity = this._toggleIntensity.bind(this);
   }
 
   start() {
@@ -134,11 +134,12 @@ class PlayerExperience extends soundworks.Experience {
       className: 'player'
     });
 
-    this.view.setModelChangeCallback(this._onModelChange);
-    this.view.setMuteCallback(this._onMuteToggle);
-    this.view.setIntensityCallback(this._onIntensityToggle);
+    this.view.setDesignerChangeCallback(this._updateModel);
+    this.view.setMuteCallback(this._toggleMute);
+    this.view.setIntensityCallback(this._toggleIntensity);
 
     this.audioEngine = new AudioEngine(this.audioBufferManager.data);
+    this._toggleMute(true);
 
     // lfo preprocessing
     this.processedSensors = new imlMotion.ProcessedSensors();
@@ -185,9 +186,7 @@ class PlayerExperience extends soundworks.Experience {
         this.currentModelId = uuids[0];
 
       this.view.setModelItem(this.currentModelId);
-
-      const model = this.models[this.currentModelId].model;
-      this.xmmDecoder.setModel(model);
+      this._updateModel(this.currentModelId);
     }
   }
 
@@ -206,18 +205,20 @@ class PlayerExperience extends soundworks.Experience {
     }
   }
 
-  _onModelChange(value) {
+  _updateModel(value) {
     const model = this.models[value].model;
 
     this.currentModelId = value;
     this.xmmDecoder.setModel(model);
+    //
+    this.send('update-designer', value);
   }
 
-  _onMuteToggle(bool) {
+  _toggleMute(bool) {
     this.audioEngine.mute = bool;
   }
 
-  _onIntensityToggle(bool) {
+  _toggleIntensity(bool) {
     this.enableIntensity = bool;
   }
 };

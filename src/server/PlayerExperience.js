@@ -12,6 +12,7 @@ class PlayerExperience extends Experience {
     this.sharedParams = this.require('shared-params');
 
     this._onModelsUpdate = this._onModelsUpdate.bind(this);
+    this._updateDesigner = this._updateDesigner.bind(this);
   }
 
   start() {
@@ -25,17 +26,26 @@ class PlayerExperience extends Experience {
     const models = xmmStore.getModelByUsers(designers);
 
     this.send(client, 'models', models);
+
+    this.receive(client, 'update-designer', this._updateDesigner(client));
   }
 
   exit(client) {
     super.exit(client);
   }
 
+  // should get the uuid of the updated designer
   _onModelsUpdate() {
     const designers = designerStore.getList();
     const models = xmmStore.getModelByUsers(designers);
 
     this.broadcast('player', null, 'models', models);
+  }
+
+  _updateDesigner(client) {
+    return (uuid) => {
+      client.activities[this.id].group = uuid;
+    }
   }
 }
 

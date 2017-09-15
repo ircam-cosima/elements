@@ -4,16 +4,14 @@ import uuidv4 from 'uuid/v4';
 
 const SERVICE_ID = 'service:simple-login';
 
-let _user;
-
 class SimpleLogin extends Service {
   constructor() {
     super(SERVICE_ID);
 
     const defaults = {};
-    this.configure(defaults);
 
-    this.users = {};
+    this.userConnectedMap = new Map();
+    this.configure(defaults);
   }
 
   /** @private */
@@ -30,72 +28,37 @@ class SimpleLogin extends Service {
   /** @private */
   connect(client) {
     super.connect(client);
-
-    client.activities['service:login'] = {};
-
     this.receive(client, 'login', this._onLogin(client));
-    this.receive(client, 'confirm', this._onConfirm(client));
-    this.receive(client, 'logout', this._onLogout(client));
+  }
+
+  disconnect(client) {
+    super.disconnect(client);
+
+    const user = client.user;
+    this.userConnectedMap.set(user, false);
   }
 
   /** @private */
   _onLogin(client) {
-    return (username) => {
-      let user = designerStore.getConnectedUserByUsername(username);
+    return username => {
+      let user = designerStore.getByUsername(username);
+      const connected = this.userConnectedMap.get(user);
 
-      if (user === null) {
-        user = designerStore.getPersistedUserByUsername(username);
-
-        if (user === null)
-          user = { name: username, uuid: uuidv4() };
-
-        client.activities['service:login'].user = user;
-        designerStore.add(user);
-
-        _user = user;
-
-        this.send(client, 'login-ack', user);
-      } else {
+      if (connected) {
         this.send(client, 'login-error', username);
-      }
-    }
-  }
-
-  /** @private */
-  _onConfirm(client) {
-    return (user) => {
-      const connectedUser = designerStore.getConnectedUserByUsername(user.name);
-
-      if (connectedUser === null) {
-        const persistedUser = designerStore.getPersistedUserByUsername(user.name);
-
-        if (persistedUser)
-          user = persistedUser;
-
-        client.activities['service:login'].user = user;
-        designerStore.add(user);
-
-        this.send(client, 'login-ack', user);
-      } else if (user.name === connectedUser.name && user.uuid === connectedUser.uuid) {
-        user = connectedUser;
-        client.activities['service:login'].user = user;
-        designerStore.add(user);
-
-        this.send(client, 'login-ack', user);
       } else {
-        this.send(client, 'login-error', user.name);
+        // create user if not exist
+        if (user === null) {
+          user = { name: username, uuid: uuidv4() };
+          designerStore.persist(user);
+        }
+
+        client.user = user;
+        this.userConnectedMap.set(user, true);
+
+        this.send(client, 'login-ack', user);
       }
     }
-  }
-
-  /** @private */
-  _onLogout(client) {
-    return (user) => {
-      client.activities['service:login'].user = null;
-      designerStore.remove(user);
-
-      this.send(client, 'logout-ack');
-    };
   }
 }
 

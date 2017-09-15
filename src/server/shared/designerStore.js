@@ -7,8 +7,7 @@ const basePath = path.join(cwd, 'db');
 // simple abstraction that could be a starting point
 // for a database or something more elaborated
 const designerStore = {
-  connectedUsers: new Set(),
-  persistedUsers: new Set(),
+  users: new Set(),
 
   init() {
     if (!fs.existsSync(basePath))
@@ -18,68 +17,52 @@ const designerStore = {
 
     if (fs.existsSync(filename)) {
       const content = fs.readFileSync(filename);
-      const json = JSON.parse(content);
 
-      json.forEach((user) => this.persistedUsers.add(user));
+      try {
+        const json = JSON.parse(content);
+        json.forEach((user) => this.users.add(user));
+      } catch(err) {
+        // empty json, do nothing
+      }
     }
   },
 
   persist(user) {
-    this.persistedUsers.add(user);
+    this.users.add(user);
 
     const filename = path.join(basePath, 'designers.json');
-    const json = JSON.stringify(Array.from(this.persistedUsers), null, 2);
+    const json = JSON.stringify(Array.from(this.users), null, 2);
     fs.writeFileSync(filename, json, 'utf8');
   },
 
   delete(user) {
-    this.persistedUsers.delete(user);
+    this.users.delete(user);
 
     const filename = path.join(basePath, 'designers.json');
-    const json = JSON.stringify(Array.from(this.persistedUsers), null, 2);
+    const json = JSON.stringify(Array.from(this.users), null, 2);
     fs.writeFileSync(filename, json, 'utf8');
   },
 
-  add(user) {
-    this.connectedUsers.add(user);
-  },
+  getByUuid(uuid) {
+    let _user = null;
 
-  remove(user) {
-    this.connectedUsers.forEach(connectedUser => {
-      if (user.name === connectedUser.name && user.uuid === connectedUser.uuid)
-        this.connectedUsers.delete(connectedUser);
-    });
-  },
-
-  getList() {
-    const list = new Set();
-
-    this.persistedUsers.forEach(user => list.add(user));
-    this.connectedUsers.forEach(user => list.add(user));
-
-    return list;
-  },
-
-  getConnectedUserByUsername(username) {
-    let user = null;
-
-    this.connectedUsers.forEach(connectedUser => {
-      if (connectedUser.name === username)
-        user = connectedUser;
+    this.users.forEach(user => {
+      if (user.uuid === uuid)
+        _user = user;
     });
 
-    return user;
+    return _user;
   },
 
-  getPersistedUserByUsername(username) {
-    let user = null;
+  getByUsername(username) {
+    let _user = null;
 
-    this.persistedUsers.forEach(persistedUser => {
-      if (persistedUser.name === username)
-        user = persistedUser;
+    this.users.forEach(user => {
+      if (user.name === username)
+        _user = user;
     });
 
-    return user;
+    return _user;
   },
 };
 
