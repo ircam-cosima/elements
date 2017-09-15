@@ -101,9 +101,9 @@ const viewTemplate = `
           <div class="bg"></div>
           <p>
           <% if (recBtnState === 0) { %>
-            start <br /> recording
+            start<br/>recording
           <% } else if (recBtnState === 1) { %>
-            move <br /> or <br /> cancel
+            move<br/>or<br/>cancel
           <% } else if (recBtnState === 2) { %>
             recording
           <% } else if (recBtnState === 3) { %>
@@ -272,7 +272,8 @@ class DesignerView extends CanvasView {
       dialog.appendTo(this.$el);
     });
 
-    this.model.recBtnState = 3; // "idle" state (lightbox visible)
+    // this.model.recBtnState = 3; // "idle" state (lightbox visible)
+    this.model.recBtnState = 0; // "waiting" state
     this.render('#rec-btn');
 
     return promise;
@@ -328,8 +329,6 @@ class DesignerView extends CanvasView {
   }
 
   stopRecording() {
-    this.model.recBtnState = 0; // "stopped" state
-    this.render('#rec-btn');
     this.$recBtn.classList.remove('active', 'armed');
   }
 
