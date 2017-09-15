@@ -8,7 +8,7 @@ import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 import DesignerView from './DesignerView';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
 import SimpleLogin from '../shared/services/SimpleLogin';
-import { sounds, trainingUrl } from  '../shared/config';
+import { labels, clicks } from  '../shared/config';
 
 const audioContext = soundworks.audioContext;
 const client = soundworks.client;
@@ -18,7 +18,7 @@ class DesignerExperience extends soundworks.Experience {
     super();
 
     this.config = config;
-    this.labels = Object.keys(sounds);
+    this.labels = Object.keys(labels);
     this.likeliest = undefined;
     this.isStreamingSensors = false;
     this._sensitivity = 1;
@@ -29,7 +29,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: config.assetsDomain,
-      files: sounds,
+      files: { labels: labels, clicks: clicks }
     });
 
     this.motionInput = this.require('motion-input', {
@@ -75,9 +75,10 @@ class DesignerExperience extends soundworks.Experience {
     }
 
     this.view = new DesignerView({
-        sounds: sounds,
+        sounds: labels,
         assetsDomain: this.config.assetsDomain,
         record: autoTriggerDefaults,
+        recBtnState: 0, // 0 is waiting, 1 is armed, 2 is recording, 3 is idle
       }, {}, {
         preservePixelRatio: true,
         className: 'designer',
@@ -98,7 +99,7 @@ class DesignerExperience extends soundworks.Experience {
     this.renderer = new LikelihoodsRenderer(this.view);
 
     // audio
-    this.audioEngine = new AudioEngine(this.audioBufferManager.data);
+    this.audioEngine = new AudioEngine(this.audioBufferManager.data.labels);
 
     // preprocessing
     this.processedSensors = new imlMotion.ProcessedSensors();
@@ -131,7 +132,7 @@ class DesignerExperience extends soundworks.Experience {
     // recording and decoding
     this.trainingData = new imlMotion.TrainingData();
 
-    this.xmmDecoder = new imlMotion.XmmProcessor({ url: trainingUrl });
+    this.xmmDecoder = new imlMotion.XmmProcessor({ url: this.config.trainUrl });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
     if (this.isStreamingSensors)
@@ -167,10 +168,10 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _onNewTrainingData(trainingData) {
-    if (trainingData.config !== null)
+    if (trainingData.config !== undefined)
       this.xmmDecoder.setConfig(trainingData.config);
 
-    if (trainingData.trainingSet !== null) {
+    if (trainingData.trainingSet !== undefined) {
       this.trainingData.setTrainingSet(trainingData.trainingSet);
 
       this._updateModelAndSet(false);
@@ -209,6 +210,8 @@ class DesignerExperience extends soundworks.Experience {
     // start recording
     this.trainingData.startRecording(this.likeliest);
     this.view.startRecording();
+
+    this._playSound(this.audioBufferManager.data.clicks['startRec']);
   }
 
   _stopRecording() {
@@ -219,6 +222,8 @@ class DesignerExperience extends soundworks.Experience {
 
     this.view.stopRecording();
     this.autoTrigger.setState('off');
+
+    this._playSound(this.audioBufferManager.data.clicks['stopRec']);
 
     this.view.confirm('send').then(() => {
       this._updateModelAndSet();
@@ -313,6 +318,13 @@ class DesignerExperience extends soundworks.Experience {
 
   _mute(mute) {
     this.audioEngine.mute = mute;
+  }
+
+  _playSound(buffer) {
+    const src = audioContext.createBufferSource();
+    src.connect(audioContext.destination);
+    src.buffer = buffer;
+    src.start(audioContext.currentTime);
   }
 
   _persistUser() {

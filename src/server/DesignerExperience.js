@@ -24,7 +24,7 @@ class DesignerExperience extends Experience {
       });
     }
 
-    this.xmms = new Map(); // `set`, `get`, `delete`
+    // this.xmms = new Map(); // `set`, `get`, `delete`
   }
 
   start() {}
@@ -53,7 +53,7 @@ class DesignerExperience extends Experience {
     // designerStore.remove(user);
     // this.comm.emit('models-updated');
 
-    this.xmms.delete(client);
+    // this.xmms.delete(client);
 
     super.exit(client);
   }

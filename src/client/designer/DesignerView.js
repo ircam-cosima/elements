@@ -99,7 +99,17 @@ const viewTemplate = `
 
         <button id="rec-btn">
           <div class="bg"></div>
-          <p>record</p>
+          <p>
+          <% if (recBtnState === 0) { %>
+            start <br /> recording
+          <% } else if (recBtnState === 1) { %>
+            move <br /> or <br /> cancel
+          <% } else if (recBtnState === 2) { %>
+            recording
+          <% } else if (recBtnState === 3) { %>
+            idle
+          <% } %>
+          <p>
         </button>
       </div>
 
@@ -128,6 +138,9 @@ class DesignerView extends CanvasView {
 
     this.installEvents({
       'touchstart #rec-btn': () => {
+        if (this.$recBtn.classList.contains('active'))
+          return;
+
         if (!this.$recBtn.classList.contains('armed')) {
           this.armRecording();
           this._recordCallback('arm');
@@ -259,6 +272,9 @@ class DesignerView extends CanvasView {
       dialog.appendTo(this.$el);
     });
 
+    this.model.recBtnState = 3; // "idle" state (lightbox visible)
+    this.render('#rec-btn');
+
     return promise;
   }
 
@@ -299,18 +315,21 @@ class DesignerView extends CanvasView {
   }
 
   armRecording() {
-    this.$recBtnTxt.textContent = 'armed';
+    this.model.recBtnState = 1; // "armed" state
+    this.render('#rec-btn');
     this.$recBtn.classList.add('armed');
   }
 
   startRecording() {
-    this.$recBtnTxt.textContent = 'recording';
+    this.model.recBtnState = 2; // "recording" state
+    this.render('#rec-btn');
     this.$recBtn.classList.remove('armed');
     this.$recBtn.classList.add('active');
   }
 
   stopRecording() {
-    this.$recBtnTxt.textContent = 'record';
+    this.model.recBtnState = 0; // "stopped" state
+    this.render('#rec-btn');
     this.$recBtn.classList.remove('active', 'armed');
   }
 

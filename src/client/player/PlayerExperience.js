@@ -1,7 +1,7 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
 import * as imlMotion from 'iml-motion';
-import { sounds } from  '../shared/config';
+import { labels } from  '../shared/config';
 import AudioEngine from '../shared/AudioEngine';
 
 const audioContext = soundworks.audioContext;
@@ -98,7 +98,7 @@ class PlayerExperience extends soundworks.Experience {
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: assetsDomain,
-      files: sounds,
+      files: labels,
     });
 
     this.motionInput = this.require('motion-input', {
@@ -107,7 +107,7 @@ class PlayerExperience extends soundworks.Experience {
 
     // this.rawSocket = this.require('raw-socket');
 
-    this.labels = Object.keys(sounds);
+    this.labels = Object.keys(labels);
     this.likeliest = undefined;
 
     this.models = null;

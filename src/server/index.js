@@ -33,6 +33,7 @@ server.setClientConfigDefinition((clientType, config, httpRequest) => {
   return {
     clientType: clientType,
     env: config.env,
+    trainUrl: config.trainUrl,
     appName: config.appName,
     websockets: config.websockets,
     version: config.version,

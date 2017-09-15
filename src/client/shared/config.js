@@ -1,21 +1,23 @@
 // collection of { label: soundFile } pairs
-const sounds = {
-  aerial: 'sounds/aerial.mp3',
-  birds: 'sounds/oiseaux.mp3',
-  bubble: 'sounds/bubble.mp3',
-  clicks: 'sounds/clicks.mp3',
-  can: 'sounds/crashedcan.mp3',
-  fire: 'sounds/feu.mp3',
-  noise: 'sounds/noisystroke.mp3',
-  sand: 'sounds/sable.mp3',
-  shake: 'sounds/shake.mp3',
-  stone: 'sounds/pierres.mp3',
-  water: 'sounds/nage.mp3',
-  wind: 'sounds/vent.mp3',
-  silence: 'sounds/silence.mp3',
+const labels = {
+  aerial: 'sounds/labels/aerial.mp3',
+  birds: 'sounds/labels/oiseaux.mp3',
+  bubble: 'sounds/labels/bubble.mp3',
+  clicks: 'sounds/labels/clicks.mp3',
+  can: 'sounds/labels/crashedcan.mp3',
+  fire: 'sounds/labels/feu.mp3',
+  noise: 'sounds/labels/noisystroke.mp3',
+  sand: 'sounds/labels/sable.mp3',
+  shake: 'sounds/labels/shake.mp3',
+  stone: 'sounds/labels/pierres.mp3',
+  water: 'sounds/labels/nage.mp3',
+  wind: 'sounds/labels/vent.mp3',
+  silence: 'sounds/labels/silence.mp3',
 };
 
-// const trainingUrl = 'https://como.ircam.fr/api/v1/train';
-const trainingUrl = '/train';
+const clicks = {
+  startRec: 'sounds/clicks/tik.mp3',
+  stopRec: 'sounds/clicks/tik.mp3',
+};
 
-export { sounds, trainingUrl };
+export { labels, clicks };

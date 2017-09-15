@@ -24,7 +24,8 @@
     </script>
 
     <% if (data.env === 'production') { %>
-    <script src="<%= data.assetsDomain %>js/<%= data.clientType %>.min.js?<%= data.version %>"></script>
+    <!-- <script src="<%= data.assetsDomain %>js/<%= data.clientType %>.min.js?<%= data.version %>"></script> -->
+    <script src="<%= data.assetsDomain %>js/<%= data.clientType %>.js?<%= data.version %>"></script>
     <% } else { %>
     <script src="<%= data.assetsDomain %>js/<%= data.clientType %>.js?<%= data.version %>"></script>
     <% } %>
