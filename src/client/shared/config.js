@@ -1,4 +1,5 @@
-// collection of { label: soundFile } pairs
+/* * * * * * * * * * * * * * * * * SOUNDS * * * * * * * * * * * * * * * * * * */
+
 const labels = {
   aerial: 'sounds/labels/aerial.mp3',
   birds: 'sounds/labels/oiseaux.mp3',
@@ -20,4 +21,32 @@ const clicks = {
   stopRec: 'sounds/clicks/tik.mp3',
 };
 
-export { labels, clicks };
+/* * * * * * * * * * * * * * * * * PRESETS * * * * * * * * * * * * * * * * * */
+
+const presets = {
+  basic: {
+    modelType: 'gmm',
+    gaussians: 1,
+    absoluteRegularization: 0.1,
+    relativeRegularization: 0.1,
+    covarianceMode: 'full',
+  },
+  simpleGestures: {
+    modelType: 'hhmm',
+    gaussians: 1,
+    absoluteRegularization: 0.01,
+    relativeRegularization: 0.1,
+    covarianceMode: 'full',
+    states: 4,
+  },
+  advancedGestures: {
+    modelType: 'hhmm',
+    gaussians: 2,
+    absoluteRegularization: 0.01,
+    relativeRegularization: 0.1,
+    covarianceMode: 'full',
+    states: 10,
+  }
+};
+
+export { labels, clicks, presets };

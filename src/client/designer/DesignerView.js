@@ -1,5 +1,6 @@
 import { CanvasView } from 'soundworks/client';
 import ModalDialog from './ModalDialog';
+import { presets } from '../shared/config';
 
 const viewTemplate = `
   <canvas class=background noselect"></canvas>
@@ -9,6 +10,19 @@ const viewTemplate = `
 
     <section id="overlay">
       <div class="overlay-content">
+
+        <h2>Configuration presets</h2>
+
+        <label class="select-container">Preset:
+          <select id="preset-select">
+            <% for (var prop in presets) { %>
+              <option value="<%= prop %>">
+                <%= prop %>
+              </option>
+            <% } %>
+          </select>
+        </label>
+
         <h2>Global configuration</h2>
 
         <label class="select-container">Model type:
@@ -128,6 +142,7 @@ class DesignerView extends CanvasView {
   constructor(content, events, options) {
     super(viewTemplate, content, events, options);
 
+    this._loadPresetCallback = () => {};
     this._configUpdateCallback = () => {};
     this._clearLabelCallback = () => {};
     this._clearModelCallback = () => {};
@@ -137,6 +152,11 @@ class DesignerView extends CanvasView {
     this._deleteUserCallback = () => {};
 
     this.installEvents({
+      'change #preset-select': () => {
+        const preset = this.$overlay.querySelector('#preset-select').value;
+
+        this.setConfig(presets[preset]);
+      },
       'touchstart #rec-btn': () => {
         if (this.$recBtn.classList.contains('active'))
           return;
@@ -270,6 +290,8 @@ class DesignerView extends CanvasView {
       dialog.render();
       dialog.show();
       dialog.appendTo(this.$el);
+
+      this.render('#rec-btn');
     });
 
     // this.model.recBtnState = 3; // "idle" state (lightbox visible)
@@ -334,6 +356,10 @@ class DesignerView extends CanvasView {
 
   setRecordCallback(callback) {
     this._recordCallback = callback;
+  }
+
+  setPresetCallback(callback) {
+    this._loadPresetCallback = callback;
   }
 
   setConfigCallback(callback) {

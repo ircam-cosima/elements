@@ -1,14 +1,12 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/common';
 import * as imlMotion from 'iml-motion';
-// import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
-
 import AudioEngine from '../shared/AudioEngine';
 import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 import DesignerView from './DesignerView';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
 import SimpleLogin from '../shared/services/SimpleLogin';
-import { labels, clicks } from  '../shared/config';
+import { labels, clicks, presets } from  '../shared/config';
 
 const audioContext = soundworks.audioContext;
 const client = soundworks.client;
@@ -79,6 +77,7 @@ class DesignerExperience extends soundworks.Experience {
         assetsDomain: this.config.assetsDomain,
         record: autoTriggerDefaults,
         recBtnState: 0, // 0 is waiting, 1 is armed, 2 is recording, 3 is idle
+        presets: presets,
       }, {}, {
         preservePixelRatio: true,
         className: 'designer',
