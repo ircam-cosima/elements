@@ -72,18 +72,18 @@ const xmmStore = {
   },
 
   // return a structure that keep trace of the project informations
-  getModelByUsers(users) {
-    const results = {};
+  // getModelByUsers(users) {
+  //   const results = {};
 
-    users.forEach(user => {
-      results[user.uuid] = {
-        username: user.name,
-        model: this.getModel(user),
-      };
-    });
+  //   users.forEach(user => {
+  //     results[user.uuid] = {
+  //       username: user.name,
+  //       model: this.getModel(user),
+  //     };
+  //   });
 
-    return results;
-  },
+  //   return results;
+  // },
 };
 
 export default xmmStore;

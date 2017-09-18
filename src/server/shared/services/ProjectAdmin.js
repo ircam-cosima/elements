@@ -1,5 +1,5 @@
 import { Service, serviceManager } from 'soundworks/server';
-import projectStore from '../projectStore';
+import appStore from '../appStore';
 import uuidv4 from 'uuid/v4';
 
 const SERVICE_ID = 'service:project-admin';
@@ -31,35 +31,36 @@ class ProjectAdmin extends Service {
   connect(client) {
     super.connect(client);
 
-    this.receive(client, 'project-request', this._onLogin(client));
+    this.receive(client, 'project-request', this.enterProject(client));
   }
 
-  disconnect(client) {
-    super.disconnect(client);
+  // disconnect(client) {
+  //   super.disconnect(client);
+  // }
 
-    const project = client.project;
-    this.loggedProjectMap.set(project, false);
+  exitProject(client) {
+    appStore.removeDesignerFromProject(client);
   }
 
   /** @private */
-  _onLogin(client) {
+  enterProject(client) {
     return name => {
-      let project = projectStore.getByName(name);
-      const connected = this.loggedProjectMap.get(project);
+      let project = appStore.getProjectByName(name);
 
-      if (connected) {
-        this.send(client, 'project-error', name);
-      } else {
-        // create project if not exist
-        if (project === null) {
-          project = { name: name, uuid: uuidv4() };
-          projectStore.persist(project);
-        }
-
-        client.project = project;
-        this.loggedProjectMap.set(project, true);
+      if (project === null) {
+        project = appStore.createProject(name);
+        appStore.addDesignerToProject(client, project);
 
         this.send(client, 'project-ack', project);
+      } else {
+        const designer = appStore.getProjectDesigner(project);
+
+        if (designer === null) {
+          appStore.addDesignerToProject(client, project);
+          this.send(client, 'project-ack', project);
+        } else {
+          this.send(client, 'project-error', name);
+        }
       }
     }
   }

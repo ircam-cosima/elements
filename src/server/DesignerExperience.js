@@ -1,19 +1,15 @@
 import { default as Xmm } from 'xmm-node';
 import { Experience } from 'soundworks/server';
-// services
-import ProjectAdmin from './shared/services/ProjectAdmin';
 // stores
-import xmmStore from './shared/xmmStore';
-import projectManager from './shared/projectManager';
+import appStore from './shared/appStore';
 
 const cwd = process.cwd();
 
 // server-side 'designer' experience.
 class DesignerExperience extends Experience {
-  constructor(clientType, comm, config) {
+  constructor(clientType, config) {
     super(clientType);
 
-    this.comm = comm;
     this.config = config;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
@@ -33,12 +29,9 @@ class DesignerExperience extends Experience {
     super.enter(client);
 
     const project = client.project;
-    projectManager.addDesigner(project, client);
+    const trainingData = appStore.getProjectTrainingData(project);
 
-    const trainingSet = xmmStore.getTrainingSet(project);
-    const config = xmmStore.getConfig(project);
-
-    this.send(client, 'init:training-data', { config, trainingSet });
+    this.send(client, 'init:training-data', trainingData);
     this.receive(client, 'persist:training-data', this._persistTrainingData(client));
 
     // listen for client sensor streaming, the client is using `#stream`
@@ -51,8 +44,7 @@ class DesignerExperience extends Experience {
   }
 
   exit(client) {
-    const project = client.project;
-    projectManager.removeDesigner(project, client);
+    this.projectAdmin.exitProject(client);
 
     super.exit(client);
   }
@@ -60,9 +52,13 @@ class DesignerExperience extends Experience {
   _persistTrainingData(client) {
     return msg => {
       const project = client.project;
-      xmmStore.persistConfig(project, msg.config);
-      xmmStore.persistTrainingSet(project, msg.trainingSet);
-      xmmStore.persistModel(project, msg.model);
+
+      appStore.setProjectTrainingData(project, {
+        config: msg.config,
+        trainingData: msg.trainingSet,
+      });
+
+      appStore.setProjectModel(project, msg.model);
     };
   }
 }

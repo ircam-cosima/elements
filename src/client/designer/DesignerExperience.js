@@ -40,7 +40,6 @@ class DesignerExperience extends soundworks.Experience {
     if (config.env !== 'production')
       this.rawSocket = this.require('raw-socket');
 
-
     this._onConfigUpdate = this._onConfigUpdate.bind(this);
     this._onRecord = this._onRecord.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
