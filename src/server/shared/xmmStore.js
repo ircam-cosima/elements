@@ -8,8 +8,8 @@ const basePath = path.join(cwd, 'public', 'exports');
  * @todo - make everything Promise based and async
  */
 const xmmStore = {
-  getTrainingSet(user) {
-    const uuid = user.uuid;
+  getTrainingSet(project) {
+    const uuid = project.uuid;
     const filename = path.join(basePath, 'sets', `${uuid}-training-set.json`);
     let trainingSet = null;
 
@@ -21,8 +21,8 @@ const xmmStore = {
     return trainingSet;
   },
 
-  getConfig(user) {
-    const uuid = user.uuid;
+  getConfig(project) {
+    const uuid = project.uuid;
     const filename = path.join(basePath, 'configs', `${uuid}-config.json`);
     let config = null;
 
@@ -34,8 +34,8 @@ const xmmStore = {
     return config;
   },
 
-  getModel(user) {
-    const uuid = user.uuid;
+  getModel(project) {
+    const uuid = project.uuid;
     const filename = path.join(basePath, 'models', `${uuid}-model.json`);
     let model = null;
 
@@ -47,31 +47,31 @@ const xmmStore = {
     return model;
   },
 
-  persistTrainingSet(user, trainingSet) {
-    const uuid = user.uuid;
+  persistTrainingSet(project, trainingSet) {
+    const uuid = project.uuid;
     const filename = path.join(basePath, 'sets', `${uuid}-training-set.json`);
     const json = JSON.stringify(trainingSet, null, 2);
 
     fs.writeFileSync(filename, json, 'utf8');
   },
 
-  persistConfig(user, config) {
-    const uuid = user.uuid;
+  persistConfig(project, config) {
+    const uuid = project.uuid;
     const filename = path.join(basePath, 'configs', `${uuid}-config.json`);
     const json = JSON.stringify(config, null, 2);
 
     fs.writeFileSync(filename, json, 'utf8');
   },
 
-  persistModel(user, model) {
-    const uuid = user.uuid;
+  persistModel(project, model) {
+    const uuid = project.uuid;
     const filename = path.join(basePath, 'models', `${uuid}-model.json`);
     const json = JSON.stringify(model, null, 2);
 
     fs.writeFileSync(filename, json, 'utf8');
   },
 
-  // return a structure that keep trace of the user informations
+  // return a structure that keep trace of the project informations
   getModelByUsers(users) {
     const results = {};
 

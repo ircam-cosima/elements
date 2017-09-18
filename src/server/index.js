@@ -71,6 +71,7 @@ server.router.post('/train', (req, res, next) => {
   const config = body.configuration;
   const algo = config.target.name.split(':')[1];
   const trainingSet = rapidMixToXmmTrainingSet(body.trainingSet);
+  console.log(body.trainingSet);
   let x = (algo === 'hhmm') ? hx : gx;
 
   x.setConfig(config.payload);

@@ -1,6 +1,6 @@
 import { Experience } from 'soundworks/server';
 import xmmStore from './shared/xmmStore';
-import designerStore from './shared/designerStore';
+import projectStore from './shared/projectStore';
 
 class PlayerExperience extends Experience {
   constructor(clientType, comm) {
@@ -12,6 +12,7 @@ class PlayerExperience extends Experience {
     this.sharedParams = this.require('shared-params');
 
     this._onModelsUpdate = this._onModelsUpdate.bind(this);
+    this._updateProject = this._updateProject.bind(this);
   }
 
   start() {
@@ -21,21 +22,31 @@ class PlayerExperience extends Experience {
   enter(client) {
     super.enter(client);
 
-    const designers = designerStore.getList();
+    const designers = projectStore.getList();
     const models = xmmStore.getModelByUsers(designers);
 
     this.send(client, 'models', models);
+    this.receive(client, 'update-project', this._updateProject(client));
   }
 
   exit(client) {
     super.exit(client);
   }
 
+  // should get the uuid of the updated designer
   _onModelsUpdate() {
-    const designers = designerStore.getList();
+    const designers = projectStore.getList();
     const models = xmmStore.getModelByUsers(designers);
 
     this.broadcast('player', null, 'models', models);
+  }
+
+  _updateProject(client) {
+    return (uuid) => {
+      const project = projectStore.getByUuid(uuid);
+      // project manager
+      projectManager.addPlayer(project, client);
+    }
   }
 }
 
