@@ -1,8 +1,10 @@
 import { default as Xmm } from 'xmm-node';
 import { Experience } from 'soundworks/server';
-import SimpleLogin from './shared/services/SimpleLogin';
+// services
+import ProjectAdmin from './shared/services/ProjectAdmin';
+// stores
 import xmmStore from './shared/xmmStore';
-import designerStore from './shared/designerStore';
+import projectManager from './shared/projectManager';
 
 const cwd = process.cwd();
 
@@ -15,7 +17,7 @@ class DesignerExperience extends Experience {
     this.config = config;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
-    this.login = this.require('simple-login');
+    this.projectAdmin = this.require('project-admin');
     this.sharedParams = this.require('shared-params');
 
     if (config.env !== 'production') {
@@ -23,8 +25,6 @@ class DesignerExperience extends Experience {
         protocol: { channel: 'sensors', type: 'Float32' },
       });
     }
-
-    this.xmms = new Map(); // `set`, `get`, `delete`
   }
 
   start() {}
@@ -32,11 +32,14 @@ class DesignerExperience extends Experience {
   enter(client) {
     super.enter(client);
 
-    this._getModel(client.user);
+    const project = client.project;
+    projectManager.addDesigner(project, client);
 
-    this.receive(client, 'training-data', this._onNewTrainingData(client));
+    const trainingSet = xmmStore.getTrainingSet(project);
+    const config = xmmStore.getConfig(project);
 
-    // make the world know (master) about this new designer
+    this.send(client, 'init:training-data', { config, trainingSet });
+    this.receive(client, 'persist:training-data', this._persistTrainingData(client));
 
     // listen for client sensor streaming, the client is using `#stream`
     // if (this.config.env !== 'production') {
@@ -48,24 +51,18 @@ class DesignerExperience extends Experience {
   }
 
   exit(client) {
-    this.xmms.delete(client);
+    const project = client.project;
+    projectManager.removeDesigner(project, client);
 
     super.exit(client);
   }
 
-  _getModel(user) {
-    const trainingSet = xmmStore.getTrainingSet(user);
-    const config = xmmStore.getConfig(user);
-
-    this.send(client, 'training-data', { config: config, trainingSet: trainingSet });
-  }
-
-  _onNewTrainingData(client) {
+  _persistTrainingData(client) {
     return msg => {
-      const user = client.activities['service:login'].user;
-      xmmStore.persistConfig(user, msg.config);
-      xmmStore.persistTrainingSet(user, msg.trainingSet);
-      xmmStore.persistModel(user, msg.model);
+      const project = client.project;
+      xmmStore.persistConfig(project, msg.config);
+      xmmStore.persistTrainingSet(project, msg.trainingSet);
+      xmmStore.persistModel(project, msg.model);
     };
   }
 }

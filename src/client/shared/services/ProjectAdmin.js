@@ -1,6 +1,6 @@
 import { Service, SegmentedView, serviceManager, client } from 'soundworks/client';
 
-const SERVICE_ID = 'service:simple-login';
+const SERVICE_ID = 'service:project-admin';
 const LOCAL_STORAGE_KEY = `soundworks:${SERVICE_ID}`;
 
 /**
@@ -13,7 +13,7 @@ const LOCAL_STORAGE_KEY = `soundworks:${SERVICE_ID}`;
  * if the user name doesn't already exist in the database, automatically creates a new entry
  * not secure : several users can be connected simultaneously using the same user name
  */
-class SimpleLogin extends Service {
+class ProjectAdmin extends Service {
 	constructor(options) {
 		super(SERVICE_ID, true);
 
@@ -34,11 +34,11 @@ class SimpleLogin extends Service {
 
     this.view.setLoginCallback(this._login);
 
-    this.receive('login-ack', this._onLoginAck);
-    this.receive('login-error', this._onLoginError);
+    this.receive('project-ack', this._onLoginAck);
+    this.receive('project-error', this._onLoginError);
 
     this.view.model.logged = false;
-    this.view.model.username = null;
+    this.view.model.name = null;
 
     this.show();
   }
@@ -47,36 +47,36 @@ class SimpleLogin extends Service {
   stop() {
     super.stop();
 
-    this.stopReceiving('login-ack', this._onLoginAck);
-    this.stopReceiving('login-error', this._onLoginError);
+    this.stopReceiving('project-ack', this._onLoginAck);
+    this.stopReceiving('project-error', this._onLoginError);
 
     this.hide();
   }
 
   // disconnect client
   logout() {
-    this.send('logout', client.user);
+    this.send('logout');
   }
 
   // check if user is already connected
-  _login(username) {
-    this.send('login', username);
+  _login(name) {
+    this.send('project-request', name);
   }
 
-  // server ack that username is available
+  // server ack that name is available
   _onLoginAck(user) {
     client.user = user;
     this.ready();
   }
 
-  // server error: username is nor available
-  _onLoginError(username) {
-    this.view.model.username = username;
+  // server error: name is nor available
+  _onLoginError(name) {
+    this.view.model.name = name;
     this.view.model.error = true;
     this.view.render();
   }
 }
 
-serviceManager.register(SERVICE_ID, SimpleLogin);
+serviceManager.register(SERVICE_ID, ProjectAdmin);
 
-export default SimpleLogin;
+export default ProjectAdmin;

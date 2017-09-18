@@ -205,13 +205,13 @@ class PlayerExperience extends soundworks.Experience {
     }
   }
 
-  _updateModel(value) {
-    const model = this.models[value].model;
+  _updateModel(uuid) {
+    const model = this.models[uuid].model;
 
-    this.currentModelId = value;
+    this.currentModelId = uuid;
     this.xmmDecoder.setModel(model);
-    //
-    this.send('update-designer', value);
+
+    this.send('update-project', uuid);
   }
 
   _toggleMute(bool) {
