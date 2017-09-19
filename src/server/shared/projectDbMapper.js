@@ -3,7 +3,7 @@ import path from 'path';
 
 const cwd = process.cwd();
 const basePath = path.join(cwd, 'db');
-const filename = path.join(basePath, 'designers.json');
+const filename = path.join(basePath, 'projects.json');
 
 // simple abstraction that could be a starting point
 // for a database or something more elaborated

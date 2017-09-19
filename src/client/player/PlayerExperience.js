@@ -131,7 +131,7 @@ class PlayerExperience extends soundworks.Experience {
 
     // rendering
     this.view = new PlayerView(viewTemplate, { models: null }, {}, {
-      className: 'player'
+      id: 'player'
     });
 
     this.view.setDesignerChangeCallback(this._updateModel);

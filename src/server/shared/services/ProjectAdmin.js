@@ -1,6 +1,5 @@
 import { Service, serviceManager } from 'soundworks/server';
 import appStore from '../appStore';
-import uuidv4 from 'uuid/v4';
 
 const SERVICE_ID = 'service:project-admin';
 

@@ -190,7 +190,7 @@ $elmHeight: 36px;
   }
 }
 
-.designer {
+#designer {
   $configElmHeight: 25px;
   $btnBorderRadius: 15px;
   $backgroundColor: #000000;
@@ -316,30 +316,121 @@ $elmHeight: 36px;
   }
 }
 
-.player {
+#player {
   font-size: 1.4em;
   padding: 10px;
   box-sizing: border-box;
 }
 
 
-#visualizer {
-  background-color: #ffffff;
+// #visualizer {
+//   background-color: #ffffff;
+//   padding: 20px;
+//   box-sizing: border-box;
+
+//   #controls {
+//     width: 602px;
+//   }
+
+//   h2 {
+//     font-size: 20px;
+//     color: black;
+//     padding: 10px 0;
+//   }
+
+//   canvas {
+//     outline: 1px solid grey;
+//   }
+// }
+
+
+#master {
+  font-weight: normal;
+  font-size: 1.2rem;
   padding: 20px;
   box-sizing: border-box;
+  background-color: white;
+  color: black;
 
-  #controls {
-    width: 602px;
+  h1 {
+    font-weight: normal;
+    font-size: 1.4rem;
   }
 
-  h2 {
-    font-size: 20px;
-    color: black;
-    padding: 10px 0;
+  h4 {
+    font-weight: normal;
+    font-size: 1.2rem;
   }
 
-  canvas {
-    outline: 1px solid grey;
+  .project {
+    margin: 12px 0 0 0;
+    padding: 12px 0;
+    border-radius: 2px;
+    box-sizing: border-box;
+
+    * {
+      font-size: 1rem;
+    }
+
+    .btn.delete {
+      color: #fff;
+      background-color: #d9534f;
+      border-color: #d43f3a;
+      width: 120px;
+      height: 36px;
+      line-height: 22px;
+      margin: 0;
+      box-sizing: border-box;
+      cursor: pointer;
+      transition: background-color 100ms;
+
+      &:hover {
+        background-color: lighten(#d9534f, 5%);
+      }
+    }
+
+    h4 {
+      font-weight: normal;
+      font-size: 1em;
+      background-color: #efefef;
+      padding: 4px 0 4px 20px;
+      margin-bottom: 6px;
+      position: relative;
+      height: 40px;
+      line-height: 32px;
+      border-radius: 2px;
+      box-sizing: border-box;
+
+      .btn.delete {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+      }
+    }
+
+    .clients {
+      padding-bottom: 12px;
+      border-bottom: 1px solid #efefef;
+      padding-left: 20px;
+      list-style-type: circle;
+    }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

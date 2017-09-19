@@ -81,7 +81,7 @@ class DesignerExperience extends soundworks.Experience {
         presets: presets,
       }, {}, {
         preservePixelRatio: true,
-        className: 'designer',
+        id: 'designer',
         ratios: { '.content': 1 },
       }
     );

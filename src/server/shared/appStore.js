@@ -1,5 +1,6 @@
 import projectDbMapper from './projectDbMapper';
 import xmmDbMapper from './xmmDbMapper';
+import uuidv4 from 'uuid/v4';
 
 const appStore = {
   init() {
@@ -8,6 +9,8 @@ const appStore = {
     const projectList = projectDbMapper.getList();
     this.projects = projectList; // project = { name, uuid }
     this.projectUsersMap = new Map();
+
+    this.uuidClientMap = new Map();
 
     this.projects.forEach(project => {
       this.projectUsersMap.set(project, this._getEmptyUserMap());
@@ -31,7 +34,22 @@ const appStore = {
 
   _emit(channel, ...args) {
     const listeners = this._listeners.get(channel);
-    listeners.forEach(listener => listener(...args));
+
+    if (listeners)
+      listeners.forEach(listener => listener(...args));
+  },
+
+  // easy acces to clients by uuid
+  registerClient(client) {
+    this.uuidClientMap.set(client.uuid, client);
+  },
+
+  unregisterClient(client) {
+    this.uuidClientMap.delete(client.uuid);
+  },
+
+  getClientByUuid(uuid) {
+    return this.uuidClientMap.get(uuid);
   },
 
   _getEmptyUserMap() {
@@ -49,6 +67,8 @@ const appStore = {
 
     projectDbMapper.persist(this.projects);
 
+    this._emit('create-project', project);
+
     return project;
   },
 
@@ -61,6 +81,70 @@ const appStore = {
     this.projects.delete(project);
 
     projectDbMapper.persist(this.projects);
+
+    this._emit('delete-project', project);
+  },
+
+  addDesignerToProject(client, project) {
+    const users = this.projectUsersMap.get(project);
+
+    users.designer = client;
+    client.project = project;
+
+    this._emit('add-designer-to-project', project);
+  },
+
+  removeDesignerFromProject(client) {
+    const project = client.project;
+    const users = this.projectUsersMap.get(project);
+
+    users.designer = null;
+    client.project = null;
+
+    this._emit('remove-designer-from-project', project);
+  },
+
+  addPlayerToProject(client, project) {
+    const users = this.projectUsersMap.get(project);
+
+    users.players.add(client);
+    client.project = project;
+
+    this._emit('add-player-to-project', project);
+  },
+
+  removePlayerFromProject(client) {
+    const project = client.project;
+    const users = this.projectUsersMap.get(project);
+
+    users.players.delete(client);
+    client.project = null;
+
+    this._emit('remove-player-from-project', project);
+  },
+
+  setProjectTrainingData(project, trainingData) {
+    xmmDbMapper.persistConfig(project, msg.config);
+    xmmDbMapper.persistTrainingSet(project, msg.trainingSet);
+
+    this._emit('set-project-training-data', project);
+  },
+
+  setProjectModel(project, model) {
+    xmmDbMapper.persistModel(project, msg.model);
+
+    this._emit('set-project-model', project);
+  },
+
+  getProjectTrainingData(project) {
+    const trainingSet = xmmDbMapper.getTrainingSet(project);
+    const config = xmmDbMapper.getConfig(project);
+
+    return { config, trainingSet };
+  },
+
+  getProjectModel(project) {
+    return xmmDbMapper.getModel(project);
   },
 
   getProjectByUuid(uuid) {
@@ -90,62 +174,10 @@ const appStore = {
     return users.designer;
   },
 
-  getProjectUsers(project) {
-    return this.projectUsersMap.get(project);
-  },
-
-  addDesignerToProject(client, project) {
+  getProjectPlayers(project) {
     const users = this.projectUsersMap.get(project);
-
-    users.designer = client;
-    client.project = project;
+    return users.players;
   },
-
-  removeDesignerFromProject(client) {
-    const project = client.project;
-    const users = this.projectUsersMap.get(project);
-
-    users.designer = null;
-    client.project = null;
-  },
-
-  addPlayerToProject(client, project) {
-    const users = this.projectUsersMap.get(project);
-
-    users.players.add(client);
-    client.project = project;
-  },
-
-  removePlayerFromProject(client) {
-    const project = client.project;
-    const users = this.projectUsersMap.get(project);
-
-    users.players.delete(client);
-    client.project = null;
-  },
-
-  getProjectTrainingData(project) {
-    const trainingSet = xmmDbMapper.getTrainingSet(project);
-    const config = xmmDbMapper.getConfig(project);
-
-    return { config, trainingSet };
-  },
-
-  getProjectModel(project) {
-    return xmmDbMapper.getModel(project);
-  },
-
-  setProjectTrainingData(project, trainingData) {
-    xmmDbMapper.persistConfig(project, msg.config);
-    xmmDbMapper.persistTrainingSet(project, msg.trainingSet);
-  },
-
-  setProjectModel(project, model) {
-    xmmDbMapper.persistModel(project, msg.model);
-
-    this._emit('set-project-model', project);
-  },
-
 };
 
 appStore.init();

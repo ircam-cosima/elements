@@ -28,6 +28,8 @@ class DesignerExperience extends Experience {
   enter(client) {
     super.enter(client);
 
+    appStore.registerClient(client);
+
     const project = client.project;
     const trainingData = appStore.getProjectTrainingData(project);
 
@@ -44,6 +46,7 @@ class DesignerExperience extends Experience {
   }
 
   exit(client) {
+    appStore.unregisterClient(client);
     this.projectAdmin.exitProject(client);
 
     super.exit(client);

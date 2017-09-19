@@ -14,6 +14,8 @@ class PlayerExperience extends Experience {
   }
 
   start() {
+    super.start();
+
     appStore.addListener('set-project-model', (project) => {
       const clients = appStore.getProjectUsers(project);
       const model = appStore.getModel(project);
@@ -25,7 +27,9 @@ class PlayerExperience extends Experience {
   enter(client) {
     super.enter(client);
 
-    const projects = appStore.getList();
+    appStore.registerClient(client);
+
+    // const projects = appStore.getList();
     // const models = xmmDbMapper.getModelByUsers(projects);
 
     this.send(client, 'models', models);
@@ -33,6 +37,8 @@ class PlayerExperience extends Experience {
   }
 
   exit(client) {
+    appStore.unregisterClient(client);
+
     super.exit(client);
   }
 
