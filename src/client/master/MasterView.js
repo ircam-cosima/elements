@@ -42,7 +42,7 @@ const mainTemplate = `
   <h1>Master</h1>
 
   <div id="main-controls">
-    <label>
+    <label id="select-project-container">
       Select project:
       <select id="project-select"></select>
     </label>
@@ -82,6 +82,11 @@ class MasterView extends soundworks.View {
         const value = e.target.value;
         this._selectProject(value);
       },
+      'click #main-controls .mute': (e) => {
+        const $btn = e.target.closest('.mute');
+        const active = $btn.classList.contains('active');
+        this._updateGroupMute(active);
+      },
     });
 
     this.projectUuidContainerMap = new Map();
@@ -114,6 +119,11 @@ class MasterView extends soundworks.View {
           $container.style.display = 'none';
       }
     });
+  }
+
+  _updateGroupMute(active) {
+    const currentProject = this._currentProject;
+    this.send('')
   }
 
   // build project overview menu

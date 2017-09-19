@@ -10,7 +10,6 @@ const appStore = {
     this.projectUsersMap = new Map();
 
     this.uuidClientMap = new Map();
-    this.clientParamsMap = new Map();
 
     this.projects.forEach(project => {
       project.params = this._getProjectDefaultParams();
@@ -66,16 +65,16 @@ const appStore = {
   // easy acces to clients by uuid
   registerClient(client) {
     const params = this._getClientDefaultParams();
+    client.params = params;
 
     this.uuidClientMap.set(client.uuid, client);
-    this.clientParamsMap.set(client, params);
   },
 
   unregisterClient(client) {
     this.uuidClientMap.delete(client.uuid);
-    this.clientParamsMap.delete(client);
   },
 
+  // create / delete project
   createProject(name) {
     const project = {
       name: name,
@@ -106,25 +105,32 @@ const appStore = {
     this._emit('delete-project', project);
   },
 
-  getClientByUuid(uuid) {
-    return this.uuidClientMap.get(uuid);
-  },
-
-  getClientParams(client) {
-    return this.clientParamsMap.get(client);
-  },
-
+  // params handling
   setClientParam(client, name, value) {
-    const params = this.clientParamsMap.get(client);
-    params[name] = value;
+    client.params[name] = value;
+    // emit something
   },
 
+  setProjectParam(project, name, value) {
+    project.params[name] = value;
+
+    const users = this.projectUsersMap.get(project);
+
+    if (users.designer)
+      this.setClientParam(users.designer, name, value);
+
+    users.players.forEach(player => this.setClientParam(player, name, value));
+
+    // emit something
+  },
+
+  // group ahndling
   addDesignerToProject(client, project) {
     const users = this.projectUsersMap.get(project);
-    const clientParams = this.clientParamsMap.get(client);
+
     // set user params to project params
     for (let name in project.params)
-      clientParams[name] = project.params[name];
+      client.params[name] = project.params[name];
 
     users.designer = client;
     client.project = project;
@@ -146,10 +152,10 @@ const appStore = {
 
   addPlayerToProject(client, project) {
     const users = this.projectUsersMap.get(project);
-    const clientParams = this.clientParamsMap.get(client);
+
     // set user params to project params
     for (let name in project.params)
-      clientParams[name] = project.params[name];
+      client.params[name] = project.params[name];
 
     users.players.add(client);
     client.project = project;
@@ -169,6 +175,7 @@ const appStore = {
     }
   },
 
+  // xmm data
   setProjectTrainingData(project, trainingData) {
     xmmDbMapper.persistConfig(project, trainingData.config);
     xmmDbMapper.persistTrainingSet(project, trainingData.trainingSet);
@@ -177,7 +184,7 @@ const appStore = {
   },
 
   setProjectModel(project, model) {
-    xmmDbMapper.persistModel(project, msg.model);
+    xmmDbMapper.persistModel(project, model);
 
     this._emit('set-project-model', project);
   },
@@ -193,6 +200,8 @@ const appStore = {
     return xmmDbMapper.getModel(project);
   },
 
+
+  // generic getters
   getProjectByUuid(uuid) {
     let _project = null;
 
@@ -214,13 +223,8 @@ const appStore = {
     return _project;
   },
 
-  setProjectTrainingData(project, trainingData) {
-    xmmDbMapper.persistConfig(project, trainingData.config);
-    xmmDbMapper.persistTrainingSet(project, trainingData.trainingSet);
-  },
-
-  setProjectModel(project, model) {
-    xmmDbMapper.persistModel(project, model);
+  getClientByUuid(uuid) {
+    return this.uuidClientMap.get(uuid);
   },
 
   getProjectDesigner(project) {
