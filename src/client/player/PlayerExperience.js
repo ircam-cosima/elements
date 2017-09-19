@@ -8,18 +8,6 @@ import ProjectChooser from '../shared/services/ProjectChooser';
 const audioContext = soundworks.audioContext;
 
 const viewTemplate = `
-  <!--
-  <label class="select-container">Session:
-    <select id="select-designer">
-      <% for (var uuid in models) { %>
-      <option value="<%= uuid %>">
-        <%= models[uuid].username %>
-      </option>
-      <% } %>
-    </select>
-  </label>
-  -->
-
   <div class="toggle-container" id="mute">
     <div class="toggle-btn"><div></div></div> Mute
   </div>
@@ -154,8 +142,26 @@ class PlayerExperience extends soundworks.Experience {
     this.xmmDecoder = new imlMotion.XmmProcessor({ url: null });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
+    // shared parameters mapping :
     this.sharedParams.addParamListener('sensitivity', value => {
       this._sensitivity = value;
+    });
+
+    this.sharedParams.addParamListener('intensityFeedback', value => {
+      this.processedSensors.intensity.params.set('feedback', value);
+    });
+
+    this.sharedParams.addParamListener('intensityGain', value => {
+      this.processedSensors.intensity.params.set('gain', value);
+    });
+
+    this.sharedParams.addParamListener('intensityPower', value => {
+      this.processedSensors.intensityPower.params.set('exponent', value);
+    });
+
+    this.sharedParams.addParamListener('intensityLowClip', value => {
+      this.processedSensors.powerClip.params.set('min', value);
+      this.processedSensors.powerScale.params.set('inputMin', value);
     });
 
     this.receive('model', this._onReceiveModel);

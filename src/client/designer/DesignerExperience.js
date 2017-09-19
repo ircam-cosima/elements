@@ -7,8 +7,7 @@ import ProjectAdmin from '../shared/services/ProjectAdmin';
 import AudioEngine from '../shared/AudioEngine';
 import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
-import { labels, clicks, presets } from  '../shared/config';
-
+import { labels, clicks, presets } from '../shared/config';
 
 const audioContext = soundworks.audioContext;
 const client = soundworks.client;
@@ -68,9 +67,9 @@ class DesignerExperience extends soundworks.Experience {
     }
 
     const autoTriggerDefaults = {
-      highThreshold: 0.5,
+      highThreshold: 0.05,
       lowThreshold: 0.01,
-      offDelay: 500,
+      offDelay: 200,
     }
 
     this.view = new DesignerView({
@@ -146,11 +145,27 @@ class DesignerExperience extends soundworks.Experience {
       stopCallback: this._stopRecording,
     });
 
+    // shared parameters mapping :
     this.sharedParams.addParamListener('sensitivity', value => {
       this._sensitivity = value;
-      // this.audioEngine.setMasterVolume(value);
     });
 
+    this.sharedParams.addParamListener('intensityFeedback', value => {
+      this.processedSensors.intensity.params.set('feedback', value);
+    });
+
+    this.sharedParams.addParamListener('intensityGain', value => {
+      this.processedSensors.intensity.params.set('gain', value);
+    });
+
+    this.sharedParams.addParamListener('intensityPower', value => {
+      this.processedSensors.intensityPower.params.set('exponent', value);
+    });
+
+    this.sharedParams.addParamListener('intensityLowClip', value => {
+      this.processedSensors.powerClip.params.set('min', value);
+      this.processedSensors.powerScale.params.set('inputMin', value);
+    });
 
     this.receive('init:training-data', this._initTrainingData);
     // force disconnect sent by master
@@ -251,7 +266,9 @@ class DesignerExperience extends soundworks.Experience {
 
     const likelihoods = results ? results.likelihoods : [];
     const likeliest = results ? results.likeliestIndex : -1;
-    const label = results ? results.likeliest : 'unknown';
+    const label = results
+                ? (results.likeliest ? results.likeliest : 'unknown')
+                : 'unknown';
 
     const formattedResults = {
       label: label,

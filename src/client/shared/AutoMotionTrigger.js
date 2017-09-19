@@ -48,8 +48,9 @@ class AutoMotionTrigger {
       } else if (value < this.params.lowThreshold && this.isMoving) {
         this.isMoving = false; // keep this out of the timeout
 
-        if (!this.timeoutId)
+        if (this.timeoutId === null) {
           this.timeoutId = setTimeout(this._stop, this.params.offDelay);
+        }
       }
     } else {
       if (this.isMoving)
@@ -67,10 +68,11 @@ class AutoMotionTrigger {
   }
 
   _start() {
-    clearTimeout(this.timeoutId);
+    if (this.timeoutId !== null)
+      this.params.startCallback();
 
+    clearTimeout(this.timeoutId);
     this.timeoutId = null;
-    this.params.startCallback();
   }
 
   _stop() {

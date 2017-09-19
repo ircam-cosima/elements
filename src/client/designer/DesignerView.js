@@ -13,15 +13,11 @@ const viewTemplate = `
 
         <h2>Configuration presets</h2>
 
-        <label class="select-container">Preset:
-          <select id="preset-select">
-            <% for (var prop in presets) { %>
-              <option value="<%= prop %>">
-                <%= prop %>
-              </option>
-            <% } %>
-          </select>
-        </label>
+        <% for (var prop in presets) { %>
+          <button class="btn" id="<%= prop %>">
+            <%= presets[prop].name %>
+          </button>
+        <% } %>
 
         <h2>Global configuration</h2>
 
@@ -66,8 +62,8 @@ const viewTemplate = `
         </label>
         <label class="select-container">Transition mode:
           <select id="trans-mode-select">
-            <option value="0">ergodic</option>
-            <option value="1">leftright</option>
+            <option value="ergodic">ergodic</option>
+            <option value="leftright">leftright</option>
           </select>
         </label>
 
@@ -83,10 +79,6 @@ const viewTemplate = `
           <input id="off-delay" type="number" value="<%= record.offDelay %>" />
         </label>
 
-        <h2>User</h2>
-
-        <button class="btn" id="persist-user">persist user</button>
-        <button class="btn" id="delete-user">delete user</button>
       </div>
     </section>
 
@@ -142,7 +134,6 @@ class DesignerView extends CanvasView {
   constructor(content, events, options) {
     super(viewTemplate, content, events, options);
 
-    this._loadPresetCallback = () => {};
     this._configUpdateCallback = () => {};
     this._clearLabelCallback = () => {};
     this._clearModelCallback = () => {};
@@ -151,12 +142,7 @@ class DesignerView extends CanvasView {
     this._persistUserCallback = () => {};
     this._deleteUserCallback = () => {};
 
-    this.installEvents({
-      'change #preset-select': () => {
-        const preset = this.$overlay.querySelector('#preset-select').value;
-
-        this.setConfig(presets[preset]);
-      },
+    const viewEvents = {
       'touchstart #rec-btn': () => {
         if (this.$recBtn.classList.contains('active'))
           return;
@@ -180,11 +166,11 @@ class DesignerView extends CanvasView {
           const xmmConfig = {
             type: $el.querySelector('#model-select').value,
             gaussians: parseFloat($el.querySelector('#gauss-select').value),
-            covariance_mode: $el.querySelector('#cov-mode-select').value,
-            absolute_regularization: parseFloat($el.querySelector('#abs-reg').value),
-            relative_regularization: parseFloat($el.querySelector('#rel-reg').value),
+            covarianceMode: $el.querySelector('#cov-mode-select').value,
+            absoluteRegularization: parseFloat($el.querySelector('#abs-reg').value),
+            relativeRegularization: parseFloat($el.querySelector('#rel-reg').value),
             states: parseFloat($el.querySelector('#states-select').value),
-            transition_mode: $el.querySelector('#trans-mode-select').value,
+            transitionMode: $el.querySelector('#trans-mode-select').value,
           };
 
           const recordConfig = {
@@ -246,7 +232,16 @@ class DesignerView extends CanvasView {
       },
       'touchstart #persist-user': () => this._persistUserCallback(),
       'touchstart #delete-user': () => this._deleteUserCallback(),
-    });
+    };
+
+    for (let prop in presets) {
+      const cmd = `touchstart #${prop}`;
+      viewEvents[cmd] = () => {
+        this.setConfig(presets[prop].preset);
+      };
+    }
+
+    this.installEvents(viewEvents);
   }
 
   onRender() {
@@ -310,7 +305,7 @@ class DesignerView extends CanvasView {
     $el.querySelector('#abs-reg').value = config.absoluteRegularization;
     $el.querySelector('#rel-reg').value = config.relativeRegularization;
     $el.querySelector('#states-select').value = config.states || 1;
-    $el.querySelector('#trans-mode-select').selectedIndex = config.transition_mode || 0;
+    $el.querySelector('#trans-mode-select').value = config.transitionMode || 0;
   }
 
   setCurrentLabels(currentLabels) {
@@ -356,10 +351,6 @@ class DesignerView extends CanvasView {
 
   setRecordCallback(callback) {
     this._recordCallback = callback;
-  }
-
-  setPresetCallback(callback) {
-    this._loadPresetCallback = callback;
   }
 
   setConfigCallback(callback) {
