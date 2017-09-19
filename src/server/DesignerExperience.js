@@ -1,21 +1,19 @@
 import { default as Xmm } from 'xmm-node';
 import { Experience } from 'soundworks/server';
-import SimpleLogin from './shared/services/SimpleLogin';
-import xmmStore from './shared/xmmStore';
-import designerStore from './shared/designerStore';
+// stores
+import appStore from './shared/appStore';
 
 const cwd = process.cwd();
 
 // server-side 'designer' experience.
 class DesignerExperience extends Experience {
-  constructor(clientType, comm, config) {
+  constructor(clientType, config) {
     super(clientType);
 
-    this.comm = comm;
     this.config = config;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
-    this.login = this.require('simple-login');
+    this.projectAdmin = this.require('project-admin');
     this.sharedParams = this.require('shared-params');
 
     if (config.env !== 'production') {
@@ -23,8 +21,6 @@ class DesignerExperience extends Experience {
         protocol: { channel: 'sensors', type: 'Float32' },
       });
     }
-
-    // this.xmms = new Map(); // `set`, `get`, `delete`
   }
 
   start() {}
@@ -32,62 +28,38 @@ class DesignerExperience extends Experience {
   enter(client) {
     super.enter(client);
 
-    this._getModel(client);
+    const project = client.project;
+    const trainingData = appStore.getProjectTrainingData(project);
 
-    this.receive(client, 'training-data', this._onNewTrainingData(client));
-    this.receive(client, 'persist-user', this._onPersistUser(client));
-    this.receive(client, 'delete-user', this._onDeleteUser(client));
+    this.send(client, 'init:training-data', trainingData);
+    this.receive(client, 'persist:training-data', this._persistTrainingData(client));
 
-    if (this.config.env !== 'production') {
-      // listen for client sensor streaming, the client is using `#stream`
-      this.rawSocket.receive(client, 'sensors', data => {
-        // send to visualizer experience
-        this.comm.emit('designer-sensors', data);
-      });
-    }
+    // listen for client sensor streaming, the client is using `#stream`
+    // if (this.config.env !== 'production') {
+    //   this.rawSocket.receive(client, 'sensors', data => {
+    //     // send to visualizer experience
+    //     this.comm.emit('designer-sensors', data);
+    //   });
+    // }
   }
 
   exit(client) {
-    // @todo - define the expected behavior
-    // const user = client.activities['service:login'].user;
-    // designerStore.remove(user);
-    // this.comm.emit('models-updated');
-
-    // this.xmms.delete(client);
+    this.projectAdmin.exitProject(client);
 
     super.exit(client);
   }
 
-  _getModel(client) {
-    const user = client.activities['service:login'].user;
-    const trainingSet = xmmStore.getTrainingSet(user);
-    const config = xmmStore.getConfig(user);
-    this.send(client, 'training-data', { config: config, trainingSet: trainingSet });
-  }
-
-  _onNewTrainingData(client) {
+  _persistTrainingData(client) {
     return msg => {
-      const user = client.activities['service:login'].user;
-      xmmStore.persistConfig(user, msg.config);
-      xmmStore.persistTrainingSet(user, msg.trainingSet);
-      xmmStore.persistModel(user, msg.model);
+      const project = client.project;
+
+      appStore.setProjectTrainingData(project, {
+        config: msg.config,
+        trainingData: msg.trainingSet,
+      });
+
+      appStore.setProjectModel(project, msg.model);
     };
-  }
-
-  _onPersistUser(client) {
-    return () => {
-      const user = client.activities['service:login'].user;
-      designerStore.persist(user);
-    }
-  }
-
-  _onDeleteUser(client) {
-    return () => {
-      const user = client.activities['service:login'].user;
-      console.log('delete');
-      designerStore.delete(user);
-      console.log('delete after');
-    }
   }
 }
 

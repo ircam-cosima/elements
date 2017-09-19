@@ -9,6 +9,8 @@ import ControllerExperience from './ControllerExperience';
 import DesignerExperience from './DesignerExperience';
 import PlayerExperience from './PlayerExperience';
 import VisualizerExperience from './VisualizerExperience';
+// services
+import ProjectAdmin from './shared/services/ProjectAdmin';
 
 const configName = process.env.ENV || 'default';
 const configPath = path.join(__dirname, 'config', configName);
@@ -42,18 +44,18 @@ server.setClientConfigDefinition((clientType, config, httpRequest) => {
   };
 });
 
-const comm = new EventEmitter();
+// const comm = new EventEmitter();
 
 const sharedParams = soundworks.server.require('shared-params');
 sharedParams.addNumber('sensitivity', 'Sensitivity', 0, 2, 0.01, 1);
 
 // create the common server experience for both the soloists and the players
 const controller = new ControllerExperience('controller');
-const designer = new DesignerExperience('designer', comm, config);
-const player = new PlayerExperience('player', comm);
+const designer = new DesignerExperience('designer', config);
+const player = new PlayerExperience('player');
 
 if (config.env !== 'production') {
-  const visualizer = new VisualizerExperience('visualizer', comm, config.osc);
+  const visualizer = new VisualizerExperience('visualizer', config.osc);
 }
 
 server.start();
@@ -71,6 +73,7 @@ server.router.post('/train', (req, res, next) => {
   const config = body.configuration;
   const algo = config.target.name.split(':')[1];
   const trainingSet = rapidMixToXmmTrainingSet(body.trainingSet);
+  console.log(body.trainingSet);
   let x = (algo === 'hhmm') ? hx : gx;
 
   x.setConfig(config.payload);

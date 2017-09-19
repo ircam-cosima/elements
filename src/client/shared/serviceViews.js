@@ -42,64 +42,42 @@ const serviceViews = {
   // ------------------------------------------------
   // Login
   // ------------------------------------------------
-  'service:simple-login': class LoginView extends SegmentedView {
+  'service:project-admin': class LoginView extends SegmentedView {
     constructor() {
       super();
 
       this.template = `
-        <% if (!logged) { %>
-          <div class="section-top flex-middle">
-            <p>Please login</p>
+        <div class="section-top flex-middle">
+          <p>Enter Project</p>
+        </div>
+        <div class="section-center flex-center">
+          <div>
+            <% if (error) { %>
+            <p class="error">
+              Sorry name "<%= name %>" is already used
+            </p>
+            <% } %>
+            <input type="text" id="name" placeholder="project name" value="niap" />
+            <button class="btn" id="login">Send</button>
           </div>
-          <div class="section-center flex-center">
-            <div>
-              <% if (error) { %>
-              <p class="error">
-                Sorry user "<%= username %>" already exists
-              </p>
-              <% } %>
-              <input type="text" id="username" placeholder="username" />
-              <button class="btn" id="login">Send</button>
-            </div>
-          </div>
-          <div class="section-bottom"></div>
-        <% } else { %>
-          <div class="section-top flex-middle">
-            <p><span class="grey">Logged in as</span> <%= username %></p>
-          </div>
-          <div class="section-center flex-center">
-            <div>
-              <button class="btn" id="confirm">Confirm</button>
-              <button class="btn" id="logout">Log out</button>
-            </div>
-          </div>
-          <div class="section-bottom"></div>
-        <% } %>
+        </div>
+        <div class="section-bottom"></div>
       `;
 
       this.model = {
         error: false,
-        username: null,
-        logged: false,
+        name: null,
       };
 
       this._loginCallback = noop;
-      this._confirmCallback = noop;
-      this._logoutCallback = noop;
 
       this.installEvents({
         'click #login': () => {
-          const username = this.$el.querySelector('#username').value;
+          const name = this.$el.querySelector('#name').value;
 
-          if (username !== '')
-            this._loginCallback(username);
+          if (name !== '')
+            this._loginCallback(name);
         },
-        'click #confirm': () => {
-          this._confirmCallback();
-        },
-        'click #logout': () => {
-          this._logoutCallback();
-        }
       });
     }
 
@@ -109,14 +87,6 @@ const serviceViews = {
 
     setLoginCallback(callback) {
       this._loginCallback = callback;
-    }
-
-    setConfirmCallback(callback) {
-      this._confirmCallback = callback;
-    }
-
-    setLogoutCallback(callback) {
-      this._logoutCallback = callback;
     }
   },
 

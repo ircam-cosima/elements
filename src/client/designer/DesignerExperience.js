@@ -1,12 +1,14 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/common';
 import * as imlMotion from 'iml-motion';
+
+import DesignerView from './DesignerView';
+import ProjectAdmin from '../shared/services/ProjectAdmin';
 import AudioEngine from '../shared/AudioEngine';
 import AutoMotionTrigger from '../shared/AutoMotionTrigger';
-import DesignerView from './DesignerView';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
-import SimpleLogin from '../shared/services/SimpleLogin';
 import { labels, clicks, presets } from  '../shared/config';
+
 
 const audioContext = soundworks.audioContext;
 const client = soundworks.client;
@@ -22,7 +24,7 @@ class DesignerExperience extends soundworks.Experience {
     this._sensitivity = 1;
 
     this.platform = this.require('platform', { features: ['web-audio'] });
-    this.login = this.require('simple-login');
+    this.projectAdmin = this.require('project-admin');
     this.sharedParams = this.require('shared-params');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
@@ -38,12 +40,11 @@ class DesignerExperience extends soundworks.Experience {
     if (config.env !== 'production')
       this.rawSocket = this.require('raw-socket');
 
-
     this._onConfigUpdate = this._onConfigUpdate.bind(this);
     this._onRecord = this._onRecord.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
     this._onClearModel = this._onClearModel.bind(this);
-    this._onNewTrainingData = this._onNewTrainingData.bind(this);
+    this._initTrainingData = this._initTrainingData.bind(this);
 
     this._startRecording = this._startRecording.bind(this);
     this._stopRecording = this._stopRecording.bind(this);
@@ -151,7 +152,7 @@ class DesignerExperience extends soundworks.Experience {
     });
 
 
-    this.receive('training-data', this._onNewTrainingData);
+    this.receive('init:training-data', this._initTrainingData);
 
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
@@ -166,8 +167,8 @@ class DesignerExperience extends soundworks.Experience {
       .catch(err => console.error(err.stack));
   }
 
-  _onNewTrainingData(trainingData) {
-    if (trainingData.config !== undefined)
+  _initTrainingData(trainingData) {
+    if (trainingData.config !== null)
       this.xmmDecoder.setConfig(trainingData.config);
 
     if (trainingData.trainingSet !== undefined) {
@@ -273,7 +274,7 @@ class DesignerExperience extends soundworks.Experience {
 
   _onClearLabel(label) {
     this.view.confirm('clear-label', label).then(() => {
-      this.trainingData.deleteRecordingsOfLabel(label);
+      this.trainingData.deleteRecordingsByLabel(label);
       this._updateModelAndSet();
     }).catch(() => {});
   }
@@ -289,11 +290,11 @@ class DesignerExperience extends soundworks.Experience {
   _updateModelAndSet(persist = true) {
     const trainingSet = this.trainingData.getTrainingSet();
 
-    this.xmmDecoder.train(trainingSet)
+    this.xmmDecoder
+      .train(trainingSet)
       .then(response => {
         const model = response.model;
         const config = this.xmmDecoder.getConfig();
-        console.log(config);
         const currentLabels = model.payload.models.map(model => model.label);
         const viewConfig = Object.assign({}, config.payload, {
           modelType: config.target.name.split(':')[1],
@@ -305,7 +306,7 @@ class DesignerExperience extends soundworks.Experience {
         if (persist) {
           const trainingSet = this.trainingData.getTrainingSet();
 
-          this.send('training-data', {
+          this.send('persist:training-data', {
             config: config,
             trainingSet: trainingSet,
             model: model,
