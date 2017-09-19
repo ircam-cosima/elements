@@ -9,13 +9,50 @@ class MasterExperience extends soundworks.Experience {
 
   start() {
     super.start();
+
+    appStore.addListener('create-project', project => {
+      const projectsOverview = Array.from(appStore.projects);
+      const serializedProject = this._serializeProject(project);
+      this.broadcast('master', null, 'project:create', serializedProject);
+      this.broadcast('master', null, 'project:overview', projectsOverview);
+    });
+    // cannot use the broadcast method as serialize will crash...
+    appStore.addListener('delete-project', project => {
+      const projectsOverview = Array.from(appStore.projects);
+      this.broadcast('master', null, 'project:delete', project);
+      this.broadcast('master', null, 'project:overview', projectsOverview);
+    });
+
+    const broadcast = (channel, project) => {
+      const serializedProject = this._serializeProject(project);
+      this.broadcast('master', null, channel, serializedProject);
+    };
+
+    appStore.addListener('add-designer-to-project', project => broadcast('project:update', project));
+    appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
+    appStore.addListener('add-player-to-project', project => broadcast('project:update', project));
+    appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
   }
 
   enter(client) {
     super.enter(client);
 
-    this.receive(client, 'project:list', this._onProjectListRequest(client));
+    // send init informations
+    const projects = appStore.projects;
+    const projectsOverview = Array.from(projects);
+    const serializedProjectList = [];
+
+    projects.forEach((project) => {
+      const serializedProject = this._serializeProject(project);
+      serializedProjectList.push(serializedProject);
+    });
+
+    this.send(client, 'project:list', serializedProjectList);
+    this.send(client, 'project:overview', projectsOverview);
+
+
     this.receive(client, 'project:delete', this._onProjectDeleteRequest(client));
+    this.receive(client, 'designer:disconnect', this._onDesignerDisconnectRequest(client));
   }
 
   exit(client) {
@@ -40,6 +77,7 @@ class MasterExperience extends soundworks.Experience {
       const client = {
         type: 'designer',
         uuid: designer.uuid,
+        params: appStore.getClientParams(designer),
       };
 
       serialized.hasDesigner = true;
@@ -52,6 +90,7 @@ class MasterExperience extends soundworks.Experience {
       const client = {
         type: 'player',
         uuid: player.uuid,
+        params: appStore.getClientParams(designer),
       };
 
       serialized.clients.push(client);
@@ -60,33 +99,19 @@ class MasterExperience extends soundworks.Experience {
     return serialized;
   }
 
-  /**
-   * Send the full list of projects and clients when a master connects
-   */
-  _onProjectListRequest(client) {
-    return () => {
-      const projects = appStore.projects;
-      const serializedProjectList = [];
+  _onProjectDeleteRequest(client) {
+    return uuid => {
+      const project = appStore.getProjectByUuid(uuid);
 
-      projects.forEach((project) => {
-        const serializedProject = this._serializeProject(project);
-        serializedProjectList.push(serializedProject);
-      });
-
-      console.log(serializedProjectList);
-
-      this.send(client, 'project:list', serializedProjectList);
+      if (project !== null)
+        appStore.deleteProject(project);
     }
   }
 
-  _onProjectDeleteRequest(client) {
-    return (uuid) => {
-      const project = appStore.getProjectByUuid(uuid);
-
-      if (project !== null) {
-        appStore.deleteProject(project);
-        this.broadcast('master', null, 'project:delete', project);
-      }
+  _onDesignerDisconnectRequest(client) {
+    return uuid => {
+      const designer = appStore.getClientByUuid(uuid);
+      this.send(designer, 'force:disconnect');
     }
   }
 }

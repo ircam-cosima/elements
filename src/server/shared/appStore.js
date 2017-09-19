@@ -10,10 +10,35 @@ const appStore = {
     this.projectUsersMap = new Map();
 
     this.uuidClientMap = new Map();
+    this.clientParamsMap = new Map();
 
     this.projects.forEach(project => {
+      project.params = this._getProjectDefaultParams();
       this.projectUsersMap.set(project, this._getEmptyUserMap());
     });
+  },
+
+  _getClientDefaultParams() {
+    return {
+      mute: false,
+      intensity: false,
+      // ...
+    }
+  },
+
+  _getProjectDefaultParams() {
+    return {
+      mute: false,
+      intensity: false,
+      // ...
+    }
+  },
+
+  _getEmptyUserMap() {
+    return {
+      designer: null,
+      players: new Set(),
+    };
   },
 
   addListener(channel, callback) {
@@ -40,26 +65,23 @@ const appStore = {
 
   // easy acces to clients by uuid
   registerClient(client) {
+    const params = this._getClientDefaultParams();
+
     this.uuidClientMap.set(client.uuid, client);
+    this.clientParamsMap.set(client, params);
   },
 
   unregisterClient(client) {
     this.uuidClientMap.delete(client.uuid);
-  },
-
-  getClientByUuid(uuid) {
-    return this.uuidClientMap.get(uuid);
-  },
-
-  _getEmptyUserMap() {
-    return {
-      designer: null,
-      players: new Set(),
-    };
+    this.clientParamsMap.delete(client);
   },
 
   createProject(name) {
-    const project = { name: name, uuid: uuidv4() };
+    const project = {
+      name: name,
+      uuid: uuidv4(),
+      params: this._getProjectDefaultParams(),
+    };
 
     this.projects.add(project);
     this.projectUsersMap.set(project, this._getEmptyUserMap());
@@ -84,8 +106,25 @@ const appStore = {
     this._emit('delete-project', project);
   },
 
+  getClientByUuid(uuid) {
+    return this.uuidClientMap.get(uuid);
+  },
+
+  getClientParams(client) {
+    return this.clientParamsMap.get(client);
+  },
+
+  setClientParam(client, name, value) {
+    const params = this.clientParamsMap.get(client);
+    params[name] = value;
+  },
+
   addDesignerToProject(client, project) {
     const users = this.projectUsersMap.get(project);
+    const clientParams = this.clientParamsMap.get(client);
+    // set user params to project params
+    for (let name in project.params)
+      clientParams[name] = project.params[name];
 
     users.designer = client;
     client.project = project;
@@ -97,14 +136,20 @@ const appStore = {
     const project = client.project;
     const users = this.projectUsersMap.get(project);
 
-    users.designer = null;
-    client.project = null;
+    if (users) {
+      users.designer = null;
+      client.project = null;
 
-    this._emit('remove-designer-from-project', project);
+      this._emit('remove-designer-from-project', project);
+    }
   },
 
   addPlayerToProject(client, project) {
     const users = this.projectUsersMap.get(project);
+    const clientParams = this.clientParamsMap.get(client);
+    // set user params to project params
+    for (let name in project.params)
+      clientParams[name] = project.params[name];
 
     users.players.add(client);
     client.project = project;
@@ -116,10 +161,12 @@ const appStore = {
     const project = client.project;
     const users = this.projectUsersMap.get(project);
 
-    users.players.delete(client);
-    client.project = null;
+    if (users) {
+      users.players.delete(client);
+      client.project = null;
 
-    this._emit('remove-player-from-project', project);
+      this._emit('remove-player-from-project', project);
+    }
   },
 
   setProjectTrainingData(project, trainingData) {

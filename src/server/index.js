@@ -13,6 +13,7 @@ import VisualizerExperience from './VisualizerExperience';
 // services
 import ProjectAdmin from './shared/services/ProjectAdmin';
 import ProjectChooser from './shared/services/ProjectChooser';
+import ClientRegister from './shared/services/ClientRegister';
 import appStore from './shared/appStore';
 
 const configName = process.env.ENV || 'default';

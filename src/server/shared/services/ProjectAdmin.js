@@ -13,6 +13,8 @@ class ProjectAdmin extends Service {
 
     this.loggedProjectMap = new Map();
     this.configure(defaults);
+
+    this.require('client-register');
   }
 
   /** @private */
@@ -33,11 +35,13 @@ class ProjectAdmin extends Service {
     this.receive(client, 'project-request', this.enterProject(client));
   }
 
-  // disconnect(client) {
-  //   super.disconnect(client);
-  // }
+  disconnect(client) {
+    this.exitProject(client);
+    super.disconnect(client);
+  }
 
   exitProject(client) {
+    // console.log('exitProject', client);
     appStore.removeDesignerFromProject(client);
   }
 
