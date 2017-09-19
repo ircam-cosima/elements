@@ -8,6 +8,7 @@ import ProjectChooser from '../shared/services/ProjectChooser';
 const audioContext = soundworks.audioContext;
 
 const viewTemplate = `
+  <!--
   <label class="select-container">Session:
     <select id="select-designer">
       <% for (var uuid in models) { %>
@@ -17,6 +18,7 @@ const viewTemplate = `
       <% } %>
     </select>
   </label>
+  -->
 
   <div class="toggle-container" id="mute">
     <div class="toggle-btn"><div></div></div> Mute
@@ -32,7 +34,6 @@ class PlayerView extends soundworks.View {
 
     this._muteCallback = () => {};
     this._intensityCallback = () => {};
-    this._designerChangeCallback = () => {};
 
     this.installEvents({
       'touchstart #mute': () => {
@@ -57,10 +58,6 @@ class PlayerView extends soundworks.View {
 
         this._intensityCallback(!active);
       },
-      'change #select-designer': () => {
-        const value = this.$selectDesigner.value;
-        this._designerChangeCallback(value);
-      },
     });
   }
 
@@ -69,7 +66,6 @@ class PlayerView extends soundworks.View {
 
     this.$muteBtn = this.$el.querySelector('#mute');
     this.$intensityBtn = this.$el.querySelector('#intensity');
-    this.$selectDesigner = this.$el.querySelector('#select-designer');
   }
 
   setMuteCallback(callback) {
@@ -80,12 +76,24 @@ class PlayerView extends soundworks.View {
     this._intensityCallback = callback;
   }
 
-  setDesignerChangeCallback(callback) {
-    this._designerChangeCallback = callback;
+  setMuteBtn(bool) {
+    const $btn = this.$muteBtn;
+    const active = $btn.classList.contains('active');
+
+    if (bool && !active)
+      $btn.classList.add('active');
+    else if (!bool && active)
+      $btn.classList.remove('active');
   }
 
-  setModelItem(item) {
-    this.$selectDesigner.value = item;
+  setIntensityBtn(bool) {
+    const $btn = this.$intensityBtn;
+    const active = $btn.classList.contains('active');
+
+    if (bool && !active)
+      $btn.classList.add('active');
+    else if (!bool && active)
+      $btn.classList.remove('active');
   }
 }
 
@@ -110,15 +118,14 @@ class PlayerExperience extends soundworks.Experience {
     this.labels = Object.keys(labels);
     this.likeliest = undefined;
 
-    this.models = null;
-    this.currentModelId = null;
+    // this.models = null;
+    // this.currentModelId = null;
     this.enableIntensity = false;
     this._sensitivity = 1;
 
+    this._updateIntensity = this._updateIntensity.bind(this);
     this._onReceiveModel = this._onReceiveModel.bind(this);
     this._feedDecoder = this._feedDecoder.bind(this);
-    this._updateIntensity = this._updateIntensity.bind(this);
-    this._updateModel = this._updateModel.bind(this);
     this._toggleMute = this._toggleMute.bind(this);
     this._toggleIntensity = this._toggleIntensity.bind(this);
   }
@@ -126,19 +133,16 @@ class PlayerExperience extends soundworks.Experience {
   start() {
     super.start(); // don't forget this
 
-    this.receive('model', this._onReceiveModel);
-
     // rendering
     this.view = new PlayerView(viewTemplate, { models: null }, {}, {
       id: 'player'
     });
 
-    this.view.setDesignerChangeCallback(this._updateModel);
+    // this.view.setDesignerChangeCallback(this._updateModel);
     this.view.setMuteCallback(this._toggleMute);
     this.view.setIntensityCallback(this._toggleIntensity);
 
     this.audioEngine = new AudioEngine(this.audioBufferManager.data);
-    this._toggleMute(true);
 
     // lfo preprocessing
     this.processedSensors = new imlMotion.ProcessedSensors();
@@ -154,9 +158,13 @@ class PlayerExperience extends soundworks.Experience {
       this._sensitivity = value;
     });
 
+    this.receive('model', this._onReceiveModel);
+
     Promise.all([this.show(), this.processedSensors.init()])
       .then(() => {
         this.audioEngine.start();
+        this._toggleMute(true);
+        this.view.setMuteBtn(true);
         this.processedSensors.start();
       })
       .catch(err => console.error(err.stack));
