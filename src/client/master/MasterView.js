@@ -123,7 +123,7 @@ class MasterView extends soundworks.View {
 
   _updateGroupMute(active) {
     const currentProject = this._currentProject;
-    this.send('')
+    this._updateGroupParamCallback(currentProject, 'mute', active);
   }
 
   // build project overview menu
@@ -174,6 +174,10 @@ class MasterView extends soundworks.View {
 
   setDisconnectDesignerCallback(callback) {
     this._disconnectDesignerCallback = callback;
+  }
+
+  setUpdateGroupParamCallback(callback) {
+    this._updateGroupParamCallback = callback;
   }
 }
 

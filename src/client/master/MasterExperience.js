@@ -13,6 +13,7 @@ class MasterExperience extends soundworks.Experience {
     this._deleteProject = this._deleteProject.bind(this);
     this._updateProject = this._updateProject.bind(this);
     this._updateProjectOverview = this._updateProjectOverview.bind(this);
+    this._updateGroupParamRequest = this._updateGroupParamRequest.bind(this);
   }
 
   start() {
@@ -22,6 +23,7 @@ class MasterExperience extends soundworks.Experience {
 
     this.view.setDeleteProjectCallback(this._deleteProjectRequest);
     this.view.setDisconnectDesignerCallback(this._disconnectDesignerRequest);
+    this.view.setUpdateGroupParamCallback(this._updateGroupParamRequest);
 
     this.receive('project:list', this._setProjectList);
     this.receive('project:overview', this._updateProjectOverview);
@@ -41,6 +43,10 @@ class MasterExperience extends soundworks.Experience {
 
   _disconnectDesignerRequest(uuid) {
     this.send('designer:disconnect', uuid);
+  }
+
+  _updateGroupParamRequest(uuid, name, value) {
+    this.send('param:group:update', uuid, name, value);
   }
 
   // build project overview menu
