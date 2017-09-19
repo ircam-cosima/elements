@@ -19,6 +19,10 @@ function bootstrap() {
   // instanciate the experience of the `controller`
   const controller = new soundworks.ControllerExperience();
   controller.setGuiOptions('sensitivity', { type: 'slider', size: 'large' });
+  controller.setGuiOptions('intensityFeedback', { type: 'slider', size: 'large' });
+  controller.setGuiOptions('intensityGain', { type: 'slider', size: 'large' });
+  controller.setGuiOptions('intensityPower', { type: 'slider', size: 'large' });
+  controller.setGuiOptions('intensityLowClip', { type: 'slider', size: 'large' });
 
   // start the application
   soundworks.client.start();

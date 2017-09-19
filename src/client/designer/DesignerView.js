@@ -13,15 +13,11 @@ const viewTemplate = `
 
         <h2>Configuration presets</h2>
 
-        <label class="select-container">Preset:
-          <select id="preset-select">
-            <% for (var prop in presets) { %>
-              <option value="<%= prop %>">
-                <%= prop %>
-              </option>
-            <% } %>
-          </select>
-        </label>
+        <% for (var prop in presets) { %>
+          <button class="btn" id="<%= prop %>">
+            <%= presets[prop][name] %>
+          </button>
+        <% } %>
 
         <h2>Global configuration</h2>
 
@@ -83,10 +79,6 @@ const viewTemplate = `
           <input id="off-delay" type="number" value="<%= record.offDelay %>" />
         </label>
 
-        <h2>User</h2>
-
-        <button class="btn" id="persist-user">persist user</button>
-        <button class="btn" id="delete-user">delete user</button>
       </div>
     </section>
 

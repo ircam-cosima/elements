@@ -123,8 +123,8 @@ const appStore = {
   },
 
   setProjectTrainingData(project, trainingData) {
-    xmmDbMapper.persistConfig(project, msg.config);
-    xmmDbMapper.persistTrainingSet(project, msg.trainingSet);
+    xmmDbMapper.persistConfig(project, trainingData.config);
+    xmmDbMapper.persistTrainingSet(project, trainingData.trainingSet);
 
     this._emit('set-project-training-data', project);
   },

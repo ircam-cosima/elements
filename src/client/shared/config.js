@@ -24,29 +24,40 @@ const clicks = {
 /* * * * * * * * * * * * * * * * * PRESETS * * * * * * * * * * * * * * * * * */
 
 const presets = {
-  basic: {
-    modelType: 'gmm',
-    gaussians: 1,
-    absoluteRegularization: 0.1,
-    relativeRegularization: 0.1,
-    covarianceMode: 'full',
+  postures: {
+    name: 'postures',
+    preset: {
+      modelType: 'gmm',
+      gaussians: 1,
+      absoluteRegularization: 0.01,
+      relativeRegularization: 0.01,
+      covarianceMode: 'full',
+    },
   },
-  simpleGestures: {
-    modelType: 'hhmm',
-    gaussians: 1,
-    absoluteRegularization: 0.01,
-    relativeRegularization: 0.1,
-    covarianceMode: 'full',
-    states: 4,
+  shortGestures: {
+    name: 'short gestures',
+    preset: {
+      modelType: 'hhmm',
+      gaussians: 1,
+      absoluteRegularization: 0.1,
+      relativeRegularization: 0.1,
+      covarianceMode: 'full',
+      states: 4,
+      transitionMode: 'leftright',
+    },
   },
-  advancedGestures: {
-    modelType: 'hhmm',
-    gaussians: 2,
-    absoluteRegularization: 0.01,
-    relativeRegularization: 0.1,
-    covarianceMode: 'full',
-    states: 10,
-  }
+  longGestures: {
+    name: 'long gestures',
+    preset: {
+      modelType: 'hhmm',
+      gaussians: 1,
+      absoluteRegularization: 0.1,
+      relativeRegularization: 0.1,
+      covarianceMode: 'full',
+      states: 10,
+      transitionMode: 'leftright',
+    },
+  },
 };
 
 export { labels, clicks, presets };
