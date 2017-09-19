@@ -51,7 +51,7 @@ class DesignerExperience extends Experience {
 
       appStore.setProjectTrainingData(project, {
         config: msg.config,
-        trainingData: msg.trainingSet,
+        trainingSet: msg.trainingSet,
       });
 
       appStore.setProjectModel(project, msg.model);

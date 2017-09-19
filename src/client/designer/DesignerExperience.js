@@ -69,7 +69,7 @@ class DesignerExperience extends soundworks.Experience {
     const autoTriggerDefaults = {
       highThreshold: 0.05,
       lowThreshold: 0.01,
-      offDelay: 20,
+      offDelay: 200,
     }
 
     this.view = new DesignerView({
@@ -262,7 +262,9 @@ class DesignerExperience extends soundworks.Experience {
 
     const likelihoods = results ? results.likelihoods : [];
     const likeliest = results ? results.likeliestIndex : -1;
-    const label = results ? results.likeliest : 'unknown';
+    const label = results
+                ? (results.likeliest ? results.likeliest : 'unknown')
+                : 'unknown';
 
     const formattedResults = {
       label: label,

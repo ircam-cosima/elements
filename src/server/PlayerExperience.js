@@ -17,8 +17,8 @@ class PlayerExperience extends Experience {
     super.start();
 
     appStore.addListener('set-project-model', (project) => {
-      const clients = appStore.getProjectUsers(project);
-      const model = appStore.getModel(project);
+      const clients = appStore.getProjectPlayers(project);
+      const model = appStore.getProjectModel(project);
       clients.forEach(client => this.send(client, 'model:update', model));
     });
 
@@ -26,8 +26,6 @@ class PlayerExperience extends Experience {
 
   enter(client) {
     super.enter(client);
-
-    // const models = xmmDbMapper.getModelByUsers(projects);
 
     this.send(client, 'model', appStore.getProjectModel(client.project));
     // this.receive(client, 'update-project', this._updateProject(client));
