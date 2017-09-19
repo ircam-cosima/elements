@@ -408,9 +408,10 @@ $elmHeight: 36px;
       margin-left: 12px;
     }
 
-    label {
-      padding: 0 4px;
-      margin-bottom: 8px;
+    #select-project-container {
+      padding: 0 8px 12px;
+      border-bottom: 1px solid #cdcdcd;
+      margin-bottom: 12px;
       display: block;
     }
   }
