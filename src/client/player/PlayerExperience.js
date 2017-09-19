@@ -3,6 +3,7 @@ import * as lfo from 'waves-lfo/client';
 import * as imlMotion from 'iml-motion';
 import { labels } from  '../shared/config';
 import AudioEngine from '../shared/AudioEngine';
+import ProjectChooser from '../shared/services/ProjectChooser';
 
 const audioContext = soundworks.audioContext;
 
@@ -94,6 +95,7 @@ class PlayerExperience extends soundworks.Experience {
     super();
 
     this.platform = this.require('platform', { features: ['web-audio'] });
+    this.projectChooser = this.require('project-chooser');
     this.sharedParams = this.require('shared-params');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
@@ -105,8 +107,6 @@ class PlayerExperience extends soundworks.Experience {
       descriptors: ['devicemotion']
     });
 
-    // this.rawSocket = this.require('raw-socket');
-
     this.labels = Object.keys(labels);
     this.likeliest = undefined;
 
@@ -115,8 +115,7 @@ class PlayerExperience extends soundworks.Experience {
     this.enableIntensity = false;
     this._sensitivity = 1;
 
-
-    this._onReceiveModels = this._onReceiveModels.bind(this);
+    this._onReceiveModel = this._onReceiveModel.bind(this);
     this._feedDecoder = this._feedDecoder.bind(this);
     this._updateIntensity = this._updateIntensity.bind(this);
     this._updateModel = this._updateModel.bind(this);
@@ -127,7 +126,7 @@ class PlayerExperience extends soundworks.Experience {
   start() {
     super.start(); // don't forget this
 
-    this.receive('models', this._onReceiveModels);
+    this.receive('model', this._onReceiveModel);
 
     // rendering
     this.view = new PlayerView(viewTemplate, { models: null }, {}, {
@@ -170,24 +169,8 @@ class PlayerExperience extends soundworks.Experience {
       this.audioEngine.setGainFromIntensity(1);
   }
 
-  _onReceiveModels(models) {
-    const uuids = Object.keys(models);
-
-    if (uuids.length > 0) {
-      this.models = models;
-      this.view.model.models = this.models;
-      this.view.render('.select-container');
-
-      const index = uuids.indexOf(this.currentModelId);
-
-      if (this.currentModelId && index !== -1)
-        this.currentModelId = uuids[index];
-      else
-        this.currentModelId = uuids[0];
-
-      this.view.setModelItem(this.currentModelId);
-      this._updateModel(this.currentModelId);
-    }
+  _onReceiveModel(model) {
+    this.xmmDecoder.setModel(model);
   }
 
   _feedDecoder(data) {
@@ -203,15 +186,6 @@ class PlayerExperience extends soundworks.Experience {
 
       console.log('changed gesture to : ' + label);
     }
-  }
-
-  _updateModel(uuid) {
-    const model = this.models[uuid].model;
-
-    this.currentModelId = uuid;
-    this.xmmDecoder.setModel(model);
-
-    this.send('update-project', uuid);
   }
 
   _toggleMute(bool) {

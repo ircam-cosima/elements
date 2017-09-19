@@ -5,8 +5,7 @@ const appStore = {
   init() {
     this._listeners = new Map();
 
-    const projectList = projectDbMapper.getList();
-    this.projects = projectList; // project = { name, uuid }
+    this.projects = projectDbMapper.getList(); // project = { name, uuid }
     this.projectUsersMap = new Map();
 
     this.projects.forEach(project => {
@@ -136,12 +135,12 @@ const appStore = {
   },
 
   setProjectTrainingData(project, trainingData) {
-    xmmDbMapper.persistConfig(project, msg.config);
-    xmmDbMapper.persistTrainingSet(project, msg.trainingSet);
+    xmmDbMapper.persistConfig(project, trainingData.config);
+    xmmDbMapper.persistTrainingSet(project, trainingData.trainingSet);
   },
 
   setProjectModel(project, model) {
-    xmmDbMapper.persistModel(project, msg.model);
+    xmmDbMapper.persistModel(project, model);
 
     this._emit('set-project-model', project);
   },

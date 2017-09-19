@@ -17,99 +17,59 @@ class ProjectChooser extends Service {
 
     this.configure(defaults);
 
-    this.user = null;
-
-    this._login = this._login.bind(this);
-    this._confirm = this._confirm.bind(this); // returning user login
-    this._onLoginAck = this._onLoginAck.bind(this);
-    this._onLoginError = this._onLoginError.bind(this);
-    this._logout = this._logout.bind(this);
-    this._onLogoutAck = this._onLogoutAck.bind(this);
+    this._select = this._select.bind(this);
+    this._onReceiveProjectList = this._onReceiveProjectList.bind(this);
+    this._onProjectAck = this._onProjectAck.bind(this);
+    this._onProjectError = this._onProjectError.bind(this);
   }
 
   /** @private */
   start() {
     super.start();
-
-    this.view.setLoginCallback(this._login);
-    this.view.setConfirmCallback(this._confirm);
-    this.view.setLogoutCallback(this._logout);
-
-    this.receive('login-ack', this._onLoginAck);
-    this.receive('login-error', this._onLoginError);
-    this.receive('logout-ack', this._onLogoutAck);
-
-    const user = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
-
-    if (user !== null) {
-      this.view.model.logged = true;
-      this.view.model.username = user.name;
-      this.user = user;
-    } else {
-      this.view.model.logged = false;
-      this.view.model.username = null;
-    }
-
+    this.view.setSelectCallback(this._select);
+    this.receive('project-list', this._onReceiveProjectList);
+    this.receive('project-ack', this._onProjectAck);
+    this.receive('project-error', this._onProjectError);
+    this.send('project-list-request');
     this.show();
   }
 
-    /** @private */
+  /** @private */
   stop() {
     super.stop();
-
-    this.stopReceiving('login-ack', this._onLoginAck);
-    this.stopReceiving('login-error', this._onLoginError);
-    this.stopReceiving('logout-ack', this._onLogoutAck);
-
+    this.stopReceiving('project-list', this._onReceiveProjectList);
+    this.stopReceiving('project-ack', this._onProjectAck);
+    this.stopReceiving('project-error', this._onProjectError);
     this.hide();
   }
 
-  // check if user already exists
-  _login(username) {
-    this.send('login', username);
+  /** @private */
+  _select(projectName) {
+    this.send('project-request', projectName);
   }
 
-  _confirm() {
-    this.send('confirm', this.user);
+  /** @private */
+  _onReceiveProjectList(projects) {
+    this.view.setProjectList(projects);
+    this.view.render();
   }
 
-  // server ack that username is available
-  _onLoginAck(user) {
-    console.log(user);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(user));
-
-    this.user = user;
+  /** @private */
+  _onProjectAck() {
+    console.log('received ack');
     this.ready();
   }
 
-  // server error: username is nor available
-  _onLoginError(username) {
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-
-    this.user = null;
-    this.view.model.username = username;
-    this.view.model.error = true;
-    this.view.model.logged = false;
-    this.view.render();
-  }
-
-  // destroy user on the server
-  _logout() {
-    this.send('logout', this.user);
-  }
-
-  _onLogoutAck() {
-    console.log('logout');
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-
-    this.user = null;
-    this.view.model.username = null;
-    this.view.model.logged = false;
-    this.view.model.error = false;
-    this.view.render();
+  /**
+   * @private
+   * @todo
+   */
+  _onProjectError() {
+    console.log('received error');
+    // this.ready();
   }
 }
 
-serviceManager.register(SERVICE_ID, SimpleLogin);
+serviceManager.register(SERVICE_ID, ProjectChooser);
 
-export default SimpleLogin;
+export default ProjectChooser;

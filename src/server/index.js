@@ -11,6 +11,8 @@ import PlayerExperience from './PlayerExperience';
 import VisualizerExperience from './VisualizerExperience';
 // services
 import ProjectAdmin from './shared/services/ProjectAdmin';
+import ProjectChooser from './shared/services/ProjectChooser';
+import appStore from './shared/appStore';
 
 const configName = process.env.ENV || 'default';
 const configPath = path.join(__dirname, 'config', configName);
@@ -48,6 +50,8 @@ server.setClientConfigDefinition((clientType, config, httpRequest) => {
 
 const sharedParams = soundworks.server.require('shared-params');
 sharedParams.addNumber('sensitivity', 'Sensitivity', 0, 2, 0.01, 1);
+
+appStore.init();
 
 // create the common server experience for both the soloists and the players
 const controller = new ControllerExperience('controller');
