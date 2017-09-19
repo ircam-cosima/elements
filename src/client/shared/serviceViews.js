@@ -27,6 +27,19 @@ const noop = () => {};
 
 const serviceViews = {
   // ------------------------------------------------
+  // ProjectChooser
+  // ------------------------------------------------
+  'service:project-chooser': class ProjectChooserView extends SegmentedView {
+    constructor() {
+      super();
+
+      this.template = `
+
+      `
+    }
+  }
+
+  // ------------------------------------------------
   // Login
   // ------------------------------------------------
   'service:simple-login': class LoginView extends SegmentedView {
