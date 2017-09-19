@@ -53,6 +53,7 @@ class MasterExperience extends soundworks.Experience {
 
     this.receive(client, 'project:delete', this._onProjectDeleteRequest(client));
     this.receive(client, 'designer:disconnect', this._onDesignerDisconnectRequest(client));
+    // this.receive(client, 'param:group:update', uuid, name, value);
   }
 
   exit(client) {
@@ -77,7 +78,7 @@ class MasterExperience extends soundworks.Experience {
       const client = {
         type: 'designer',
         uuid: designer.uuid,
-        params: appStore.getClientParams(designer),
+        params: designer.params,
       };
 
       serialized.hasDesigner = true;
@@ -90,7 +91,7 @@ class MasterExperience extends soundworks.Experience {
       const client = {
         type: 'player',
         uuid: player.uuid,
-        params: appStore.getClientParams(designer),
+        params: player.params,
       };
 
       serialized.clients.push(client);
