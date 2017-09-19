@@ -171,7 +171,7 @@ class DesignerExperience extends soundworks.Experience {
     if (trainingData.config !== null)
       this.xmmDecoder.setConfig(trainingData.config);
 
-    if (trainingData.trainingSet !== undefined) {
+    if (trainingData.trainingSet !== null) {
       this.trainingData.setTrainingSet(trainingData.trainingSet);
 
       this._updateModelAndSet(false);
