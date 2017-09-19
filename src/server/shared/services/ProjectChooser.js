@@ -14,6 +14,8 @@ class ProjectChooser extends Service {
 
     // this.loggedProjectMap = new Map();
     this.configure(defaults);
+
+    this.require('client-register');
   }
 
   /** @private */

@@ -18,7 +18,7 @@ class ProjectAdmin extends Service {
 		super(SERVICE_ID, true);
 
 		const defaults = {
-			viewPriority: 100,
+			viewPriority: 8,
 		};
 
 		this.configure(defaults);

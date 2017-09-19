@@ -74,7 +74,7 @@ $elmHeight: 36px;
   .toggle-btn {
     width: 31px;
     height: 31px;
-    border-radius: 50px;
+    border-radius: 50%;
     border: 2px solid $green;
     position: absolute;
     top: 0;
@@ -352,6 +352,10 @@ $elmHeight: 36px;
   background-color: white;
   color: black;
 
+  * {
+    font-size: 1rem;
+  }
+
   h1 {
     font-weight: normal;
     font-size: 1.4rem;
@@ -362,32 +366,60 @@ $elmHeight: 36px;
     font-size: 1.2rem;
   }
 
+  .btn {
+    width: 120px;
+    height: 36px;
+    line-height: 22px;
+    margin: 0;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: background-color 100ms;
+
+    &.danger {
+      color: #fff;
+      background-color: #d9534f;
+      border-color: #d43f3a;
+
+      &:hover {
+        background-color: darken(#d9534f, 5%);
+      }
+    }
+
+    &.warning {
+      color: #fff;
+      background-color: #f0ad4e;
+      border-color: #eea236;
+
+      &:hover {
+        background-color: darken(#f0ad4e, 5%);
+      }
+    }
+  }
+
+  #main-controls {
+    border: 1px solid #cdcdcd;
+    border-radius: 2px;
+    box-sizing: border-box;
+    padding: 12px;
+    margin-top: 12px;
+
+    select {
+      width: 240px;
+      margin-left: 12px;
+    }
+
+    label {
+      padding: 0 4px;
+      margin-bottom: 8px;
+      display: block;
+    }
+  }
+
   .project {
     margin: 12px 0 0 0;
     padding: 12px 0;
     border-radius: 2px;
     box-sizing: border-box;
-
-    * {
-      font-size: 1rem;
-    }
-
-    .btn.delete {
-      color: #fff;
-      background-color: #d9534f;
-      border-color: #d43f3a;
-      width: 120px;
-      height: 36px;
-      line-height: 22px;
-      margin: 0;
-      box-sizing: border-box;
-      cursor: pointer;
-      transition: background-color 100ms;
-
-      &:hover {
-        background-color: lighten(#d9534f, 5%);
-      }
-    }
 
     h4 {
       font-weight: normal;
@@ -401,7 +433,7 @@ $elmHeight: 36px;
       border-radius: 2px;
       box-sizing: border-box;
 
-      .btn.delete {
+      .btn.delete-project {
         position: absolute;
         top: 2px;
         right: 2px;
@@ -410,9 +442,61 @@ $elmHeight: 36px;
 
     .clients {
       padding-bottom: 12px;
-      border-bottom: 1px solid #efefef;
       padding-left: 20px;
       list-style-type: circle;
+
+      .client {
+        border-bottom: 1px solid #cdcdcd;
+        position: relative;
+        height: 40px;
+        line-height: 40px;
+
+        p {
+          display: inline-block;
+        }
+
+        .toggle-container {
+          height: 20px;
+          // padding: 0 0 10px 50px;
+          margin: 0 30px;
+          // width: 20px;
+          line-height: 20px;
+          position: relative;
+          display: inline-block;
+
+          .toggle-btn {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid $green;
+            position: absolute;
+            top: 0;
+            left: 0;
+
+            div {
+              width: 14px;
+              height: 14px;
+              position: absolute;
+              top: 2px;
+              left: 2px;
+              border-radius: 50%;
+              background-color: $green;
+              opacity: 0;
+              transition: opacity 50ms;
+            }
+          }
+
+          &.active .toggle-btn div {
+            opacity: 0.9;
+          }
+        }
+      }
+
+      .btn.disconnect-designer {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+      }
     }
   }
 }

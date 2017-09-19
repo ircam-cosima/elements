@@ -153,6 +153,9 @@ class DesignerExperience extends soundworks.Experience {
 
 
     this.receive('init:training-data', this._initTrainingData);
+    // force disconnect sent by master
+    this.receive('force:disconnect', () => window.location.reload());
+
 
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
@@ -171,7 +174,7 @@ class DesignerExperience extends soundworks.Experience {
     if (trainingData.config !== null)
       this.xmmDecoder.setConfig(trainingData.config);
 
-    if (trainingData.trainingSet !== undefined) {
+    if (trainingData.trainingSet !== null) {
       this.trainingData.setTrainingSet(trainingData.trainingSet);
 
       this._updateModelAndSet(false);
