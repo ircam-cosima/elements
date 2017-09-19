@@ -106,11 +106,6 @@ const appStore = {
   },
 
   // params handling
-  setClientParam(client, name, value) {
-    client.params[name] = value;
-    // emit something
-  },
-
   setProjectParam(project, name, value) {
     project.params[name] = value;
 
@@ -119,9 +114,19 @@ const appStore = {
     if (users.designer)
       this.setClientParam(users.designer, name, value);
 
-    users.players.forEach(player => this.setClientParam(player, name, value));
+    users.players.forEach(player => this.setClientParam(player, name, value, false));
 
+    this._emit('set-project-param', project);
+  },
+
+  setClientParam(client, name, value, _triggerProject = true) {
+    const project = client.project;
+    client.params[name] = value;
     // emit something
+    if (_triggerProject === true)
+      this._emit('set-project-param', project);
+
+    this._emit('set-client-param', project, client);
   },
 
   // group ahndling

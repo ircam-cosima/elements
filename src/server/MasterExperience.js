@@ -32,6 +32,18 @@ class MasterExperience extends soundworks.Experience {
     appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
     appStore.addListener('add-player-to-project', project => broadcast('project:update', project));
     appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
+
+    appStore.addListener('set-project-param', project => broadcast('project:update', project));
+    // appStore.addListener('set-client-param', project => broadcast('project:update', project));
+
+    // this implies to refactor the designer and player
+    // to be compliant with the appStore overall design
+    // appStore.addListener('set-client-param', client => {
+    //   this.send(client)
+    // });
+
+    // parameters change
+    appStore.addListener('')
   }
 
   enter(client) {
@@ -53,7 +65,8 @@ class MasterExperience extends soundworks.Experience {
 
     this.receive(client, 'project:delete', this._onProjectDeleteRequest(client));
     this.receive(client, 'designer:disconnect', this._onDesignerDisconnectRequest(client));
-    // this.receive(client, 'param:group:update', uuid, name, value);
+    this.receive(client, 'param:project:update', this._onUpdateProjectParam(client));
+    this.receive(client, 'param:client:update', this._onUpdateClientParam(client));
   }
 
   exit(client) {
@@ -67,6 +80,7 @@ class MasterExperience extends soundworks.Experience {
     const serialized = {
       name: project.name,
       uuid: project.uuid,
+      params: project.params,
       hasDesigner: false,
       clients: [],
     };
@@ -113,6 +127,20 @@ class MasterExperience extends soundworks.Experience {
     return uuid => {
       const designer = appStore.getClientByUuid(uuid);
       this.send(designer, 'force:disconnect');
+    }
+  }
+
+  _onUpdateProjectParam(client) {
+    return (uuid, paramName, value) => {
+      const project = appStore.getProjectByUuid(uuid);
+      appStore.setProjectParam(project, paramName, value);
+    }
+  }
+
+  _onUpdateClientParam(client) {
+    return (uuid, paramName, value) => {
+      const user = appStore.getClientByUuid(uuid);
+      appStore.setClientParam(user, paramName, value);
     }
   }
 }

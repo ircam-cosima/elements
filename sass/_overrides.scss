@@ -396,6 +396,43 @@ $elmHeight: 36px;
     }
   }
 
+  .toggle-container {
+    height: 20px;
+    // font-size: 1rem;
+    margin: 0 30px;
+    // width: 20px;
+    line-height: 20px;
+    position: relative;
+    display: inline-block;
+    font-size: 0.9rem;
+
+    .toggle-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid $green;
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      div {
+        width: 14px;
+        height: 14px;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        border-radius: 50%;
+        background-color: $green;
+        opacity: 0;
+        transition: opacity 50ms;
+      }
+    }
+
+    &.active .toggle-btn div {
+      opacity: 0.9;
+    }
+  }
+
   #main-controls {
     border: 1px solid #cdcdcd;
     border-radius: 2px;
@@ -409,9 +446,9 @@ $elmHeight: 36px;
     }
 
     #select-project-container {
-      padding: 0 8px 12px;
-      border-bottom: 1px solid #cdcdcd;
-      margin-bottom: 12px;
+      padding: 0 8px;
+      // border-bottom: 1px solid #cdcdcd;
+      // margin-bottom: 12px;
       display: block;
     }
   }
@@ -422,22 +459,28 @@ $elmHeight: 36px;
     border-radius: 2px;
     box-sizing: border-box;
 
-    h4 {
+    .project-header {
       font-weight: normal;
-      font-size: 1em;
       background-color: #efefef;
       padding: 4px 0 4px 20px;
       margin-bottom: 6px;
       position: relative;
-      height: 40px;
-      line-height: 32px;
+      height: 44px;
+      line-height: 36px;
       border-radius: 2px;
       box-sizing: border-box;
 
+      h4 {
+        width: 100px;
+        display: inline-block;
+        font-size: 0.9rem;
+        font-weight: bold;
+      }
+
       .btn.delete-project {
         position: absolute;
-        top: 2px;
-        right: 2px;
+        top: 4px;
+        right: 4px;
       }
     }
 
@@ -449,54 +492,19 @@ $elmHeight: 36px;
       .client {
         border-bottom: 1px solid #cdcdcd;
         position: relative;
-        height: 40px;
-        line-height: 40px;
+        height: 44px;
+        line-height: 36px;
 
         p {
+          width: 100px;
           display: inline-block;
-        }
-
-        .toggle-container {
-          height: 20px;
-          // padding: 0 0 10px 50px;
-          margin: 0 30px;
-          // width: 20px;
-          line-height: 20px;
-          position: relative;
-          display: inline-block;
-
-          .toggle-btn {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 2px solid $green;
-            position: absolute;
-            top: 0;
-            left: 0;
-
-            div {
-              width: 14px;
-              height: 14px;
-              position: absolute;
-              top: 2px;
-              left: 2px;
-              border-radius: 50%;
-              background-color: $green;
-              opacity: 0;
-              transition: opacity 50ms;
-            }
-          }
-
-          &.active .toggle-btn div {
-            opacity: 0.9;
-          }
         }
       }
 
       .btn.disconnect-designer {
         position: absolute;
-        top: 2px;
-        right: 2px;
+        top: 4px;
+        right: 4px;
       }
     }
   }

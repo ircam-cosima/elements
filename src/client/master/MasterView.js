@@ -2,11 +2,19 @@ import * as soundworks from 'soundworks/client';
 import template from 'lodash.template';
 
 const projectTemplate = `
-  <h4><%= name %>
-  <% if (!hasDesigner) { %>
+  <div class="project-header">
+    <h4><%= name %></h4>
+    <div class="toggle-container mute <%= params.mute ? 'active' : '' %>" data-target="<%= uuid %>">
+      <div class="toggle-btn"><div></div></div> Mute
+    </div>
+    <div class="toggle-container intensity <%= params.intensity ? 'active' : '' %>" data-target="<%= uuid %>">
+      <div class="toggle-btn"><div></div></div> Intensity
+    </div>
+
+    <% if (!hasDesigner) { %>
     <button class="btn danger delete-project" data-target="<%= uuid %>">Delete</button>
-  <% } %>
-  </h4>
+    <% } %>
+  </div>
 
   <% if (clients.length > 0) { %>
   <ul class="clients">
@@ -15,10 +23,10 @@ const projectTemplate = `
       <p><%= client.type %></p>
 
       <% console.log(client); %>
-      <div class="toggle-container mute <%= client.params.mute ? 'active' : '' %>">
+      <div class="toggle-container mute <%= client.params.mute ? 'active' : '' %>" data-target="<%= client.uuid %>">
         <div class="toggle-btn"><div></div></div> Mute
       </div>
-      <div class="toggle-container intensity <%= client.params.intensity ? 'active' : '' %>">
+      <div class="toggle-container intensity <%= client.params.intensity ? 'active' : '' %>" data-target="<%= client.uuid %>">
         <div class="toggle-btn"><div></div></div> Intensity
       </div>
 
@@ -46,13 +54,6 @@ const mainTemplate = `
       Select project:
       <select id="project-select"></select>
     </label>
-
-    <div class="toggle-container mute">
-      <div class="toggle-btn"><div></div></div> Mute
-    </div>
-    <div class="toggle-container intensity">
-      <div class="toggle-btn"><div></div></div> Intensity
-    </div>
   </div>
 
   <div id="projects">
@@ -68,6 +69,8 @@ class MasterView extends soundworks.View {
 
     this._deleteProjectCallback = null;
     this._disconnectDesignerCallback = null;
+    this._updateProjectParamCallback = null;
+    this._updateClientParamCallback = null;
 
     this.installEvents({
       'click .delete-project': (e) => {
@@ -82,10 +85,32 @@ class MasterView extends soundworks.View {
         const value = e.target.value;
         this._selectProject(value);
       },
-      'click #main-controls .mute': (e) => {
+      // project params
+      'click .project .project-header .mute': (e) => {
         const $btn = e.target.closest('.mute');
         const active = $btn.classList.contains('active');
-        this._updateGroupMute(active);
+        const uuid = $btn.dataset.target;
+        this._updateProjectParamCallback(uuid, 'mute', !active);
+      },
+      'click .project .project-header .intensity': (e) => {
+        const $btn = e.target.closest('.intensity');
+        const active = $btn.classList.contains('active');
+        const uuid = $btn.dataset.target;
+        this._updateProjectParamCallback(uuid, 'intensity', !active);
+      },
+      // client params
+      'click .project .client .mute': (e) => {
+        const $btn = e.target.closest('.mute');
+        const active = $btn.classList.contains('active');
+        const uuid = $btn.dataset.target;
+        console.log('client', uuid);
+        this._updateClientParamCallback(uuid, 'mute', !active);
+      },
+      'click .project .client .intensity': (e) => {
+        const $btn = e.target.closest('.intensity');
+        const active = $btn.classList.contains('active');
+        const uuid = $btn.dataset.target;
+        this._updateClientParamCallback(uuid, 'intensity', !active);
       },
     });
 
@@ -119,11 +144,6 @@ class MasterView extends soundworks.View {
           $container.style.display = 'none';
       }
     });
-  }
-
-  _updateGroupMute(active) {
-    const currentProject = this._currentProject;
-    this._updateGroupParamCallback(currentProject, 'mute', active);
   }
 
   // build project overview menu
@@ -176,8 +196,12 @@ class MasterView extends soundworks.View {
     this._disconnectDesignerCallback = callback;
   }
 
-  setUpdateGroupParamCallback(callback) {
-    this._updateGroupParamCallback = callback;
+  setUpdateProjectParamCallback(callback) {
+    this._updateProjectParamCallback = callback;
+  }
+
+  setUpdateClientParamCallback(callback) {
+    this._updateClientParamCallback = callback;
   }
 }
 

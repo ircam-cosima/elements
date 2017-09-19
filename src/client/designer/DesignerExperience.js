@@ -156,6 +156,10 @@ class DesignerExperience extends soundworks.Experience {
     // force disconnect sent by master
     this.receive('force:disconnect', () => window.location.reload());
 
+    this.receive('update:params', (params) => {
+
+    });
+
 
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
