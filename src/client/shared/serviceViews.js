@@ -27,6 +27,62 @@ const noop = () => {};
 
 const serviceViews = {
   // ------------------------------------------------
+  // ProjectChooser
+  // ------------------------------------------------
+  'service:project-chooser': class ProjectChooserView extends SegmentedView {
+    constructor() {
+      super();
+
+      this.template = `
+        <div class="section-top flex-middle">
+          <p>Select project</p>
+        </div>
+        <div class="section-center flex-center">
+          <div>
+            <select id="project-chooser-select">
+              <option value=''> ... </option>
+              <% for (var i = 0; i < projects.length; i++) { %>
+              <option value="<%= projects[i] %>">
+                <%= projects[i] %>
+              </option>
+              <% } %>
+            </select>
+          </div>
+        </div>
+        <div class="section-bottom"></div>
+      `;
+
+      this.model = {
+        projects: [],
+      };
+
+      this._selectCallback = noop;
+
+      this.installEvents({
+        'change #project-chooser-select': () => {
+          const projectName = this.$el.querySelector('#project-chooser-select').value;
+
+          if (projectName !== '') {
+            this._selectCallback(projectName);
+          }
+        }
+      });
+    }
+
+    onRender() {
+      super.onRender();
+    }
+
+    setProjectList(projects) {
+      this.model.projects = projects;
+    }
+
+    setSelectCallback(callback) {
+      this._selectCallback = callback;
+    }
+  },
+
+  // ------------------------------------------------
   // Login
   // ------------------------------------------------
   'service:project-admin': class LoginView extends SegmentedView {

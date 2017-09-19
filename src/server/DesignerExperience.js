@@ -1,6 +1,4 @@
-import { default as Xmm } from 'xmm-node';
 import { Experience } from 'soundworks/server';
-// stores
 import appStore from './shared/appStore';
 
 const cwd = process.cwd();

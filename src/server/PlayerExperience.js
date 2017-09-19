@@ -1,5 +1,4 @@
 import { Experience } from 'soundworks/server';
-import xmmDbMapper from './shared/xmmDbMapper';
 import appStore from './shared/appStore';
 
 class PlayerExperience extends Experience {
@@ -7,6 +6,7 @@ class PlayerExperience extends Experience {
     super(clientType);
 
     this.audioBufferManager = this.require('audio-buffer-manager');
+    this.projectChooser = this.require('project-chooser');
     this.sharedParams = this.require('shared-params');
 
     // this._onModelsUpdate = this._onModelsUpdate.bind(this);
@@ -29,11 +29,10 @@ class PlayerExperience extends Experience {
 
     appStore.registerClient(client);
 
-    // const projects = appStore.getList();
     // const models = xmmDbMapper.getModelByUsers(projects);
 
-    this.send(client, 'models', models);
-    this.receive(client, 'update-project', this._updateProject(client));
+    this.send(client, 'model', appStore.getProjectModel(client.project));
+    // this.receive(client, 'update-project', this._updateProject(client));
   }
 
   exit(client) {
