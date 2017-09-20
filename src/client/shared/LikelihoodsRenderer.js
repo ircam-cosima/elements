@@ -82,7 +82,7 @@ class LikelihoodsRenderer extends Canvas2dRenderer {
       }
 
       // display label
-      ctx.font = '30px arial';
+      ctx.font = '20px arial';
       ctx.fillStyle = '#ffffff';
       ctx.fillText(this.modelResults.label, 10, this.height - 10);
     }

@@ -2,12 +2,18 @@ import { Experience } from 'soundworks/server';
 import appStore from './shared/appStore';
 
 class PlayerExperience extends Experience {
-  constructor(clientType) {
+  constructor(clientType, socketPipe) {
     super(clientType);
+
+    this.socketPipe = socketPipe;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.projectChooser = this.require('project-chooser');
     this.sharedParams = this.require('shared-params');
+
+    this.rawSocket = this.require('raw-socket', {
+      protocol: { channel: 'sensors', type: 'Float32' },
+    });
   }
 
   start() {
@@ -25,11 +31,13 @@ class PlayerExperience extends Experience {
 
     appStore.addListener('set-project-model', (project) => {
       const clients = appStore.getProjectPlayers(project);
+      const { config } = appStore.getProjectTrainingData(project);
       const model = appStore.getProjectModel(project);
 
       clients.forEach(client => this.send(client, 'model:update', {
-        projectName: client.project.name,
+        projectName: project.name,
         model: model,
+        config: config,
         notification: true,
       }));
     });
@@ -40,7 +48,11 @@ class PlayerExperience extends Experience {
 
     this._updateProject(client);
 
-    this.receive(client, 'param:update', this._onParamUpdate(client))
+    this.receive(client, 'param:update', this._onParamUpdate(client));
+
+    this.rawSocket.receive(client, 'sensors', data => {
+      this.socketPipe.emit('sensors', data);
+    });
   }
 
   exit(client) {
@@ -54,11 +66,14 @@ class PlayerExperience extends Experience {
   }
 
   _updateProject(client) {
-    const model = appStore.getProjectModel(client.project);
+    const project = client.project;
+    const model = appStore.getProjectModel(project);
+    const { config } = appStore.getProjectTrainingData(project);
 
     this.send(client, 'model:update', {
-      projectName: client.project.name,
+      projectName: project.name,
       model: model,
+      config: config,
       notification: false,
     });
 

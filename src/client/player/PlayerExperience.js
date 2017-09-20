@@ -13,6 +13,12 @@ class PlayerExperience extends soundworks.Experience {
   constructor(assetsDomain) {
     super();
 
+    this.streamSensors = false;
+    this.labels = Object.keys(labels);
+    this.likeliest = undefined;
+    this.enableIntensity = false;
+    this.sensitivity = 1;
+
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.projectChooser = this.require('project-chooser');
     this.sharedParams = this.require('shared-params');
@@ -26,14 +32,11 @@ class PlayerExperience extends soundworks.Experience {
       descriptors: ['devicemotion']
     });
 
-    this.labels = Object.keys(labels);
-    this.likeliest = undefined;
-
-    this.enableIntensity = false;
-    this._sensitivity = 1;
+    this.rawSocket = this.require('raw-socket');
 
     this._feedIntensity = this._feedIntensity.bind(this);
     this._feedDecoder = this._feedDecoder.bind(this);
+    this._streamSensors = this._streamSensors.bind(this);
     this._updateModel = this._updateModel.bind(this);
     this._updateParams = this._updateParams.bind(this);
     this._updateParamRequest = this._updateParamRequest.bind(this);
@@ -67,7 +70,7 @@ class PlayerExperience extends soundworks.Experience {
 
     // shared parameters mapping
     this.sharedParams.addParamListener('sensitivity', value => {
-      this._sensitivity = value;
+      this.sensitivity = value;
     });
 
     this.sharedParams.addParamListener('intensityFeedback', value => {
@@ -105,15 +108,17 @@ class PlayerExperience extends soundworks.Experience {
 
     this.view.updateProjectName(params.projectName);
 
-    if (params.model !== null)
+    if (params.model !== null) {
+      this.xmmDecoder.setConfig(params.config);
       this.xmmDecoder.setModel(params.model);
 
-    if (params.notification) {
-      const model = { msg: 'model updated !' }
-      const notification = new Notification(model);
-      notification.render();
-      notification.show();
-      notification.appendTo(this.view.$el);
+      if (params.notification) {
+        const msg = { msg: 'model updated !' };
+        const notification = new Notification(msg);
+        notification.render();
+        notification.show();
+        notification.appendTo(this.view.$el);
+      }
     }
   }
 
@@ -124,12 +129,23 @@ class PlayerExperience extends soundworks.Experience {
   _updateParams(params) {
     this.audioEngine.mute = params.mute;
     this.enableIntensity = params.intensity;
+
+    // stream sensors to
+    if (params.streamSensors !== this.streamSensors) {
+      if (params.streamSensors === true)
+        this.processedSensors.addListener(this._streamSensors);
+      else
+        this.processedSensors.removeListener(this._streamSensors);
+
+      this.streamSensors = params.streamSensors;
+    }
+
     this.view.updateParams(params);
   }
 
   _feedIntensity(value) {
     if (this.enableIntensity)
-      this.audioEngine.setGainFromIntensity(value * 100 * this._sensitivity);
+      this.audioEngine.setGainFromIntensity(value * 100 * this.sensitivity);
     else
       this.audioEngine.setGainFromIntensity(1);
   }
@@ -146,6 +162,10 @@ class PlayerExperience extends soundworks.Experience {
       this.view.model.likeliest = label;
       this.view.render('#likeliest')
     }
+  }
+
+  _streamSensors(data) {
+    this.rawSocket.send('sensors', data);
   }
 };
 

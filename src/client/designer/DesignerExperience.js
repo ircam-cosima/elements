@@ -143,7 +143,7 @@ class DesignerExperience extends soundworks.Experience {
 
     // shared parameters mapping
     this.sharedParams.addParamListener('sensitivity', value => {
-      this._sensitivity = value;
+      this.sensitivity = value;
     });
 
     this.sharedParams.addParamListener('intensityFeedback', value => {
@@ -214,8 +214,8 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _updateModel(model, config) {
-    this.xmmDecoder.setModel(model);
     this.xmmDecoder.setConfig(config);
+    this.xmmDecoder.setModel(model);
 
     const viewConfig = Object.assign({}, config.payload, {
       modelType: config.target.name.split(':')[1],

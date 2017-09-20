@@ -213,7 +213,6 @@ const appStore = {
     return xmmDbMapper.getModel(project);
   },
 
-
   // generic getters
   getProjectByUuid(uuid) {
     let _project = null;

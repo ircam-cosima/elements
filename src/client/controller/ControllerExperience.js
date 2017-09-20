@@ -66,7 +66,12 @@ class ControllerExperience extends soundworks.Experience {
         height: 300,
         duration: 10,
         line: true,
-        radius: 2,
+        radius: 0,
+        colors: [
+          '#da251c', '#f8cc11', // intensity
+          'steelblue', 'orange', 'green',
+          '#565656', '#fa8064', '#54b2a9',
+        ],
         canvas: '#sensors'
       });
 
@@ -120,10 +125,10 @@ class ControllerExperience extends soundworks.Experience {
 
       const bpfTickness = new controllers.Slider({
         label: 'tickness',
-        min: 1,
+        min: 0,
         max: 10,
         step: 1,
-        default: 1,
+        value: 0,
         container: '#sensors-controls',
         callback: value => this.bpfDisplay.params.set('radius', value),
       });
