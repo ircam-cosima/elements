@@ -38,6 +38,7 @@ class PlayerExperience extends soundworks.Experience {
     this._updateModel = this._updateModel.bind(this);
     this._updateParams = this._updateParams.bind(this);
     this._updateParamRequest = this._updateParamRequest.bind(this);
+    this._openProjectChooser = this._openProjectChooser.bind(this);
   }
 
   start() {
@@ -51,7 +52,7 @@ class PlayerExperience extends soundworks.Experience {
     }, {}, { id: 'player' });
 
     this.view.setUpdateParamCallback(this._updateParamRequest)
-    // this.view.setDesignerChangeCallback(this._updateModel);
+    this.view.setSwitchProjectCallback(this._openProjectChooser);
 
     this.audioEngine = new AudioEngine(this.audioBufferManager.data);
 
@@ -76,6 +77,10 @@ class PlayerExperience extends soundworks.Experience {
   _updateModel(model) {
     if (model !== null)
       this.xmmDecoder.setModel(model);
+  }
+
+  _openProjectChooser() {
+    this.projectChooser.show();
   }
 
   _updateParamRequest(paramName, value) {
