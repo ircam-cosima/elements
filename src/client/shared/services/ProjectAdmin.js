@@ -64,8 +64,8 @@ class ProjectAdmin extends Service {
   }
 
   // server ack that name is available
-  _onLoginAck(user) {
-    client.user = user;
+  _onLoginAck(project) {
+    // client.project = project;
     this.ready();
   }
 

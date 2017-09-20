@@ -43,6 +43,7 @@ $green: #40de56;
     color: orange;
     position: absolute;
     top: -24px;
+    left: 0;
     width: 100%;
     text-align: center;
   }
@@ -51,6 +52,29 @@ $green: #40de56;
     color: #bcbcbc;
     font-size: 1rem;
     display: block;
+  }
+}
+
+#service-project-chooser {
+  .error {
+    font-size: 1rem;
+    color: orange;
+    position: absolute;
+    top: -24px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .section-center {
+    position: relative;
+  }
+
+  select {
+    width: 80%;
+    font-size: 1.2rem;
+    line-height: 2rem;
+    height: 2rem;
   }
 }
 

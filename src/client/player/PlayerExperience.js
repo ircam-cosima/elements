@@ -1,91 +1,12 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
 import * as imlMotion from 'iml-motion';
+import PlayerView from './PlayerView';
 import { labels } from  '../shared/config';
 import AudioEngine from '../shared/AudioEngine';
 import ProjectChooser from '../shared/services/ProjectChooser';
 
 const audioContext = soundworks.audioContext;
-
-const viewTemplate = `
-  <div class="toggle-container" id="mute">
-    <div class="toggle-btn"><div></div></div> Mute
-  </div>
-  <div class="toggle-container" id="intensity">
-    <div class="toggle-btn"><div></div></div> Intensity
-  </div>
-  <div class="truc" id="notification"></div>
-`;
-
-class PlayerView extends soundworks.View {
-  constructor(template, content, events, options) {
-    super(template, content, events, options);
-
-    this._muteCallback = () => {};
-    this._intensityCallback = () => {};
-
-    this.installEvents({
-      'touchstart #mute': () => {
-        const $btn = this.$muteBtn;
-        const active = $btn.classList.contains('active');
-
-        if (!active)
-          $btn.classList.add('active');
-        else
-          $btn.classList.remove('active');
-
-        this._muteCallback(!active);
-      },
-      'touchstart #intensity': () => {
-        const $btn = this.$intensityBtn;
-        const active = $btn.classList.contains('active');
-
-        if (!active)
-          $btn.classList.add('active');
-        else
-          $btn.classList.remove('active');
-
-        this._intensityCallback(!active);
-      },
-    });
-  }
-
-  onRender() {
-    super.onRender();
-
-    this.$muteBtn = this.$el.querySelector('#mute');
-    this.$intensityBtn = this.$el.querySelector('#intensity');
-  }
-
-  setMuteCallback(callback) {
-    this._muteCallback = callback;
-  }
-
-  setIntensityCallback(callback) {
-    this._intensityCallback = callback;
-  }
-
-  setMuteBtn(bool) {
-    const $btn = this.$muteBtn;
-    const active = $btn.classList.contains('active');
-
-    if (bool && !active)
-      $btn.classList.add('active');
-    else if (!bool && active)
-      $btn.classList.remove('active');
-  }
-
-  setIntensityBtn(bool) {
-    const $btn = this.$intensityBtn;
-    const active = $btn.classList.contains('active');
-
-    if (bool && !active)
-      $btn.classList.add('active');
-    else if (!bool && active)
-      $btn.classList.remove('active');
-  }
-}
-
 
 class PlayerExperience extends soundworks.Experience {
   constructor(assetsDomain) {
@@ -112,24 +33,25 @@ class PlayerExperience extends soundworks.Experience {
     this.enableIntensity = false;
     this._sensitivity = 1;
 
-    this._updateIntensity = this._updateIntensity.bind(this);
-    this._onReceiveModel = this._onReceiveModel.bind(this);
+    this._feedIntensity = this._feedIntensity.bind(this);
     this._feedDecoder = this._feedDecoder.bind(this);
-    this._toggleMute = this._toggleMute.bind(this);
-    this._toggleIntensity = this._toggleIntensity.bind(this);
+    this._updateModel = this._updateModel.bind(this);
+    this._updateParams = this._updateParams.bind(this);
+    this._updateParamRequest = this._updateParamRequest.bind(this);
   }
 
   start() {
-    super.start(); // don't forget this
+    super.start();
 
-    // rendering
-    this.view = new PlayerView(viewTemplate, { models: null }, {}, {
-      id: 'player'
-    });
+    this.receive('model:update', this._updateModel);
+    this.receive('params:update', this._updateParams);
 
+    this.view = new PlayerView({
+      likeliest: '',
+    }, {}, { id: 'player' });
+
+    this.view.setUpdateParamCallback(this._updateParamRequest)
     // this.view.setDesignerChangeCallback(this._updateModel);
-    this.view.setMuteCallback(this._toggleMute);
-    this.view.setIntensityCallback(this._toggleIntensity);
 
     this.audioEngine = new AudioEngine(this.audioBufferManager.data);
 
@@ -137,61 +59,44 @@ class PlayerExperience extends soundworks.Experience {
     this.processedSensors = new imlMotion.ProcessedSensors();
     this.processedSensors.addListener(data => {
       this._feedDecoder(data);
-      this._updateIntensity(data[0]);
+      this._feedIntensity(data[0]);
     });
 
     this.xmmDecoder = new imlMotion.XmmProcessor({ url: null });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
-    // shared parameters mapping :
-    this.sharedParams.addParamListener('sensitivity', value => {
-      this._sensitivity = value;
-    });
-
-    this.sharedParams.addParamListener('intensityFeedback', value => {
-      this.processedSensors.intensity.params.set('feedback', value);
-    });
-
-    this.sharedParams.addParamListener('intensityGain', value => {
-      this.processedSensors.intensity.params.set('gain', value);
-    });
-
-    this.sharedParams.addParamListener('intensityPower', value => {
-      this.processedSensors.intensityPower.params.set('exponent', value);
-    });
-
-    this.sharedParams.addParamListener('intensityLowClip', value => {
-      this.processedSensors.powerClip.params.set('min', value);
-      this.processedSensors.powerScale.params.set('inputMin', value);
-    });
-
-    this.receive('model', this._onReceiveModel);
-
     Promise.all([this.show(), this.processedSensors.init()])
       .then(() => {
         this.audioEngine.start();
-        this._toggleMute(true);
-        this.view.setMuteBtn(true);
         this.processedSensors.start();
       })
       .catch(err => console.error(err.stack));
   }
 
-  _updateIntensity(value) {
+  _updateModel(model) {
+    if (model !== null)
+      this.xmmDecoder.setModel(model);
+  }
+
+  _updateParamRequest(paramName, value) {
+    this.send('param:update', paramName, value);
+  }
+
+  _updateParams(params) {
+    this.audioEngine.mute = params.mute;
+    this.enableIntensity = params.intensity;
+    this.view.updateParams(params);
+  }
+
+  _feedIntensity(value) {
     if (this.enableIntensity)
       this.audioEngine.setGainFromIntensity(value * 100 * this._sensitivity);
     else
       this.audioEngine.setGainFromIntensity(1);
   }
 
-  _onReceiveModel(model) {
-    this.xmmDecoder.setModel(model);
-  }
-
   _feedDecoder(data) {
     const res = this.xmmDecoder.run(data);
-    const likelihoods = res ? res.likelihoods : [];
-    const likeliest = res ? res.likeliestIndex : -1;
     const label = res ? res.likeliest : 'unknown';
 
     if (this.likeliest !== label) {
@@ -199,16 +104,9 @@ class PlayerExperience extends soundworks.Experience {
       this.likeliest = label;
       this.audioEngine.fadeToNewSound(index);
 
-      console.log('changed gesture to : ' + label);
+      this.view.model.likeliest = label;
+      this.view.render('#likeliest')
     }
-  }
-
-  _toggleMute(bool) {
-    this.audioEngine.mute = bool;
-  }
-
-  _toggleIntensity(bool) {
-    this.enableIntensity = bool;
   }
 };
 

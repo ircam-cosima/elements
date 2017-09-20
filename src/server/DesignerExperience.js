@@ -39,6 +39,7 @@ class DesignerExperience extends Experience {
     const trainingData = appStore.getProjectTrainingData(project);
 
     this.send(client, 'init', trainingData);
+    this.send(client, 'params:update', client.params);
 
     this.receive(client, 'param:update', this._onParamUpdate(client));
     this.receive(client, 'model:update', this._onModelUpdate(client));

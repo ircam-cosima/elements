@@ -18,13 +18,12 @@ const autoTriggerDefaults = {
   offDelay: 200,
 }
 
-function playerSound(buffer) {
+function playSound(buffer) {
   const src = audioContext.createBufferSource();
   src.connect(audioContext.destination);
   src.buffer = buffer;
   src.start(audioContext.currentTime);
 }
-
 
 class DesignerExperience extends soundworks.Experience {
   constructor(config) {
@@ -145,28 +144,6 @@ class DesignerExperience extends soundworks.Experience {
       startCallback: this._startRecording,
       stopCallback: this._stopRecording,
     });
-
-    // // shared parameters mapping :
-    // this.sharedParams.addParamListener('sensitivity', value => {
-    //   this._sensitivity = value;
-    // });
-
-    // this.sharedParams.addParamListener('intensityFeedback', value => {
-    //   this.processedSensors.intensity.params.set('feedback', value);
-    // });
-
-    // this.sharedParams.addParamListener('intensityGain', value => {
-    //   this.processedSensors.intensity.params.set('gain', value);
-    // });
-
-    // this.sharedParams.addParamListener('intensityPower', value => {
-    //   this.processedSensors.intensityPower.params.set('exponent', value);
-    // });
-
-    // this.sharedParams.addParamListener('intensityLowClip', value => {
-    //   this.processedSensors.powerClip.params.set('min', value);
-    //   this.processedSensors.powerScale.params.set('inputMin', value);
-    // });
 
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
