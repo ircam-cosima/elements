@@ -70,7 +70,6 @@ class AutoMotionTrigger {
   _start() {
     if (this.timeoutId === null) {
       this.params.startCallback();
-      console.log('start !');
     } else {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
@@ -79,7 +78,6 @@ class AutoMotionTrigger {
 
   _stop() {
     this.params.stopCallback();
-    console.log('stop !');
   }
 }
 

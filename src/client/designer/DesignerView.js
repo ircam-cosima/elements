@@ -162,7 +162,7 @@ class DesignerView extends CanvasView {
           const $el = this.$el;
 
           const xmmConfig = {
-            type: $el.querySelector('#model-select').value,
+            modelType: $el.querySelector('#model-select').value,
             gaussians: parseFloat($el.querySelector('#gauss-select').value),
             covarianceMode: $el.querySelector('#cov-mode-select').value,
             absoluteRegularization: parseFloat($el.querySelector('#abs-reg').value),
