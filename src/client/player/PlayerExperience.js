@@ -5,6 +5,7 @@ import PlayerView from './PlayerView';
 import { labels } from  '../shared/config';
 import AudioEngine from '../shared/AudioEngine';
 import ProjectChooser from '../shared/services/ProjectChooser';
+import Notification from './Notification';
 
 const audioContext = soundworks.audioContext;
 
@@ -45,6 +46,7 @@ class PlayerExperience extends soundworks.Experience {
     this.receive('params:update', this._updateParams);
 
     this.view = new PlayerView({
+      title: '',
       likeliest: '',
     }, {}, { id: 'player' });
 
@@ -63,6 +65,32 @@ class PlayerExperience extends soundworks.Experience {
     this.xmmDecoder = new imlMotion.XmmProcessor({ url: null });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
+    // shared parameters mapping
+    this.sharedParams.addParamListener('sensitivity', value => {
+      this._sensitivity = value;
+    });
+
+    this.sharedParams.addParamListener('intensityFeedback', value => {
+      this.processedSensors.intensity.params.set('feedback', value);
+    });
+
+    this.sharedParams.addParamListener('intensityGain', value => {
+      this.processedSensors.intensity.params.set('gain', value);
+    });
+
+    this.sharedParams.addParamListener('intensityPower', value => {
+      this.processedSensors.intensityPower.params.set('exponent', value);
+    });
+
+    this.sharedParams.addParamListener('intensityLowClip', value => {
+      this.processedSensors.powerClip.params.set('min', value);
+      this.processedSensors.powerScale.params.set('inputMin', value);
+    });
+
+    this.sharedParams.addParamListener('bandpassGain', value => {
+      this.processedSensors.bandpassGain.params.set('factor', value);
+    });
+
     Promise.all([this.show(), this.processedSensors.init()])
       .then(() => {
         this.audioEngine.start();
@@ -71,12 +99,22 @@ class PlayerExperience extends soundworks.Experience {
       .catch(err => console.error(err.stack));
   }
 
-  _updateModel(model) {
+  _updateModel(params) {
     // needs an explicit call if used after experience initialization
     this.projectChooser.hide();
 
-    if (model !== null)
-      this.xmmDecoder.setModel(model);
+    this.view.updateProjectName(params.projectName);
+
+    if (params.model !== null)
+      this.xmmDecoder.setModel(params.model);
+
+    if (params.notification) {
+      const model = { msg: 'model updated !' }
+      const notification = new Notification(model);
+      notification.render();
+      notification.show();
+      notification.appendTo(this.view.$el);
+    }
   }
 
   _updateParamRequest(paramName, value) {

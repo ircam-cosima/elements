@@ -144,6 +144,32 @@ class DesignerExperience extends soundworks.Experience {
       stopCallback: this._stopRecording,
     });
 
+    // shared parameters mapping
+    this.sharedParams.addParamListener('sensitivity', value => {
+      this._sensitivity = value;
+    });
+
+    this.sharedParams.addParamListener('intensityFeedback', value => {
+      this.processedSensors.intensity.params.set('feedback', value);
+    });
+
+    this.sharedParams.addParamListener('intensityGain', value => {
+      this.processedSensors.intensity.params.set('gain', value);
+    });
+
+    this.sharedParams.addParamListener('intensityPower', value => {
+      this.processedSensors.intensityPower.params.set('exponent', value);
+    });
+
+    this.sharedParams.addParamListener('intensityLowClip', value => {
+      this.processedSensors.powerClip.params.set('min', value);
+      this.processedSensors.powerScale.params.set('inputMin', value);
+    });
+
+    this.sharedParams.addParamListener('bandpassGain', value => {
+      this.processedSensors.bandpassGain.params.set('factor', value);
+    });
+
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
         this.view.addRenderer(this.renderer);

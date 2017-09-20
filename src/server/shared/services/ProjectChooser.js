@@ -14,7 +14,7 @@ class ProjectChooser extends Service {
 
     this.require('client-register');
 
-    this._switchProjectCallback = () => {};
+    this._chooseProjectCallback = () => {};
   }
 
   /** @private */
@@ -55,13 +55,11 @@ class ProjectChooser extends Service {
       const project = appStore.getProjectByUuid(uuid);
 
       if (project !== null) {
-        if (client.project) {
+        if (client.project)
           appStore.removePlayerFromProject(client);
-          appStore.addPlayerToProject(client, project);
-          this._switchProjectCallback(client);
-        } else {
-          appStore.addPlayerToProject(client, project);
-        }
+
+        appStore.addPlayerToProject(client, project);
+        this._chooseProjectCallback(client);
 
         this.send(client, 'project-ack', project);
       } else {
@@ -70,8 +68,8 @@ class ProjectChooser extends Service {
     };
   }
 
-  setSwitchProjectCallback(callback) {
-    this._switchProjectCallback = callback;
+  setChooseProjectCallback(callback) {
+    this._chooseProjectCallback = callback;
   }
 }
 
