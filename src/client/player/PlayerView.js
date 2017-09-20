@@ -1,6 +1,9 @@
 import { View } from 'soundworks/client';
 
 const viewTemplate = `
+  <button class="btn" id="switch-project">
+    Switch project
+  </button>
   <div class="toggle-container" id="mute">
     <div class="toggle-btn"><div></div></div> Mute
   </div>
@@ -16,9 +19,13 @@ class PlayerView extends View {
   constructor(content, events, options) {
     super(viewTemplate, content, events, options);
 
+    this._switchProjectCallback = null;
     this._updateParamCallback = null;
 
     this.installEvents({
+      'touchstart #switch-project': () => {
+        this._switchProjectCallback();
+      },
       'touchstart #mute': () => {
         const active = this.$muteBtn.classList.contains('active');
         this._updateParamCallback('mute', !active);
@@ -35,6 +42,10 @@ class PlayerView extends View {
 
     this.$muteBtn = this.$el.querySelector('#mute');
     this.$intensityBtn = this.$el.querySelector('#intensity');
+  }
+
+  setSwitchProjectCallback(callback) {
+    this._switchProjectCallback = callback;
   }
 
   setUpdateParamCallback(callback) {
