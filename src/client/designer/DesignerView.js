@@ -152,7 +152,7 @@ class DesignerView extends CanvasView {
           this._recordCallback('arm');
         } else {
           this.stopRecording();
-          this._recordCallback('stop')
+          // this._recordCallback('stop')
         }
       },
       'touchstart #nav': () => {
@@ -285,13 +285,7 @@ class DesignerView extends CanvasView {
       dialog.render();
       dialog.show();
       dialog.appendTo(this.$el);
-
-      this.render('#rec-btn');
     });
-
-    // this.model.recBtnState = 3; // "idle" state (lightbox visible)
-    this.model.recBtnState = 0; // "waiting" state
-    this.render('#rec-btn');
 
     return promise;
   }
@@ -346,6 +340,8 @@ class DesignerView extends CanvasView {
   }
 
   stopRecording() {
+    this.model.recBtnState = 0; // "waiting" state
+    this.render('#rec-btn');
     this.$recBtn.classList.remove('active', 'armed');
   }
 

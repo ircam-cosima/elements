@@ -14,6 +14,7 @@ const viewTemplate = `
   <div class="toggle-container" id="intensity">
     <div class="toggle-btn"><div></div></div> Intensity
   </div>
+  <div class="truc" id="notification"></div>
 `;
 
 class PlayerView extends soundworks.View {
