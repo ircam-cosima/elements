@@ -68,15 +68,18 @@ class AutoMotionTrigger {
   }
 
   _start() {
-    if (this.timeoutId !== null)
+    if (this.timeoutId === null) {
       this.params.startCallback();
-
-    clearTimeout(this.timeoutId);
-    this.timeoutId = null;
+      console.log('start !');
+    } else {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
   }
 
   _stop() {
     this.params.stopCallback();
+    console.log('stop !');
   }
 }
 
