@@ -134,13 +134,11 @@ class DesignerView extends CanvasView {
   constructor(content, events, options) {
     super(viewTemplate, content, events, options);
 
-    this._configUpdateCallback = () => {};
-    this._clearLabelCallback = () => {};
-    this._clearModelCallback = () => {};
-    this._muteCallback = () => {};
-    this._recordCallback = () => {};
-    this._persistUserCallback = () => {};
-    this._deleteUserCallback = () => {};
+    this._configUpdateCallback = null;
+    this._clearLabelCallback = null;
+    this._clearModelCallback = null;
+    this._recordCallback = null;
+    this.__updateParamCallback = null;
 
     const viewEvents = {
       'touchstart #rec-btn': () => {
@@ -209,29 +207,15 @@ class DesignerView extends CanvasView {
 
         this._clearModelCallack();
       },
+
       'touchstart #mute': () => {
         const active = this.$muteBtn.classList.contains('active');
-
-        if (!active)
-          this.$muteBtn.classList.add('active');
-        else
-          this.$muteBtn.classList.remove('active');
-
-        this._muteCallback(!active);
+        this._updateParamCallback('mute', !active);
       },
       'touchstart #intensity': () => {
-        const $btn = this.$intensityBtn;
-        const active = $btn.classList.contains('active');
-
-        if (!active)
-          $btn.classList.add('active');
-        else
-          $btn.classList.remove('active');
-
-        this._intensityCallback(!active);
+        const active = this.$intensityBtn.classList.contains('active');
+        this._updateParamCallback('intensity', !active);
       },
-      'touchstart #persist-user': () => this._persistUserCallback(),
-      'touchstart #delete-user': () => this._deleteUserCallback(),
     };
 
     for (let prop in presets) {
@@ -294,6 +278,18 @@ class DesignerView extends CanvasView {
     this.render('#rec-btn');
 
     return promise;
+  }
+
+  updateParams(params) {
+    if (params.mute === true)
+      this.$muteBtn.classList.add('active');
+    else
+      this.$muteBtn.classList.remove('active');
+
+    if (params.intensity === true)
+      this.$intensityBtn.classList.add('active');
+    else
+      this.$intensityBtn.classList.remove('active');
   }
 
   setConfig(config) {
@@ -365,20 +361,8 @@ class DesignerView extends CanvasView {
     this._clearModelCallack = callback;
   }
 
-  setMuteCallback(callback) {
-    this._muteCallback = callback;
-  }
-
-  setPersistUserCallback(callback) {
-    this._persistUserCallback = callback;
-  }
-
-  setDeleteUserCallback(callback) {
-    this._deleteUserCallback = callback;
-  }
-
-  setIntensityCallback(callback) {
-    this._intensityCallback = callback;
+  setUpdateParamCallback(callback) {
+    this._updateParamCallback = callback;
   }
 };
 

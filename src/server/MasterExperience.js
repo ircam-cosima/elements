@@ -32,9 +32,8 @@ class MasterExperience extends soundworks.Experience {
     appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
     appStore.addListener('add-player-to-project', project => broadcast('project:update', project));
     appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
-
+    // only listen from project changes here
     appStore.addListener('set-project-param', project => broadcast('project:update', project));
-    // appStore.addListener('set-client-param', project => broadcast('project:update', project));
 
     // this implies to refactor the designer and player
     // to be compliant with the appStore overall design

@@ -182,17 +182,16 @@ const appStore = {
 
   // xmm data
   setProjectTrainingData(project, trainingData) {
-    console.log(trainingData);
     xmmDbMapper.persistConfig(project, trainingData.config);
     xmmDbMapper.persistTrainingSet(project, trainingData.trainingSet);
 
-    this._emit('set-project-training-data', project);
+    this._emit('set-project-training-data', project, trainingData);
   },
 
   setProjectModel(project, model) {
     xmmDbMapper.persistModel(project, model);
 
-    this._emit('set-project-model', project);
+    this._emit('set-project-model', project, model);
   },
 
   getProjectTrainingData(project) {

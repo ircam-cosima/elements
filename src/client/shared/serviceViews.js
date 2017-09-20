@@ -97,7 +97,7 @@ const serviceViews = {
           <div>
             <% if (error) { %>
             <p class="error">
-              Sorry name "<%= name %>" is already used
+              Sorry project "<%= name %>" is already in use
             </p>
             <% } %>
             <input type="text" id="name" placeholder="project name" value="niap" />
