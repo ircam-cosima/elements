@@ -4,13 +4,15 @@ import uuidv4 from 'uuid/v4';
 
 const appStore = {
   init() {
-    this._listeners = new Map();
-
     this.projects = projectDbMapper.getList(); // project = { name, uuid }
     this.projectUsersMap = new Map();
 
     this.uuidClientMap = new Map();
+    this.clients = new Set();
 
+    this._listeners = new Map();
+
+    // initialize projects with default values
     this.projects.forEach(project => {
       project.params = this._getProjectDefaultParams();
       this.projectUsersMap.set(project, this._getEmptyUserMap());
@@ -21,7 +23,6 @@ const appStore = {
     return {
       mute: false,
       intensity: false,
-      visualizeSensors: false,
       streamSensors: false,
     }
   },
@@ -69,10 +70,12 @@ const appStore = {
     client.params = params;
 
     this.uuidClientMap.set(client.uuid, client);
+    this.clients.add(client);
   },
 
   unregisterClient(client) {
     this.uuidClientMap.delete(client.uuid);
+    this.clients.delete(client);
   },
 
   // create / delete project

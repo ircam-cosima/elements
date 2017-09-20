@@ -4,13 +4,26 @@ import path from 'path';
 const cwd = process.cwd();
 const basePath = path.join(cwd, 'db');
 
+const trainingSetDirname = path.join(basePath, 'sets');
+const configDirname = path.join(basePath, 'configs');
+const modelDirname = path.join(basePath, 'models');
+
+if (!fs.existsSync(trainingSetDirname))
+  fs.mkdirSync(trainingSetDirname);
+
+if (!fs.existsSync(configDirname))
+  fs.mkdirSync(configDirname);
+
+if (!fs.existsSync(modelDirname))
+  fs.mkdirSync(modelDirname);
+
 /**
  * @todo - make everything Promise based and async
  */
 const xmmStore = {
   getTrainingSet(project) {
     const uuid = project.uuid;
-    const filename = path.join(basePath, 'sets', `${uuid}-training-set.json`);
+    const filename = path.join(trainingSetDirname, `${uuid}-training-set.json`);
     let trainingSet = null;
 
     if (fs.existsSync(filename)) {
@@ -23,7 +36,7 @@ const xmmStore = {
 
   getConfig(project) {
     const uuid = project.uuid;
-    const filename = path.join(basePath, 'configs', `${uuid}-config.json`);
+    const filename = path.join(configDirname, `${uuid}-config.json`);
     let config = null;
 
     if (fs.existsSync(filename)) {
@@ -36,7 +49,7 @@ const xmmStore = {
 
   getModel(project) {
     const uuid = project.uuid;
-    const filename = path.join(basePath, 'models', `${uuid}-model.json`);
+    const filename =  path.join(modelDirname, `${uuid}-model.json`);
     let model = null;
 
     if (fs.existsSync(filename)) {
@@ -49,7 +62,7 @@ const xmmStore = {
 
   persistTrainingSet(project, trainingSet) {
     const uuid = project.uuid;
-    const filename = path.join(basePath, 'sets', `${uuid}-training-set.json`);
+    const filename = path.join(trainingSetDirname, `${uuid}-training-set.json`);
     const json = JSON.stringify(trainingSet, null, 2);
 
     fs.writeFileSync(filename, json, 'utf8');
@@ -57,7 +70,7 @@ const xmmStore = {
 
   persistConfig(project, config) {
     const uuid = project.uuid;
-    const filename = path.join(basePath, 'configs', `${uuid}-config.json`);
+    const filename = path.join(configDirname, `${uuid}-config.json`);
     const json = JSON.stringify(config, null, 2);
 
     fs.writeFileSync(filename, json, 'utf8');
@@ -65,7 +78,7 @@ const xmmStore = {
 
   persistModel(project, model) {
     const uuid = project.uuid;
-    const filename = path.join(basePath, 'models', `${uuid}-model.json`);
+    const filename = path.join(modelDirname, `${uuid}-model.json`);
     const json = JSON.stringify(model, null, 2);
 
     fs.writeFileSync(filename, json, 'utf8');
@@ -73,23 +86,26 @@ const xmmStore = {
 
   deleteTrainingSet(project) {
     const uuid = project.uuid;
-    const filename = path.join(basePath, 'configs', `${uuid}-config.json`);
+    const filename = path.join(trainingSetDirname, `${uuid}-training-set.json`);
 
-    fs.unlinkSync(filename);
+    if (fs.existsSync(filename))
+      fs.unlinkSync(filename);
   },
 
   deleteConfig(project) {
     const uuid = project.uuid;
-    const filename = path.join(basePath, 'models', `${uuid}-model.json`);
+    const filename = path.join(configDirname, `${uuid}-config.json`);
 
-    fs.unlinkSync(filename);
+    if (fs.existsSync(filename))
+      fs.unlinkSync(filename);
   },
 
   deleteModel(project) {
     const uuid = project.uuid;
-    const filename = path.join(basePath, 'models', `${uuid}-model.json`);
+    const filename = path.join(modelDirname, `${uuid}-model.json`);
 
-    fs.unlinkSync(filename);
+    if (fs.existsSync(filename))
+      fs.unlinkSync(filename);
   },
 };
 

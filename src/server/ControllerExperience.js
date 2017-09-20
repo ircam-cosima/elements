@@ -1,5 +1,6 @@
 import * as soundworks from 'soundworks/server';
 import appStore from './shared/appStore';
+import chalk from 'chalk';
 import xmm from 'xmm-node';
 import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'iml-motion/common';
 
@@ -9,13 +10,23 @@ const hx = new xmm('hhmm');
 
 
 class ControllerExperience extends soundworks.Experience {
-  constructor(clientType) {
+  constructor(clientType, socketPipe, oscConfig) {
     super(clientType);
+
+    this.socketPipe = socketPipe;
+    this.oscConfig = oscConfig;
+
+    this.rawSocket = this.require('raw-socket', {
+      protocol: { channel: 'sensors', type: 'Float32' },
+    });
+
+    this.osc = this.require('osc');
   }
 
   start() {
     super.start();
 
+    // @todo - make sure that we have some clients before doing the work
     appStore.addListener('create-project', project => {
       const projectsOverview = Array.from(appStore.projects);
       const serializedProject = this._serializeProject(project);
@@ -34,25 +45,21 @@ class ControllerExperience extends soundworks.Experience {
       this.broadcast('controller', null, channel, serializedProject);
     };
 
-    appStore.addListener('add-designer-to-project', project => broadcast('project:update', project));
-    appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
-    appStore.addListener('add-player-to-project', project => broadcast('project:update', project));
-    appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
-    // only listen from project changes here
     appStore.addListener('set-project-param', project => broadcast('project:update', project));
     appStore.addListener('set-project-model', project => broadcast('project:update', project));
 
-    // listen to that
-    // this._emit('set-project-training-data', project, trainingData);
+    appStore.addListener('add-designer-to-project', project => broadcast('project:update', project));
+    appStore.addListener('add-player-to-project', project => broadcast('project:update', project));
 
-    // this implies to refactor the designer and player
-    // to be compliant with the appStore overall design
-    // appStore.addListener('set-client-param', client => {
-    //   this.send(client)
-    // });
+    appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
+    appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
 
-    // parameters change
-    appStore.addListener('')
+    this.socketPipe.addListener('sensors', data => {
+      this.rawSocket.broadcast('controller', null, 'sensors', data);
+      this.osc.send('/sensors', Array.from(data));
+    });
+
+    console.log(chalk.yellow(`[OSC] Phone sent on port ${this.oscConfig.sendPort}`));
   }
 
   enter(client) {
@@ -71,12 +78,12 @@ class ControllerExperience extends soundworks.Experience {
     this.send(client, 'project:list', serializedProjectList);
     this.send(client, 'project:overview', projectsOverview);
 
-
     this.receive(client, 'project:delete', this._onProjectDeleteRequest(client));
     this.receive(client, 'designer:disconnect', this._onDesignerDisconnectRequest(client));
     this.receive(client, 'param:project:update', this._onUpdateProjectParam(client));
-    this.receive(client, 'param:client:update', this._onUpdateClientParam(client));
     this.receive(client, 'config:project:update', this._onUpdateProjectConfig(client));
+    this.receive(client, 'param:client:update', this._onUpdateClientParam(client));
+    this.receive(client, 'exclusive:param:client:update', this._onUpdateClientExclusiveParam(client));
   }
 
   exit(client) {
@@ -88,8 +95,8 @@ class ControllerExperience extends soundworks.Experience {
    */
   _serializeProject(project) {
     const { config } = appStore.getProjectTrainingData(project);
-    const relativeRegularization = config.payload.relativeRegularization;
-    const absoluteRegularization = config.payload.absoluteRegularization;
+    const relativeRegularization = config !== null ? config.payload.relativeRegularization : 0.1;
+    const absoluteRegularization = config !== null ? config.payload.absoluteRegularization : 0.1;
 
     const serialized = {
       name: project.name,
@@ -160,6 +167,25 @@ class ControllerExperience extends soundworks.Experience {
     }
   }
 
+  // exclusive params are params that can't be true on 2 users
+  _onUpdateClientExclusiveParam(client) {
+    return (uuid, paramName, value) => {
+      const user = appStore.getClientByUuid(uuid);
+
+      if (value === true) {
+        const clients = appStore.clients;
+
+        clients.forEach(client => {
+          if (client.params[paramName] === true)
+            appStore.setClientParam(client, paramName, false);
+        });
+      }
+
+      this.broadcast('controller', null, 'sensors-display', value);
+      appStore.setClientParam(user, paramName, value);
+    }
+  }
+
   // absolute and relative regularization
   _onUpdateProjectConfig(client) {
     return (uuid, paramName, value) => {
@@ -179,10 +205,6 @@ class ControllerExperience extends soundworks.Experience {
         if (err)
           console.error(err.stack);
 
-        // console.log(trainingSet);
-        // console.log('--------------------------');
-        // console.log(config);
-        // return;
         const rapidModel = xmmToRapidMixModel(model);
         const trainingData = { config, trainingSet };
 

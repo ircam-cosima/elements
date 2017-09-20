@@ -14,7 +14,10 @@ class PlayerExperience extends Experience {
     super.start();
 
     appStore.addListener('set-client-param', (project, client) => {
-      this.send(client, 'params:update', client.params);
+      const players = appStore.getProjectPlayers(project);
+
+      if (players.has(client))
+        this.send(client, 'params:update', client.params);
     });
 
     appStore.addListener('set-project-model', (project) => {

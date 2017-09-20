@@ -18,6 +18,10 @@ $green: #40de56;
   margin-bottom: 12px;
 }
 
+body.white {
+  background-color: white;
+}
+
 @include keyframes(ligth-blink) {
   0% { opacity: 0.7; }
   50% { opacity: 0.9; }
@@ -474,6 +478,16 @@ $elmHeight: 36px;
       // margin-bottom: 12px;
       display: block;
     }
+
+    #visualization {
+      width: 602px;
+      margin-top: 12px;
+
+      .basic-controllers .label {
+        font-style: normal;
+        font-size: 12px;
+      }
+    }
   }
 
   .project {
@@ -518,6 +532,8 @@ $elmHeight: 36px;
           padding: 0 4px;
           font-size: 0.8rem;
           height: 26px;
+          width: 40px;
+          margin-right: 12px;
         }
       }
     }
@@ -525,7 +541,7 @@ $elmHeight: 36px;
     .clients {
       padding-bottom: 12px;
       padding-left: 20px;
-      list-style-type: circle;
+      list-style-type: disc;
 
       .client {
         border-bottom: 1px solid #cdcdcd;

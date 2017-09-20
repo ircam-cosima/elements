@@ -5,25 +5,27 @@ const cwd = process.cwd();
 
 // server-side 'designer' experience.
 class DesignerExperience extends Experience {
-  constructor(clientType, config) {
+  constructor(clientType, config, socketPipe) {
     super(clientType);
 
     this.config = config;
+    this.socketPipe = socketPipe;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.projectAdmin = this.require('project-admin');
     this.sharedParams = this.require('shared-params');
 
-    // if (config.env !== 'production') {
-    //   this.rawSocket = this.require('raw-socket', {
-    //     protocol: { channel: 'sensors', type: 'Float32' },
-    //   });
-    // }
+    this.rawSocket = this.require('raw-socket', {
+      protocol: { channel: 'sensors', type: 'Float32' },
+    });
   }
 
   start() {
     appStore.addListener('set-client-param', (project, client) => {
-      this.send(client, 'params:update', client.params);
+      const designer = appStore.getProjectDesigner(project);
+
+      if (designer === client)
+        this.send(client, 'params:update', client.params);
     });
 
     appStore.addListener('set-project-model', (project, model) => {
@@ -47,13 +49,9 @@ class DesignerExperience extends Experience {
     this.receive(client, 'param:update', this._onParamUpdate(client));
     this.receive(client, 'model:update', this._onModelUpdate(client));
 
-    // listen for client sensor streaming, the client is using `#stream`
-    // if (this.config.env !== 'production') {
-    //   this.rawSocket.receive(client, 'sensors', data => {
-    //     // send to visualizer experience
-    //     this.comm.emit('designer-sensors', data);
-    //   });
-    // }
+    this.rawSocket.receive(client, 'sensors', data => {
+      this.socketPipe.emit('sensors', data);
+    });
   }
 
   exit(client) {

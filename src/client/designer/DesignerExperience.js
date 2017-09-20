@@ -32,8 +32,9 @@ class DesignerExperience extends soundworks.Experience {
     this.config = config;
     this.labels = Object.keys(labels);
     this.likeliest = undefined;
-    this.isStreamingSensors = false;
-    this._sensitivity = 1;
+    this.sensitivity = 1;
+
+    this.streamSensors = false;
 
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.projectAdmin = this.require('project-admin');
@@ -48,9 +49,7 @@ class DesignerExperience extends soundworks.Experience {
       descriptors: ['devicemotion']
     });
 
-    // stream sensors
-    // if (config.env !== 'production')
-    //   this.rawSocket = this.require('raw-socket');
+    this.rawSocket = this.require('raw-socket');
 
     this._onConfigUpdate = this._onConfigUpdate.bind(this);
     this._onRecord = this._onRecord.bind(this);
@@ -61,6 +60,7 @@ class DesignerExperience extends soundworks.Experience {
     this._feedDecoder = this._feedDecoder.bind(this);
     this._feedRecorder = this._feedRecorder.bind(this);
     this._feedIntensity = this._feedIntensity.bind(this);
+    this._streamSensors = this._streamSensors.bind(this);
 
     this._init = this._init.bind(this);
     this._updateParamRequest = this._updateParamRequest.bind(this);
@@ -133,9 +133,6 @@ class DesignerExperience extends soundworks.Experience {
     this.xmmDecoder = new imlMotion.XmmProcessor({ url: this.config.trainUrl });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
-    if (this.isStreamingSensors)
-      this.processedSensors.addListener(data => this.rawSocket.send('sensors', data));
-
     this.autoTrigger = new AutoMotionTrigger({
       highThreshold: autoTriggerDefaults.highThreshold,
       lowThreshold: autoTriggerDefaults.lowThreshold,
@@ -191,7 +188,6 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _updateModel(model, config) {
-    console.log(config);
     this.xmmDecoder.setModel(model);
     this.xmmDecoder.setConfig(config);
 
@@ -211,6 +207,17 @@ class DesignerExperience extends soundworks.Experience {
   _updateParams(params) {
     this.audioEngine.mute = params.mute;
     this.enableIntensity = params.intensity;
+
+    // stream sensors to
+    if (params.streamSensors !== this.streamSensors) {
+      if (params.streamSensors === true)
+        this.processedSensors.addListener(this._streamSensors);
+      else
+        this.processedSensors.removeListener(this._streamSensors);
+
+      this.streamSensors = params.streamSensors;
+    }
+
     this.view.updateParams(params);
   }
 
@@ -273,7 +280,6 @@ class DesignerExperience extends soundworks.Experience {
 
   _feedRecorder(data) {
     this.trainingData.addElement(data);
-    // console.log(this.trainingData.getTrainingSet());
   }
 
   _feedDecoder(data) {
@@ -307,9 +313,13 @@ class DesignerExperience extends soundworks.Experience {
     this.autoTrigger.push(value * 100);
 
     if (this.enableIntensity)
-      this.audioEngine.setGainFromIntensity(value * 100 * this._sensitivity);
+      this.audioEngine.setGainFromIntensity(value * 100 * this.sensitivity);
     else
       this.audioEngine.setGainFromIntensity(1);
+  }
+
+  _streamSensors(data) {
+    this.rawSocket.send('sensors', data);
   }
 
   _onClearLabel(label) {
