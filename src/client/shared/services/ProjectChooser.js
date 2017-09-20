@@ -12,12 +12,12 @@ class ProjectChooser extends Service {
     super(SERVICE_ID, true);
 
     const defaults = {
-      viewPriority: 100,
+      viewPriority: 8,
     };
 
     this.configure(defaults);
 
-    this._select = this._select.bind(this);
+    this._selectProjectRequest = this._selectProjectRequest.bind(this);
     this._onReceiveProjectList = this._onReceiveProjectList.bind(this);
     this._onProjectAck = this._onProjectAck.bind(this);
     this._onProjectError = this._onProjectError.bind(this);
@@ -26,26 +26,31 @@ class ProjectChooser extends Service {
   /** @private */
   start() {
     super.start();
-    this.view.setSelectCallback(this._select);
+
+    this.view.setSelectCallback(this._selectProjectRequest);
+
+    this.send('project-list:request');
     this.receive('project-list', this._onReceiveProjectList);
     this.receive('project-ack', this._onProjectAck);
     this.receive('project-error', this._onProjectError);
-    this.send('project-list-request');
+
     this.show();
   }
 
   /** @private */
   stop() {
     super.stop();
+
     this.stopReceiving('project-list', this._onReceiveProjectList);
     this.stopReceiving('project-ack', this._onProjectAck);
     this.stopReceiving('project-error', this._onProjectError);
+
     this.hide();
   }
 
   /** @private */
-  _select(projectName) {
-    this.send('project-request', projectName);
+  _selectProjectRequest(uuid) {
+    this.send('project-request', uuid);
   }
 
   /** @private */
@@ -55,8 +60,7 @@ class ProjectChooser extends Service {
   }
 
   /** @private */
-  _onProjectAck() {
-    console.log('received ack');
+  _onProjectAck(project) {
     this.ready();
   }
 
@@ -65,8 +69,8 @@ class ProjectChooser extends Service {
    * @todo
    */
   _onProjectError() {
-    console.log('received error');
-    // this.ready();
+    this.view.model.error = true;
+    this.view.render();
   }
 }
 

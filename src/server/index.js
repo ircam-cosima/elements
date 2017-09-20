@@ -7,7 +7,6 @@ import xmm from 'xmm-node';
 import bodyParser from 'body-parser';
 import ControllerExperience from './ControllerExperience';
 import DesignerExperience from './DesignerExperience';
-import MasterExperience from './MasterExperience';
 import PlayerExperience from './PlayerExperience';
 import VisualizerExperience from './VisualizerExperience';
 // services
@@ -50,6 +49,7 @@ server.setClientConfigDefinition((clientType, config, httpRequest) => {
 
 // const comm = new EventEmitter();
 
+// @todo - move to master (controller)
 const sharedParams = soundworks.server.require('shared-params');
 sharedParams.addNumber('sensitivity', 'Sensitivity', 0, 2, 0.01, 1);
 sharedParams.addNumber('intensityFeedback', 'Intensity feedback', 0, 0.99, 0.01, 0.8);
@@ -63,9 +63,8 @@ appStore.init();
 // create the common server experience for both the soloists and the players
 const designer = new DesignerExperience('designer', config);
 const player = new PlayerExperience('player');
-const master = new MasterExperience('master');
-
 const controller = new ControllerExperience('controller');
+
 // if (config.env !== 'production') {
 //   const visualizer = new VisualizerExperience('visualizer', config.osc);
 // }

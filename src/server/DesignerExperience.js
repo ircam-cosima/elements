@@ -21,7 +21,16 @@ class DesignerExperience extends Experience {
     // }
   }
 
-  start() {}
+  start() {
+    appStore.addListener('set-client-param', (project, client) => {
+      this.send(client, 'params:update', client.params);
+    });
+
+    appStore.addListener('set-project-model', (project, model) => {
+      const client = appStore.getProjectDesigner(project);
+      this.send(client, 'model:update', model);
+    });
+  }
 
   enter(client) {
     super.enter(client);
@@ -29,8 +38,11 @@ class DesignerExperience extends Experience {
     const project = client.project;
     const trainingData = appStore.getProjectTrainingData(project);
 
-    this.send(client, 'init:training-data', trainingData);
-    this.receive(client, 'persist:training-data', this._persistTrainingData(client));
+    this.send(client, 'init', trainingData);
+    this.send(client, 'params:update', client.params);
+
+    this.receive(client, 'param:update', this._onParamUpdate(client));
+    this.receive(client, 'model:update', this._onModelUpdate(client));
 
     // listen for client sensor streaming, the client is using `#stream`
     // if (this.config.env !== 'production') {
@@ -45,17 +57,23 @@ class DesignerExperience extends Experience {
     super.exit(client);
   }
 
-  _persistTrainingData(client) {
-    return msg => {
+  _onModelUpdate(client) {
+    return data => {
       const project = client.project;
 
       appStore.setProjectTrainingData(project, {
-        config: msg.config,
-        trainingSet: msg.trainingSet,
+        config: data.config,
+        trainingSet: data.trainingSet,
       });
 
-      appStore.setProjectModel(project, msg.model);
-    };
+      appStore.setProjectModel(project, data.model);
+    }
+  }
+
+  _onParamUpdate(client) {
+    return (paramName, value) => {
+      appStore.setClientParam(client, paramName, value);
+    }
   }
 }
 

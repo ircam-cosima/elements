@@ -22,7 +22,6 @@ const projectTemplate = `
     <li class="client <%= client.type %>" id="<%= client.uuid %>">
       <p><%= client.type %></p>
 
-      <% console.log(client); %>
       <div class="toggle-container mute <%= client.params.mute ? 'active' : '' %>" data-target="<%= client.uuid %>">
         <div class="toggle-btn"><div></div></div> Mute
       </div>
@@ -61,7 +60,7 @@ const mainTemplate = `
   </div>
 `;
 
-class MasterView extends soundworks.View {
+class ControllerView extends soundworks.View {
   constructor() {
     super(mainTemplate, {}, {}, {
       id: 'master',
@@ -103,7 +102,6 @@ class MasterView extends soundworks.View {
         const $btn = e.target.closest('.mute');
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
-        console.log('client', uuid);
         this._updateClientParamCallback(uuid, 'mute', !active);
       },
       'click .project .client .intensity': (e) => {
@@ -205,4 +203,4 @@ class MasterView extends soundworks.View {
   }
 }
 
-export default MasterView;
+export default ControllerView;

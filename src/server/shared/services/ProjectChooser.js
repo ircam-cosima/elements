@@ -11,8 +11,6 @@ class ProjectChooser extends Service {
     super(SERVICE_ID);
 
     const defaults = {};
-
-    // this.loggedProjectMap = new Map();
     this.configure(defaults);
 
     this.require('client-register');
@@ -32,15 +30,19 @@ class ProjectChooser extends Service {
   /** @private */
   connect(client) {
     super.connect(client);
-    this.receive(client, 'project-list-request', () => {
-      this.send(client, 'project-list', this._getProjectList());
+
+    this.receive(client, 'project-list:request', () => {
+      const projectList = Array.from(appStore.projects);
+      this.send(client, 'project-list', projectList);
     });
+
     this.receive(client, 'project-request', this.enterProject(client));
   }
 
-  // disconnect(client) {
-  //   super.disconnect(client);
-  // }
+  disconnect(client) {
+    this.exitProject(client);
+    super.disconnect(client);
+  }
 
   exitProject(client) {
     appStore.removePlayerFromProject(client);
@@ -48,9 +50,9 @@ class ProjectChooser extends Service {
 
   /** @private */
   enterProject(client) {
-    return projectName => {
-      let project = appStore.getProjectByName(projectName);
-      console.log('getting project : ' + projectName);
+    return uuid => {
+      const project = appStore.getProjectByUuid(uuid);
+
       if (project !== null) {
         appStore.addPlayerToProject(client, project);
         this.send(client, 'project-ack', project);
@@ -58,17 +60,6 @@ class ProjectChooser extends Service {
         this.send(client, 'project-error', project);
       }
     };
-  }
-
-  /** @private */
-  _getProjectList() {
-    const projects = [];
-
-    appStore.projects.forEach(project => {
-      projects.push(project.name);
-    });
-
-    return projects;
   }
 }
 

@@ -38,14 +38,17 @@ const serviceViews = {
           <p>Select project</p>
         </div>
         <div class="section-center flex-center">
+          <p class="error">
+          <% if (error === true) { %>
+            Sorry, an error occured
+          <% } %>
+          </p>
           <div>
-            <select id="project-chooser-select">
-              <option value=''> ... </option>
-              <% for (var i = 0; i < projects.length; i++) { %>
-              <option value="<%= projects[i] %>">
-                <%= projects[i] %>
-              </option>
-              <% } %>
+            <select id="project-select">
+              <option value="">Choose a project</option>
+              <% projects.forEach(function(project) { %>
+              <option value="<%= project.uuid %>"><%= project.name %></option>
+              <% }); %>
             </select>
           </div>
         </div>
@@ -54,23 +57,25 @@ const serviceViews = {
 
       this.model = {
         projects: [],
+        error: false,
       };
 
       this._selectCallback = noop;
 
       this.installEvents({
-        'change #project-chooser-select': () => {
-          const projectName = this.$el.querySelector('#project-chooser-select').value;
+        'change #project-select': () => {
+          const uuid = this.$select.value;
 
-          if (projectName !== '') {
-            this._selectCallback(projectName);
-          }
+          if (uuid !== '')
+            this._selectCallback(uuid);
         }
       });
     }
 
     onRender() {
       super.onRender();
+
+      this.$select = this.$el.querySelector('#project-select');
     }
 
     setProjectList(projects) {
@@ -97,7 +102,7 @@ const serviceViews = {
           <div>
             <% if (error) { %>
             <p class="error">
-              Sorry name "<%= name %>" is already used
+              Sorry project "<%= name %>" is already in use
             </p>
             <% } %>
             <input type="text" id="name" placeholder="project name" value="niap" />
