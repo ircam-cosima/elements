@@ -191,10 +191,11 @@ class DesignerExperience extends soundworks.Experience {
     this.send('model:update', data);
   }
 
-  _updateModel(model) {
+  _updateModel(model, config) {
+    console.log(config);
     this.xmmDecoder.setModel(model);
+    this.xmmDecoder.setConfig(config);
 
-    const config = this.xmmDecoder.getConfig();
     const viewConfig = Object.assign({}, config.payload, {
       modelType: config.target.name.split(':')[1],
     });

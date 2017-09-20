@@ -16,6 +16,7 @@ class ControllerExperience extends soundworks.Experience {
     this._updateProjectOverview = this._updateProjectOverview.bind(this);
     this._updateProjectParamRequest = this._updateProjectParamRequest.bind(this);
     this._updateClientParamRequest = this._updateClientParamRequest.bind(this);
+    this._updateProjectConfigRequest = this._updateProjectConfigRequest.bind(this);
   }
 
   start() {
@@ -27,6 +28,7 @@ class ControllerExperience extends soundworks.Experience {
     this.view.setDisconnectDesignerCallback(this._disconnectDesignerRequest);
     this.view.setUpdateProjectParamCallback(this._updateProjectParamRequest);
     this.view.setUpdateClientParamCallback(this._updateClientParamRequest);
+    this.view.setUpdateProjectConfigCallback(this._updateProjectConfigRequest);
 
     this.receive('project:list', this._setProjectList);
     this.receive('project:overview', this._updateProjectOverview);
@@ -48,12 +50,18 @@ class ControllerExperience extends soundworks.Experience {
     this.send('designer:disconnect', uuid);
   }
 
+  // parameters realtive to user interfaces
   _updateProjectParamRequest(uuid, paramName, value) {
     this.send('param:project:update', uuid, paramName, value);
   }
 
   _updateClientParamRequest(uuid, paramName, value) {
     this.send('param:client:update', uuid, paramName, value);
+  }
+
+  // parameters relative to training
+  _updateProjectConfigRequest(uuid, paramName, value) {
+    this.send('config:project:update', uuid, paramName, value);
   }
 
   // build project overview menu

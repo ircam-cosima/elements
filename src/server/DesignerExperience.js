@@ -28,7 +28,10 @@ class DesignerExperience extends Experience {
 
     appStore.addListener('set-project-model', (project, model) => {
       const client = appStore.getProjectDesigner(project);
-      this.send(client, 'model:update', model);
+      const { config } = appStore.getProjectTrainingData(project);
+
+      if (client !== null)
+        this.send(client, 'model:update', model, config);
     });
   }
 

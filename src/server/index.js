@@ -93,6 +93,7 @@ server.router.post('/train', (req, res, next) => {
 
     const rapidModel = xmmToRapidMixModel(model);
     res.setHeader('Content-Type', 'application/json');
+    // simulate RapidMix API JSON format
     res.end(JSON.stringify({ model: rapidModel }));
   });
 });

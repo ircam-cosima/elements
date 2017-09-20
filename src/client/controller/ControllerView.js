@@ -11,6 +11,17 @@ const projectTemplate = `
       <div class="toggle-btn"><div></div></div> Intensity
     </div>
 
+    <div>
+      <div class="number-box absolute-regularization"">
+        <input type="number" value="<%= absoluteRegularization %>" data-target="<%= uuid %>" />
+        Absolute Regularization
+      </div>
+
+      <div class="number-box relative-regularization"">
+        <input type="number" value="<%= relativeRegularization %>" data-target="<%= uuid %>" />
+        Relative Regularization
+      </div>
+    </div>
     <% if (!hasDesigner) { %>
     <button class="btn danger delete-project" data-target="<%= uuid %>">Delete</button>
     <% } %>
@@ -70,6 +81,7 @@ class ControllerView extends soundworks.View {
     this._disconnectDesignerCallback = null;
     this._updateProjectParamCallback = null;
     this._updateClientParamCallback = null;
+    this._updateProjectConfigCallback = null;
 
     this.installEvents({
       'click .delete-project': (e) => {
@@ -110,6 +122,21 @@ class ControllerView extends soundworks.View {
         const uuid = $btn.dataset.target;
         this._updateClientParamCallback(uuid, 'intensity', !active);
       },
+
+      'change .absolute-regularization': (e) => {
+        const $input = e.target;
+        const value = parseFloat($input.value);
+        const uuid = $input.dataset.target;
+        this._updateProjectConfigCallback(uuid, 'absoluteRegularization', value);
+
+      },
+      'change .relative-regularization': (e) => {
+        const $input = e.target;
+        const value = parseFloat($input.value);
+        const uuid = $input.dataset.target;
+        this._updateProjectConfigCallback(uuid, 'relativeRegularization', value);
+
+      }
     });
 
     this.projectUuidContainerMap = new Map();
@@ -200,6 +227,10 @@ class ControllerView extends soundworks.View {
 
   setUpdateClientParamCallback(callback) {
     this._updateClientParamCallback = callback;
+  }
+
+  setUpdateProjectConfigCallback(callback) {
+    this._updateProjectConfigCallback = callback;
   }
 }
 

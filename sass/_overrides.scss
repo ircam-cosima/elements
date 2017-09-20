@@ -489,7 +489,7 @@ $elmHeight: 36px;
       padding: 4px 0 4px 20px;
       margin-bottom: 6px;
       position: relative;
-      height: 44px;
+      // height: 44px;
       line-height: 36px;
       border-radius: 2px;
       box-sizing: border-box;
@@ -505,6 +505,21 @@ $elmHeight: 36px;
         position: absolute;
         top: 4px;
         right: 4px;
+      }
+
+      .number-box {
+        margin-bottom: 2px;
+        font-size: 0.8rem;
+        display: inline-block;
+        margin-right: 40px;
+
+        input {
+          border: 1px solid #cdcdcd;
+          border-radius: 2px;
+          padding: 0 4px;
+          font-size: 0.8rem;
+          height: 26px;
+        }
       }
     }
 
