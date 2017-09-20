@@ -22,11 +22,17 @@ class LikelihoodsRenderer extends Canvas2dRenderer {
 
     // do with logical coordinates
     const contentHeight = this.view.getContentHeight();
+
     const padding = 10;
-    this.top = (contentHeight + padding) * this.pixelRatio;
+    const fixedHeight = 100;
+
+    this.top = this.canvasHeight - (fixedHeight + padding) * this.pixelRatio;
+    this.height = fixedHeight * this.pixelRatio;
+    // this.top = (contentHeight + padding) * this.pixelRatio;
+    // this.height = this.canvasHeight - (contentHeight + 2 * padding) * this.pixelRatio;
+
     this.left = padding * this.pixelRatio;
     this.width = this.canvasWidth - (2 * padding) * this.pixelRatio;
-    this.height = Math.max(this.canvasHeight - (contentHeight + 2 * padding) * this.pixelRatio, 0);
   }
 
   /**
@@ -78,7 +84,7 @@ class LikelihoodsRenderer extends Canvas2dRenderer {
       // display label
       ctx.font = '30px arial';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(this.modelResults.label, 10, 30);
+      ctx.fillText(this.modelResults.label, 10, this.height - 10);
     }
 
     ctx.restore();

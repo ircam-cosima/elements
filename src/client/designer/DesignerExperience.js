@@ -36,8 +36,8 @@ class DesignerExperience extends soundworks.Experience {
     });
 
     // stream sensors
-    if (config.env !== 'production')
-      this.rawSocket = this.require('raw-socket');
+    // if (config.env !== 'production')
+    //   this.rawSocket = this.require('raw-socket');
 
     this._onConfigUpdate = this._onConfigUpdate.bind(this);
     this._onRecord = this._onRecord.bind(this);
@@ -60,11 +60,11 @@ class DesignerExperience extends soundworks.Experience {
   start() {
     super.start(); // don't forget this
 
-    if (this.config.env !== 'production' &&
-        client.urlParams &&
-        client.urlParams[0] === 'stream') {
-      this.isStreamingSensors = true;
-    }
+    // if (this.config.env !== 'production' &&
+    //     client.urlParams &&
+    //     client.urlParams[0] === 'stream') {
+    //   this.isStreamingSensors = true;
+    // }
 
     const autoTriggerDefaults = {
       highThreshold: 0.05,
@@ -167,6 +167,10 @@ class DesignerExperience extends soundworks.Experience {
       this.processedSensors.powerScale.params.set('inputMin', value);
     });
 
+    this.sharedParams.addParamListener('bandpassGain', value => {
+      this.processedSensors.bandpassGain.params.set('factor', value);
+    });
+
     this.receive('init:training-data', this._initTrainingData);
     // force disconnect sent by master
     this.receive('force:disconnect', () => window.location.reload());
@@ -259,6 +263,7 @@ class DesignerExperience extends soundworks.Experience {
 
   _feedRecorder(data) {
     this.trainingData.addElement(data);
+    // console.log(this.trainingData.getTrainingSet());
   }
 
   _feedDecoder(data) {

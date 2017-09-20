@@ -260,13 +260,12 @@ $elmHeight: 36px;
     }
   }
 
-
   #rec-btn {
     width: 120px;
     height: 120px;
     margin: 0 auto;
-    border-radius: 3px;
     background-color: #ffffff;
+    opacity: 0.9;
     font-size: 1.4rem;
     outline: none;
     border: 1px solid #eeeeee;
@@ -286,8 +285,8 @@ $elmHeight: 36px;
     }
 
     .bg {
-      background-color: #cd0000;
-      opacity: 0.7;
+      background-color: #2dc937;
+      opacity: 0.9;
       position: absolute;
       width: 100%;
       height: 100%;
@@ -296,11 +295,11 @@ $elmHeight: 36px;
     }
 
     &.armed .bg {
-      @include animation('ligth-blink 1.4s ease-in-out infinite');
+      background-color: #db7b2b;
     }
 
     &.active .bg {
-      opacity: 1;
+      background-color: #cc3232;
     }
   }
 

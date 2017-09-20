@@ -165,6 +165,10 @@ class PlayerExperience extends soundworks.Experience {
       this.processedSensors.powerScale.params.set('inputMin', value);
     });
 
+    this.sharedParams.addParamListener('bandpassGain', value => {
+      this.processedSensors.bandpassGain.params.set('factor', value);
+    });
+
     this.receive('model', this._onReceiveModel);
 
     Promise.all([this.show(), this.processedSensors.init()])

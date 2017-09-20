@@ -14,11 +14,11 @@ class DesignerExperience extends Experience {
     this.projectAdmin = this.require('project-admin');
     this.sharedParams = this.require('shared-params');
 
-    if (config.env !== 'production') {
-      this.rawSocket = this.require('raw-socket', {
-        protocol: { channel: 'sensors', type: 'Float32' },
-      });
-    }
+    // if (config.env !== 'production') {
+    //   this.rawSocket = this.require('raw-socket', {
+    //     protocol: { channel: 'sensors', type: 'Float32' },
+    //   });
+    // }
   }
 
   start() {}

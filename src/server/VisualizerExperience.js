@@ -3,7 +3,7 @@ import chalk from 'chalk';
 
 
 class VisualizerExperience extends soundworks.Experience {
-  constructor(clientType, oscConfig) {
+  constructor(clientType, comm, oscConfig) {
     super(clientType);
 
     this.oscConfig = oscConfig;
@@ -22,10 +22,10 @@ class VisualizerExperience extends soundworks.Experience {
     // pipe designer sensors to visualizer and max
     // (TODO replace with the event emitter in appStore) :
 
-    // this.comm.addListener('designer-sensors', data => {
-    //   this.rawSocket.broadcast('visualizer', null, 'designer-sensors', data);
-    //   this.osc.send('/phone', Array.from(data));
-    // });
+    this.comm.addListener('designer-sensors', data => {
+      this.rawSocket.broadcast('visualizer', null, 'designer-sensors', data);
+      this.osc.send('/phone', Array.from(data));
+    });
 
     // receive R-ioT from max
     this.osc.receive('/riot', (...args) => {
