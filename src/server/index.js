@@ -56,6 +56,7 @@ sharedParams.addNumber('intensityFeedback', 'Intensity feedback', 0, 0.99, 0.01,
 sharedParams.addNumber('intensityGain', 'Intensity gain', 0, 1, 0.01, 0.1);
 sharedParams.addNumber('intensityPower', 'Intensity power', 0, 1, 0.01, 0.25);
 sharedParams.addNumber('intensityLowClip', 'Intensity low clip', 0, 0.99, 0.01, 0.15);
+sharedParams.addNumber('bandpassGain', 'Bandpass gain', 0, 2, 0.01, 1);
 
 appStore.init();
 

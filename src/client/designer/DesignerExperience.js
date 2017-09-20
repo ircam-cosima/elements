@@ -74,7 +74,6 @@ class DesignerExperience extends soundworks.Experience {
     this.receive('init', this._init);
     this.receive('params:update', this._updateParams);
     this.receive('model:update', this._updateModel);
-
     this.receive('force:disconnect', () => window.location.reload());
 
     this.view = new DesignerView({
@@ -145,6 +144,44 @@ class DesignerExperience extends soundworks.Experience {
       stopCallback: this._stopRecording,
     });
 
+<<<<<<< HEAD
+    // shared parameters mapping :
+    this.sharedParams.addParamListener('sensitivity', value => {
+      this._sensitivity = value;
+    });
+
+    this.sharedParams.addParamListener('intensityFeedback', value => {
+      this.processedSensors.intensity.params.set('feedback', value);
+    });
+
+    this.sharedParams.addParamListener('intensityGain', value => {
+      this.processedSensors.intensity.params.set('gain', value);
+    });
+
+    this.sharedParams.addParamListener('intensityPower', value => {
+      this.processedSensors.intensityPower.params.set('exponent', value);
+    });
+
+    this.sharedParams.addParamListener('intensityLowClip', value => {
+      this.processedSensors.powerClip.params.set('min', value);
+      this.processedSensors.powerScale.params.set('inputMin', value);
+    });
+
+    this.sharedParams.addParamListener('bandpassGain', value => {
+      this.processedSensors.bandpassGain.params.set('factor', value);
+    });
+
+    this.receive('init:training-data', this._initTrainingData);
+    // force disconnect sent by master
+    this.receive('force:disconnect', () => window.location.reload());
+
+    this.receive('update:params', (params) => {
+
+    });
+
+
+=======
+>>>>>>> b9cffdaa437a6b8bbb3b38bed88a1a9dba575aa3
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
         this.view.addRenderer(this.renderer);
@@ -274,6 +311,7 @@ class DesignerExperience extends soundworks.Experience {
 
   _feedRecorder(data) {
     this.trainingData.addElement(data);
+    // console.log(this.trainingData.getTrainingSet());
   }
 
   _feedDecoder(data) {
