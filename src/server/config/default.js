@@ -94,7 +94,7 @@ export default {
   },
 
   // password to be used by the `auth` service
-  password: '',
+  password: 'azerty',
 
   // configuration of the `osc` service
   osc: {

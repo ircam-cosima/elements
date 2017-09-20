@@ -1,9 +1,12 @@
 import { View } from 'soundworks/client';
 
 const viewTemplate = `
-  <button class="btn" id="switch-project">
-    Switch project
-  </button>
+  <div id="project-name">
+    <p><%= title %></p>
+    <button class="btn" id="switch-project">
+      Switch project
+    </button>
+  </div>
   <div class="toggle-container" id="mute">
     <div class="toggle-btn"><div></div></div> Mute
   </div>
@@ -50,6 +53,11 @@ class PlayerView extends View {
 
   setUpdateParamCallback(callback) {
     this._updateParamCallback = callback;
+  }
+
+  updateProjectName(name) {
+    this.model.title = name;
+    this.render('#project-name');
   }
 
   updateParams(params) {

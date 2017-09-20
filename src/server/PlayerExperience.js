@@ -13,6 +13,9 @@ class PlayerExperience extends Experience {
   start() {
     super.start();
 
+    this._updateProject = this._updateProject.bind(this);
+    this.projectChooser.setChooseProjectCallback(this._updateProject);
+
     appStore.addListener('set-client-param', (project, client) => {
       const players = appStore.getProjectPlayers(project);
 
@@ -24,20 +27,20 @@ class PlayerExperience extends Experience {
       const clients = appStore.getProjectPlayers(project);
       const model = appStore.getProjectModel(project);
 
-      clients.forEach(client => this.send(client, 'model:update', model));
+      clients.forEach(client => this.send(client, 'model:update', {
+        projectName: client.project.name,
+        model: model,
+        notification: true,
+      }));
     });
   }
 
   enter(client) {
     super.enter(client);
 
-    const model = appStore.getProjectModel(client.project);
-
-    this.send(client, 'model:update', model);
-    this.send(client, 'params:update', client.params);
+    this._updateProject(client);
 
     this.receive(client, 'param:update', this._onParamUpdate(client))
-    // this.receive(client, 'update-project', this._updateProject(client));
   }
 
   exit(client) {
@@ -50,14 +53,17 @@ class PlayerExperience extends Experience {
     }
   }
 
-  // this is broken...
-  // _updateProject(client) {
-  //   return uuid => {
-  //     const project = appStore.getByUuid(uuid);
-  //     // project manager
-  //     projectManager.addPlayer(project, client);
-  //   }
-  // }
+  _updateProject(client) {
+    const model = appStore.getProjectModel(client.project);
+
+    this.send(client, 'model:update', {
+      projectName: client.project.name,
+      model: model,
+      notification: false,
+    });
+
+    this.send(client, 'params:update', client.params);
+  }
 }
 
 export default PlayerExperience;

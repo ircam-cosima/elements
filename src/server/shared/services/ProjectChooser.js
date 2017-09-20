@@ -4,16 +4,17 @@ import uuidv4 from 'uuid/v4';
 
 const SERVICE_ID = 'service:project-chooser';
 
-// @todo - rename to ProjectChooser
-
 class ProjectChooser extends Service {
   constructor() {
     super(SERVICE_ID);
 
     const defaults = {};
+
     this.configure(defaults);
 
     this.require('client-register');
+
+    this._chooseProjectCallback = () => {};
   }
 
   /** @private */
@@ -54,12 +55,21 @@ class ProjectChooser extends Service {
       const project = appStore.getProjectByUuid(uuid);
 
       if (project !== null) {
+        if (client.project)
+          appStore.removePlayerFromProject(client);
+
         appStore.addPlayerToProject(client, project);
+        this._chooseProjectCallback(client);
+
         this.send(client, 'project-ack', project);
       } else {
         this.send(client, 'project-error', project);
       }
     };
+  }
+
+  setChooseProjectCallback(callback) {
+    this._chooseProjectCallback = callback;
   }
 }
 

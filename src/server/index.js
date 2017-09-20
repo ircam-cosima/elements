@@ -51,10 +51,9 @@ const sharedParams = soundworks.server.require('shared-params');
 sharedParams.addNumber('sensitivity', 'Sensitivity', 0, 2, 0.01, 1);
 sharedParams.addNumber('intensityFeedback', 'Intensity feedback', 0, 0.99, 0.01, 0.8);
 sharedParams.addNumber('intensityGain', 'Intensity gain', 0, 1, 0.01, 0.1);
-sharedParams.addNumber('intensityPower', 'Intensity power', 0, 1, 0.01, 0.25);
+sharedParams.addNumber('intensityPower', 'Intensity power', 0.01, 1, 0.01, 0.25);
 sharedParams.addNumber('intensityLowClip', 'Intensity low clip', 0, 0.99, 0.01, 0.15);
 sharedParams.addNumber('bandpassGain', 'Bandpass gain', 0, 2, 0.01, 1);
-
 
 const socketPipe = new EventEmitter();
 
@@ -62,9 +61,14 @@ const controller = new ControllerExperience('controller', socketPipe, config.osc
 const designer = new DesignerExperience('designer', config, socketPipe);
 const player = new PlayerExperience('player', socketPipe);
 
+const parameters = new soundworks.ControllerExperience('parameters');
+parameters.require('auth');
+
 server.start();
 
-/* * * * * * * * * * * * * REST API SIMULATION * * * * * * * * * * * * * * * */
+// -------------------------------------------------------
+// REST API SIMULATION
+// -------------------------------------------------------
 
 server.router.use(bodyParser.json({ limit: '50mb' }));
 server.router.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));

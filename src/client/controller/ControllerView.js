@@ -60,7 +60,7 @@ const projectListTemplate = `
 `;
 
 const mainTemplate = `
-  <h1>Master</h1>
+  <h1>Controller</h1>
 
   <div id="main-controls">
     <label id="select-project-container">
