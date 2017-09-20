@@ -1,7 +1,7 @@
 import * as soundworks from 'soundworks/client';
-import MasterView from './MasterView';
+import ControllerView from './ControllerView';
 
-class MasterExperience extends soundworks.Experience {
+class ControllerExperience extends soundworks.Experience {
   constructor() {
     super();
 
@@ -21,7 +21,7 @@ class MasterExperience extends soundworks.Experience {
   start() {
     super.start();
 
-    this.view = new MasterView();
+    this.view = new ControllerView();
 
     this.view.setDeleteProjectCallback(this._deleteProjectRequest);
     this.view.setDisconnectDesignerCallback(this._disconnectDesignerRequest);
@@ -79,4 +79,4 @@ class MasterExperience extends soundworks.Experience {
   }
 }
 
-export default MasterExperience;
+export default ControllerExperience;

@@ -194,6 +194,11 @@ const appStore = {
     this._emit('set-project-model', project, model);
   },
 
+  getProjectConfig(project) {
+    const config = xmmDbMapper.getConfig(project);
+    return config;
+  },
+
   getProjectTrainingData(project) {
     const trainingSet = xmmDbMapper.getTrainingSet(project);
     const config = xmmDbMapper.getConfig(project);
