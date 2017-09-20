@@ -1,5 +1,11 @@
 import * as soundworks from 'soundworks/server';
 import appStore from './shared/appStore';
+import xmm from 'xmm-node';
+import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'iml-motion/common';
+
+// xmm instances for the controller
+const gx = new xmm('gmm');
+const hx = new xmm('hhmm');
 
 
 class ControllerExperience extends soundworks.Experience {
@@ -34,6 +40,10 @@ class ControllerExperience extends soundworks.Experience {
     appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
     // only listen from project changes here
     appStore.addListener('set-project-param', project => broadcast('project:update', project));
+    appStore.addListener('set-project-model', project => broadcast('project:update', project));
+
+    // listen to that
+    // this._emit('set-project-training-data', project, trainingData);
 
     // this implies to refactor the designer and player
     // to be compliant with the appStore overall design
@@ -66,6 +76,7 @@ class ControllerExperience extends soundworks.Experience {
     this.receive(client, 'designer:disconnect', this._onDesignerDisconnectRequest(client));
     this.receive(client, 'param:project:update', this._onUpdateProjectParam(client));
     this.receive(client, 'param:client:update', this._onUpdateClientParam(client));
+    this.receive(client, 'config:project:update', this._onUpdateProjectConfig(client));
   }
 
   exit(client) {
@@ -76,15 +87,17 @@ class ControllerExperience extends soundworks.Experience {
    * Given a project, returns a serialize version of all it clients
    */
   _serializeProject(project) {
-    const config = appStore.getProjectConfig(project);
-    const regularization = config.payload.relativeRegularization;
+    const { config } = appStore.getProjectTrainingData(project);
+    const relativeRegularization = config.payload.relativeRegularization;
+    const absoluteRegularization = config.payload.absoluteRegularization;
 
     const serialized = {
       name: project.name,
       uuid: project.uuid,
       params: project.params,
       hasDesigner: false,
-      regularization: regularization,
+      relativeRegularization: relativeRegularization,
+      absoluteRegularization: absoluteRegularization,
       clients: [],
     };
 
@@ -144,6 +157,38 @@ class ControllerExperience extends soundworks.Experience {
     return (uuid, paramName, value) => {
       const user = appStore.getClientByUuid(uuid);
       appStore.setClientParam(user, paramName, value);
+    }
+  }
+
+  // absolute and relative regularization
+  _onUpdateProjectConfig(client) {
+    return (uuid, paramName, value) => {
+      value = Math.min(1, Math.max(0.01, value));
+      const project = appStore.getProjectByUuid(uuid);
+      const { config, trainingSet } = appStore.getProjectTrainingData(project);
+      const xmmTrainingSet = rapidMixToXmmTrainingSet(trainingSet);
+
+      config.payload[paramName] = value;
+
+      const algo = config.target.name.split(':')[1];
+      let x = (algo === 'hhmm') ? hx : gx;
+
+      x.setConfig(config.payload);
+      x.setTrainingSet(xmmTrainingSet);
+      x.train((err, model) => {
+        if (err)
+          console.error(err.stack);
+
+        // console.log(trainingSet);
+        // console.log('--------------------------');
+        // console.log(config);
+        // return;
+        const rapidModel = xmmToRapidMixModel(model);
+        const trainingData = { config, trainingSet };
+
+        appStore.setProjectTrainingData(project, trainingData);
+        appStore.setProjectModel(project, rapidModel);
+      });
     }
   }
 }
