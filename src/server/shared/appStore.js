@@ -21,7 +21,8 @@ const appStore = {
     return {
       mute: false,
       intensity: false,
-      // ...
+      visualizeSensors: false,
+      streamSensors: false,
     }
   },
 
@@ -99,6 +100,10 @@ const appStore = {
     // @todo - check if users
     this.projectUsersMap.delete(project);
     this.projects.delete(project);
+
+    xmmDbMapper.deleteTrainingSet(project);
+    xmmDbMapper.deleteConfig(project);
+    xmmDbMapper.deleteModel(project);
 
     projectDbMapper.persist(this.projects);
 

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 const cwd = process.cwd();
-const basePath = path.join(cwd, 'public', 'exports');
+const basePath = path.join(cwd, 'db');
 
 /**
  * @todo - make everything Promise based and async
@@ -71,19 +71,26 @@ const xmmStore = {
     fs.writeFileSync(filename, json, 'utf8');
   },
 
-  // return a structure that keep trace of the project informations
-  // getModelByUsers(users) {
-  //   const results = {};
+  deleteTrainingSet(project) {
+    const uuid = project.uuid;
+    const filename = path.join(basePath, 'configs', `${uuid}-config.json`);
 
-  //   users.forEach(user => {
-  //     results[user.uuid] = {
-  //       username: user.name,
-  //       model: this.getModel(user),
-  //     };
-  //   });
+    fs.unlinkSync(filename);
+  },
 
-  //   return results;
-  // },
+  deleteConfig(project) {
+    const uuid = project.uuid;
+    const filename = path.join(basePath, 'models', `${uuid}-model.json`);
+
+    fs.unlinkSync(filename);
+  },
+
+  deleteModel(project) {
+    const uuid = project.uuid;
+    const filename = path.join(basePath, 'models', `${uuid}-model.json`);
+
+    fs.unlinkSync(filename);
+  },
 };
 
 export default xmmStore;
