@@ -1,5 +1,6 @@
 import { Experience } from 'soundworks/server';
 import appStore from './shared/appStore';
+import logger from './shared/errorLogger';
 
 const cwd = process.cwd();
 
@@ -48,6 +49,7 @@ class DesignerExperience extends Experience {
 
     this.receive(client, 'param:update', this._onParamUpdate(client));
     this.receive(client, 'model:update', this._onModelUpdate(client));
+    this.receive(client, 'error:input-data', this._onBadInputData(client));
 
     this.rawSocket.receive(client, 'sensors', data => {
       this.socketPipe.emit('sensors', data);
@@ -74,6 +76,12 @@ class DesignerExperience extends Experience {
   _onParamUpdate(client) {
     return (paramName, value) => {
       appStore.setClientParam(client, paramName, value);
+    }
+  }
+
+  _onBadInputData(client) {
+    return data => {
+      logger.append('Input data bad format', data, client);
     }
   }
 }

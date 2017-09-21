@@ -145,6 +145,14 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   _feedDecoder(data) {
+    // check if some problem occured in preprocessing
+    for (let i = 0; i < data.length; i++) {
+      if (!Number.isFinite(data[i])) {
+        this.send('error:input-data', data);
+        return;
+      }
+    }
+
     const res = this.xmmDecoder.run(data);
     const label = res ? res.likeliest : 'unknown';
 
