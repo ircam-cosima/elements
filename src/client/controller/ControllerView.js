@@ -44,6 +44,12 @@ const projectTemplate = `
       </div>
 
       <% if (client.type === 'designer') { %>
+        <% if (!client.params.recording) { %>
+        <button class="btn toggle-record record" data-target="<%= client.uuid %>">Rec</button>
+        <% } else { %>
+        <button class="btn toggle-record stop soft-blink" data-target="<%= client.uuid %>">Stop</button>
+        <% } %>
+
       <button class="btn warning disconnect-designer" data-target="<%= client.uuid %>">Disconnect</button>
       <% } %>
     </li>

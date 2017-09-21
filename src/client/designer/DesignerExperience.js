@@ -271,8 +271,6 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _startRecording() {
-    // set to play currently selected sound by interrupting recognition
-    // and forcing current label
     this.decoderOnOff.setState('off');
 
     this.likeliest = this.view.getCurrentLabel();
@@ -284,6 +282,7 @@ class DesignerExperience extends soundworks.Experience {
     this.view.startRecording();
 
     playSound(this.audioBufferManager.data.clicks['startRec']);
+    this.send('param:update', 'recording', true);
   }
 
   _stopRecording() {
@@ -296,6 +295,7 @@ class DesignerExperience extends soundworks.Experience {
     this.autoTrigger.setState('off');
 
     playSound(this.audioBufferManager.data.clicks['stopRec']);
+    this.send('param:update', 'recording', false);
 
     this.view.confirm('send').then(() => {
       this._trainModel();
@@ -329,7 +329,6 @@ class DesignerExperience extends soundworks.Experience {
     }
 
     const results = this.xmmDecoder.run(data);
-
     const likelihoods = results ? results.likelihoods : [];
     const likeliest = results ? results.likeliestIndex : -1;
     let label = 'unknown';

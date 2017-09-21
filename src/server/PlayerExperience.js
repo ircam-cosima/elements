@@ -3,10 +3,10 @@ import appStore from './shared/appStore';
 import logger from './shared/errorLogger';
 
 class PlayerExperience extends Experience {
-  constructor(clientType, socketPipe) {
+  constructor(clientType, comm) {
     super(clientType);
 
-    this.socketPipe = socketPipe;
+    this.comm = comm;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.projectChooser = this.require('project-chooser');
@@ -53,7 +53,7 @@ class PlayerExperience extends Experience {
     this.receive(client, 'error:input-data', this._onBadInputData(client));
 
     this.rawSocket.receive(client, 'sensors', data => {
-      this.socketPipe.emit('sensors', data);
+      this.comm.emit('sensors', data);
     });
   }
 

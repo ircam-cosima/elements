@@ -6,11 +6,11 @@ const cwd = process.cwd();
 
 // server-side 'designer' experience.
 class DesignerExperience extends Experience {
-  constructor(clientType, config, socketPipe) {
+  constructor(clientType, config, comm) {
     super(clientType);
 
     this.config = config;
-    this.socketPipe = socketPipe;
+    this.comm = comm;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.projectAdmin = this.require('project-admin');
@@ -52,7 +52,7 @@ class DesignerExperience extends Experience {
     this.receive(client, 'error:input-data', this._onBadInputData(client));
 
     this.rawSocket.receive(client, 'sensors', data => {
-      this.socketPipe.emit('sensors', data);
+      this.comm.emit('sensors', data);
     });
   }
 

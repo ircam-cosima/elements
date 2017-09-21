@@ -55,11 +55,11 @@ sharedParams.addNumber('intensityPower', 'Intensity power', 0.01, 1, 0.01, 0.25)
 sharedParams.addNumber('intensityLowClip', 'Intensity low clip', 0, 0.99, 0.01, 0.15);
 sharedParams.addNumber('bandpassGain', 'Bandpass gain', 0, 2, 0.01, 1);
 
-const socketPipe = new EventEmitter();
+const comm = new EventEmitter();
 
-const controller = new ControllerExperience('controller', socketPipe, config.osc);
-const designer = new DesignerExperience('designer', config, socketPipe);
-const player = new PlayerExperience('player', socketPipe);
+const controller = new ControllerExperience('controller', comm, config.osc);
+const designer = new DesignerExperience('designer', config, comm);
+const player = new PlayerExperience('player', comm);
 
 const parameters = new soundworks.ControllerExperience('parameters');
 parameters.require('auth');

@@ -10,10 +10,10 @@ const hx = new xmm('hhmm');
 
 
 class ControllerExperience extends soundworks.Experience {
-  constructor(clientType, socketPipe, oscConfig) {
+  constructor(clientType, comm, oscConfig) {
     super(clientType);
 
-    this.socketPipe = socketPipe;
+    this.comm = comm;
     this.oscConfig = oscConfig;
 
     this.rawSocket = this.require('raw-socket', {
@@ -54,7 +54,7 @@ class ControllerExperience extends soundworks.Experience {
     appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
     appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
 
-    this.socketPipe.addListener('sensors', data => {
+    this.comm.addListener('sensors', data => {
       const features = new Float32Array(8) // nb of features to extract
 
       for (let i = 0; i < 8; i++)

@@ -6,7 +6,6 @@ const LOCAL_STORAGE_KEY = `soundworks:${SERVICE_ID}`;
 /**
  * Simple service that can show up anytime upon request to switch project.
  */
-
 class ProjectChooser extends Service {
   constructor(options) {
     super(SERVICE_ID, true);

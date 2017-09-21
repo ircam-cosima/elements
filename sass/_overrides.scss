@@ -605,6 +605,29 @@ $elmHeight: 36px;
         top: 4px;
         right: 4px;
       }
+
+      .btn.toggle-record {
+        display: inline-block;
+        color: #fff;
+        background-color: lighten(#d9534f, 10%);
+        border-color: #d43f3a;
+        border-radius: 20px;
+        width: 70px;
+        padding: 0 12px;
+
+        &:hover {
+          background-color: darken(#d9534f, 5%);
+        }
+
+        &.stop {
+          background-color: darken(#d9534f, 5%);
+        }
+      }
+
+      .record-feedback {
+        display: inline-block;
+        background-color: #d9534f;
+      }
     }
   }
 }
