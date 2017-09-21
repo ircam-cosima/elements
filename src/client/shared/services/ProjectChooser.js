@@ -55,6 +55,7 @@ class ProjectChooser extends Service {
 
   /** @private */
   _onReceiveProjectList(projects) {
+    console.log(projects);
     this.view.setProjectList(projects);
     this.view.render();
   }
