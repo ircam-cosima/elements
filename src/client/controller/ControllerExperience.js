@@ -22,6 +22,7 @@ class ControllerExperience extends soundworks.Experience {
     this._updateProjectConfigRequest = this._updateProjectConfigRequest.bind(this);
     this._updateClientParamRequest = this._updateClientParamRequest.bind(this);
     this._updateClientExclusiveParamRequest = this._updateClientExclusiveParamRequest.bind(this);
+    this._triggerClientCommand = this._triggerClientCommand.bind(this);
   }
 
   start() {
@@ -36,7 +37,8 @@ class ControllerExperience extends soundworks.Experience {
     this.view.setUpdateProjectParamCallback(this._updateProjectParamRequest);
     this.view.setUpdateProjectConfigCallback(this._updateProjectConfigRequest);
     this.view.setUpdateClientParamCallback(this._updateClientParamRequest);
-    this.view.setUpdateClientExclusiveParamCallback(this._updateClientExclusiveParamRequest)
+    this.view.setUpdateClientExclusiveParamCallback(this._updateClientExclusiveParamRequest);
+    this.view.setTriggerClientCommandCallback(this._triggerClientCommand);
 
     this.receive('project:list', this._setProjectList);
     this.receive('project:overview', this._updateProjectOverview);
@@ -159,6 +161,10 @@ class ControllerExperience extends soundworks.Experience {
 
   _updateClientExclusiveParamRequest(uuid, paramName, value) {
     this.send('exclusive:param:client:update', uuid, paramName, value);
+  }
+
+  _triggerClientCommand(uuid, cmd, ...args) {
+    this.send('command:trigger', uuid, cmd, ...args);
   }
 
   // build project overview menu

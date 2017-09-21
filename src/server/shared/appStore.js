@@ -118,14 +118,12 @@ const appStore = {
   setProjectParam(project, name, value) {
     project.params[name] = value;
 
-    if (name === 'mute' || name === 'intensity') {
-      const users = this.projectUsersMap.get(project);
+    const users = this.projectUsersMap.get(project);
 
-      if (users.designer)
-        this.setClientParam(users.designer, name, value);
+    if (users.designer)
+      this.setClientParam(users.designer, name, value);
 
-      users.players.forEach(player => this.setClientParam(player, name, value, false));
-    }
+    users.players.forEach(player => this.setClientParam(player, name, value, false));
 
     this._emit('set-project-param', project);
   },

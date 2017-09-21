@@ -36,6 +36,13 @@ class DesignerExperience extends Experience {
       if (client !== null)
         this.send(client, 'model:update', model, config);
     });
+
+    this.comm.addListener('command:trigger', (uuid, cmd, ...args) => {
+      const client = appStore.getClientByUuid(uuid);
+
+      if (client.type === 'designer')
+        this.send(client, 'command:trigger', cmd, ...args);
+    });
   }
 
   enter(client) {

@@ -2,6 +2,16 @@
 
 $green: #40de56;
 
+@include keyframes(fast-blink) {
+  0% { opacity: 1.0; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1.0; }
+}
+
+.fast-blink {
+  @include animation('fast-blink 2s ease-in-out infinite');
+}
+
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
@@ -614,6 +624,8 @@ $elmHeight: 36px;
         border-radius: 20px;
         width: 70px;
         padding: 0 12px;
+        position: relative;
+        top: 4px;
 
         &:hover {
           background-color: darken(#d9534f, 5%);

@@ -47,7 +47,7 @@ const projectTemplate = `
         <% if (!client.params.recording) { %>
         <button class="btn toggle-record record" data-target="<%= client.uuid %>">Rec</button>
         <% } else { %>
-        <button class="btn toggle-record stop soft-blink" data-target="<%= client.uuid %>">Stop</button>
+        <button class="btn toggle-record stop fast-blink" data-target="<%= client.uuid %>">Stop</button>
         <% } %>
 
       <button class="btn warning disconnect-designer" data-target="<%= client.uuid %>">Disconnect</button>
@@ -154,6 +154,19 @@ class ControllerView extends soundworks.View {
         const uuid = $btn.dataset.target;
         this._updateClientExclusiveParamCallback(uuid, 'streamSensors', !active);
       },
+      // triggers
+      'click .project .client .toggle-record': (e) => {
+        const $btn = e.target;
+        const uuid = $btn.dataset.target;
+        let cmd = null;
+
+        if ($btn.classList.contains('record'))
+          cmd = 'startRecording';
+        else if ($btn.classList.contains('stop'))
+          cmd = 'stopRecording';
+
+        this._triggerClientCommandCallback(uuid, cmd);
+      }
     });
 
     this.projectUuidContainerMap = new Map();
@@ -253,6 +266,10 @@ class ControllerView extends soundworks.View {
 
   setUpdateClientExclusiveParamCallback(callback) {
     this._updateClientExclusiveParamCallback = callback;
+  }
+
+  setTriggerClientCommandCallback(callback) {
+    this._triggerClientCommandCallback = callback;
   }
 }
 

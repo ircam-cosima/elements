@@ -89,6 +89,7 @@ class ControllerExperience extends soundworks.Experience {
     this.receive(client, 'config:project:update', this._onUpdateProjectConfig(client));
     this.receive(client, 'param:client:update', this._onUpdateClientParam(client));
     this.receive(client, 'exclusive:param:client:update', this._onUpdateClientExclusiveParam(client));
+    this.receive(client, 'command:trigger', this._onTriggerClientCommmand(client));
   }
 
   exit(client) {
@@ -216,6 +217,12 @@ class ControllerExperience extends soundworks.Experience {
         appStore.setProjectTrainingData(project, trainingData);
         appStore.setProjectModel(project, rapidModel);
       });
+    }
+  }
+
+  _onTriggerClientCommmand(client) {
+    return (uuid, cmd, ...args) => {
+      this.comm.emit('command:trigger', uuid, cmd, ...args);
     }
   }
 }

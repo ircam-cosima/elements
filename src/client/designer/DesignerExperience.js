@@ -67,6 +67,7 @@ class DesignerExperience extends soundworks.Experience {
     this._updateParamRequest = this._updateParamRequest.bind(this);
     this._updateParams = this._updateParams.bind(this);
     this._updateModel = this._updateModel.bind(this);
+    this._triggerCommand = this._triggerCommand.bind(this);
   }
 
   start() {
@@ -75,7 +76,9 @@ class DesignerExperience extends soundworks.Experience {
     this.receive('init', this._init);
     this.receive('params:update', this._updateParams);
     this.receive('model:update', this._updateModel);
+    this.receive('command:trigger', this._triggerCommand)
     this.receive('force:disconnect', () => window.location.reload());
+
 
     this.view = new DesignerView({
         sounds: labels,
@@ -248,6 +251,17 @@ class DesignerExperience extends soundworks.Experience {
     }
 
     this.view.updateParams(params);
+  }
+
+  _triggerCommand(cmd, ...args) {
+    switch (cmd) {
+      case 'startRecording':
+        this._startRecording();
+        break;
+      case 'stopRecording':
+        this._stopRecording();
+        break;
+    }
   }
 
   _onConfigUpdate(xmmConfig, recordConfig) {
