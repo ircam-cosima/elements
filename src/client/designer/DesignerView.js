@@ -224,7 +224,7 @@ class DesignerView extends CanvasView {
 
     for (let prop in presets) {
       const cmd = `touchstart #${prop}`;
-      viewEvents[cmd] = () => this.setConfig(presets[prop].preset);
+      viewEvents[cmd] = () => this.updateMLConfig(presets[prop].preset);
     }
 
     this.installEvents(viewEvents);
