@@ -4,6 +4,9 @@ import path from 'path';
 const cwd = process.cwd();
 const basePath = path.join(cwd, 'db');
 
+if (!fs.existsSync(basePath))
+  fs.mkdirSync(basePath);
+
 const trainingSetDirname = path.join(basePath, 'sets');
 const configDirname = path.join(basePath, 'configs');
 const modelDirname = path.join(basePath, 'models');

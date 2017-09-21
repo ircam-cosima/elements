@@ -3,10 +3,12 @@ import path from 'path';
 
 const cwd = process.cwd();
 const basePath = path.join(cwd, 'db');
+
+if (!fs.existsSync(basePath))
+  fs.mkdirSync(basePath);
+
 const filename = path.join(basePath, 'projects.json');
 
-// simple abstraction that could be a starting point
-// for a database or something more elaborated
 const projectStore = {
   getList() {
     const projectList = new Set();
