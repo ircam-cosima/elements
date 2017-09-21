@@ -1,4 +1,5 @@
 import { View } from 'soundworks/client';
+import Notification from '../shared/Notification';
 
 const viewTemplate = `
   <div id="project-name">
@@ -45,6 +46,13 @@ class PlayerView extends View {
 
     this.$muteBtn = this.$el.querySelector('#mute');
     this.$intensityBtn = this.$el.querySelector('#intensity');
+  }
+
+  showNotification(msg) {
+    const notification = new Notification(msg);
+    notification.render();
+    notification.show();
+    notification.appendTo(this.$el);
   }
 
   setSwitchProjectCallback(callback) {

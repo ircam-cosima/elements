@@ -224,6 +224,8 @@ class DesignerExperience extends soundworks.Experience {
 
     this.view.setConfig(viewConfig);
     this.view.setCurrentLabels(currentLabels);
+
+    this.view.showNotification('Model updated');
   }
 
   _updateParamRequest(paramName, value) {
@@ -347,7 +349,6 @@ class DesignerExperience extends soundworks.Experience {
 
       const index = this.labels.indexOf(label);
       this.audioEngine.fadeToNewSound(index);
-      console.log(`gesture changed to: ${label}`);
     }
   }
 

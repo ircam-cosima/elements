@@ -345,6 +345,24 @@ $elmHeight: 36px;
   .btn {
     margin-bottom: 12px;
   }
+
+  .notification {
+    position: absolute;
+    height: 0 !important;
+
+    .background {
+      display: none;
+    }
+
+    .wrapper {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      width: 200px;
+      margin: 0;
+      left: auto;
+    }
+  }
 }
 
 #player {
