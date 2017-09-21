@@ -15,6 +15,7 @@ class PlayerExperience extends soundworks.Experience {
     this.streamSensors = false;
     this.labels = Object.keys(labels);
     this.likeliest = undefined;
+    this.likelihoods = [];
     this.enableIntensity = false;
     this.sensitivity = 1;
 
@@ -177,7 +178,7 @@ class PlayerExperience extends soundworks.Experience {
     for (let i = 0; i < this.likelihoods.length; i++)
       aggregated[i + data.length] = this.likelihoods[i];
 
-    this.rawSocket.send('sensors', data);
+    this.rawSocket.send('sensors', aggregated);
   }
 };
 
