@@ -55,7 +55,12 @@ class ControllerExperience extends soundworks.Experience {
     appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
 
     this.socketPipe.addListener('sensors', data => {
-      this.rawSocket.broadcast('controller', null, 'sensors', data);
+      const features = new Float32Array(8) // nb of features to extract
+
+      for (let i = 0; i < 8; i++)
+        features[i] = data[i];
+
+      this.rawSocket.broadcast('controller', null, 'sensors', features);
       this.osc.send('/sensors', Array.from(data));
     });
 

@@ -156,6 +156,8 @@ class PlayerExperience extends soundworks.Experience {
     const res = this.xmmDecoder.run(data);
     const label = res ? res.likeliest : 'unknown';
 
+    this.likelihoods = res ? res.likelihoods : [];
+
     if (this.likeliest !== label) {
       const index = this.labels.indexOf(label);
       this.likeliest = label;
@@ -167,6 +169,14 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   _streamSensors(data) {
+    const aggregated = new Float32Array(data.length + this.likelihoods.length);
+
+    for (let i = 0; i < data.length; i++)
+      aggregated[i] = data[i];
+
+    for (let i = 0; i < this.likelihoods.length; i++)
+      aggregated[i + data.length] = this.likelihoods[i];
+
     this.rawSocket.send('sensors', data);
   }
 };

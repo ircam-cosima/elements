@@ -32,6 +32,7 @@ class DesignerExperience extends soundworks.Experience {
     this.config = config;
     this.labels = Object.keys(labels);
     this.likeliest = undefined;
+    this.likelihoods = [];
     this.sensitivity = 1;
 
     this.streamSensors = false;
@@ -344,6 +345,8 @@ class DesignerExperience extends soundworks.Experience {
 
     this.renderer.setModelResults(formattedResults);
 
+    this.likelihoods = likelihoods;
+
     if (this.likeliest !== label) {
       this.likeliest = label;
 
@@ -362,7 +365,15 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _streamSensors(data) {
-    this.rawSocket.send('sensors', data);
+    const aggregated = new Float32Array(data.length + this.likelihoods.length);
+
+    for (let i = 0; i < data.length; i++)
+      aggregated[i] = data[i];
+
+    for (let i = 0; i < this.likelihoods.length; i++)
+      aggregated[i + data.length] = this.likelihoods[i];
+
+    this.rawSocket.send('sensors', aggregated);
   }
 
   _onClearLabel(label) {
