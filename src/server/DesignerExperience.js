@@ -29,6 +29,14 @@ class DesignerExperience extends Experience {
         this.send(client, 'params:update', client.params);
     });
 
+    appStore.addListener('set-project-config', project => {
+      const designer = appStore.getProjectDesigner(project);
+
+      if (designer !== null)
+        this.send(designer, 'config:update', project.config);
+    });
+
+    // xmm model
     appStore.addListener('set-project-model', (project, model) => {
       const client = appStore.getProjectDesigner(project);
       const { config } = appStore.getProjectTrainingData(project);
@@ -53,8 +61,10 @@ class DesignerExperience extends Experience {
 
     this.send(client, 'init', trainingData);
     this.send(client, 'params:update', client.params);
+    this.send(client, 'config:update', project.config);
 
     this.receive(client, 'param:update', this._onParamUpdate(client));
+    this.receive(client, 'config:update', this._onConfigUpdate(client));
     this.receive(client, 'model:update', this._onModelUpdate(client));
     this.receive(client, 'error:input-data', this._onBadInputData(client));
 
@@ -81,8 +91,15 @@ class DesignerExperience extends Experience {
   }
 
   _onParamUpdate(client) {
-    return (paramName, value) => {
-      appStore.setClientParam(client, paramName, value);
+    return (name, value) => {
+      appStore.setClientParam(client, name, value);
+    }
+  }
+
+  _onConfigUpdate(client) {
+    return (name, value) => {
+      const project = client.project;
+      appStore.setProjectConfig(project, name, value);
     }
   }
 

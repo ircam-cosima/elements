@@ -1,6 +1,10 @@
 import * as soundworks from 'soundworks/client';
 import template from 'lodash.template';
 
+// highThreshold
+// lowThreshold
+// offDelay
+
 const projectTemplate = `
   <div class="project-header">
     <h4><%= name %></h4>
@@ -22,6 +26,24 @@ const projectTemplate = `
         Relative Regularization
       </div>
     </div>
+
+    <div>
+      <div class="number-box high-threshold">
+        <input type="number" value="<%= config.highThreshold %>" data-target="<%= uuid %>" />
+        High Threshold
+      </div>
+
+      <div class="number-box low-threshold">
+        <input type="number" value="<%= config.lowThreshold %>" data-target="<%= uuid %>" />
+        Low Threshold
+      </div>
+
+      <div class="number-box off-delay">
+        <input type="number" value="<%= config.offDelay %>" data-target="<%= uuid %>" />
+        Off Delay
+      </div>
+    </div>
+
     <% if (!hasDesigner) { %>
     <button class="btn danger delete-project" data-target="<%= uuid %>">Delete</button>
     <% } %>
@@ -122,6 +144,26 @@ class ControllerView extends soundworks.View {
         this._updateProjectParamCallback(uuid, 'intensity', !active);
       },
       // project config
+      'change .project .project-header .high-threshold': (e) => {
+        const $input = e.target;
+        const value = parseFloat($input.value);
+        const uuid = $input.dataset.target;
+        this._updateProjectConfigCallback(uuid, 'highThreshold', value);
+      },
+      'change .project .project-header .low-threshold': (e) => {
+        const $input = e.target;
+        const value = parseFloat($input.value);
+        const uuid = $input.dataset.target;
+        this._updateProjectConfigCallback(uuid, 'lowThreshold', value);
+      },
+      'change .project .project-header .off-delay': (e) => {
+        const $input = e.target;
+        const value = parseFloat($input.value);
+        const uuid = $input.dataset.target;
+        this._updateProjectConfigCallback(uuid, 'offDelay', value);
+      },
+      // xmm project config - these config trigger a new model training
+      // cf. server/ControllerExperience::_onUpdateProjectConfig
       'change .project .project-header .absolute-regularization': (e) => {
         const $input = e.target;
         const value = parseFloat($input.value);

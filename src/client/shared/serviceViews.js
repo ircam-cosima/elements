@@ -105,7 +105,7 @@ const serviceViews = {
               Sorry project "<%= name %>" is already in use
             </p>
             <% } %>
-            <input type="text" id="name" placeholder="project name" />
+            <input type="text" id="name" placeholder="project name" value="niap" />
             <button class="btn" id="login">Send</button>
           </div>
         </div>

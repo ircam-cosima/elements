@@ -52,7 +52,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.rawSocket = this.require('raw-socket');
 
-    this._onConfigUpdate = this._onConfigUpdate.bind(this);
+    this._updateMLConfig = this._updateMLConfig.bind(this);
     this._onRecord = this._onRecord.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
     this._onClearModel = this._onClearModel.bind(this);
@@ -66,6 +66,9 @@ class DesignerExperience extends soundworks.Experience {
     this._init = this._init.bind(this);
     this._updateParamRequest = this._updateParamRequest.bind(this);
     this._updateParams = this._updateParams.bind(this);
+    this._updateProjectConfigRequest = this._updateProjectConfigRequest.bind(this);
+    this._updateProjectConfig = this._updateProjectConfig.bind(this);
+    this._updateModelRequest = this._updateModelRequest.bind(this);
     this._updateModel = this._updateModel.bind(this);
     this._triggerCommand = this._triggerCommand.bind(this);
   }
@@ -75,6 +78,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.receive('init', this._init);
     this.receive('params:update', this._updateParams);
+    this.receive('config:update', this._updateProjectConfig);
     this.receive('model:update', this._updateModel);
     this.receive('command:trigger', this._triggerCommand)
     this.receive('force:disconnect', () => window.location.reload());
@@ -93,11 +97,13 @@ class DesignerExperience extends soundworks.Experience {
       }
     );
 
-    this.view.setConfigCallback(this._onConfigUpdate);
+    this.view.setUpdateMLConfigCallback(this._updateMLConfig);
     this.view.setRecordCallback(this._onRecord);
     this.view.setClearLabelCallback(this._onClearLabel);
     this.view.setClearModelCallback(this._onClearModel);
+
     this.view.setUpdateParamCallback(this._updateParamRequest);
+    this.view.setUpdateProjectConfigCallback(this._updateProjectConfigRequest);
 
     // rendering
     this.renderer = new LikelihoodsRenderer(this.view);
@@ -213,27 +219,8 @@ class DesignerExperience extends soundworks.Experience {
       .catch(err => console.error(err.stack));
   }
 
-  _updateModelRequest(data) {
-    this.send('model:update', data);
-  }
-
-  _updateModel(model, config) {
-    this.xmmDecoder.setConfig(config);
-    this.xmmDecoder.setModel(model);
-
-    const viewConfig = Object.assign({}, config.payload, {
-      modelType: config.target.name.split(':')[1],
-    });
-    const currentLabels = model.payload.models.map(model => model.label);
-
-    this.view.setConfig(viewConfig);
-    this.view.setCurrentLabels(currentLabels);
-
-    this.view.showNotification('Model updated');
-  }
-
-  _updateParamRequest(paramName, value) {
-    this.send('param:update', paramName, value);
+  _updateParamRequest(name, value) {
+    this.send('param:update', name, value);
   }
 
   _updateParams(params) {
@@ -253,6 +240,48 @@ class DesignerExperience extends soundworks.Experience {
     this.view.updateParams(params);
   }
 
+  // here we receive an object instead of a name => value pair
+  // so explode it... this will trigger 3 refresh. This is bad but prepare
+  // the field for more dynamic and consistent behavior in some future
+  _updateProjectConfigRequest(config) {
+    for (let name in config)
+      this.send('config:update', name, config[name]);
+  }
+
+  _updateProjectConfig(config) {
+    this.autoTrigger.highThreshold = config.highThreshold;
+    this.autoTrigger.lowThreshold = config.lowThreshold;
+    this.autoTrigger.offDelay = config.offDelay;
+
+    this.view.updateProjectConfig(config);
+  }
+
+  _updateModelRequest(data) {
+    this.send('model:update', data);
+  }
+
+  _updateModel(model, config) {
+    this.xmmDecoder.setConfig(config);
+    this.xmmDecoder.setModel(model);
+
+    const viewConfig = Object.assign({}, config.payload, {
+      modelType: config.target.name.split(':')[1],
+    });
+    const currentLabels = model.payload.models.map(model => model.label);
+
+    this.view.updateMLConfig(viewConfig);
+    this.view.setCurrentLabels(currentLabels);
+
+    this.view.showNotification('Model updated');
+  }
+
+  // at some point, this could probably go in the same information pipeline
+  // as everything else
+  _updateMLConfig(xmmConfig) {
+    this.xmmDecoder.setConfig(xmmConfig);
+    this._trainModel();
+  }
+
   _triggerCommand(cmd, ...args) {
     switch (cmd) {
       case 'startRecording':
@@ -262,15 +291,6 @@ class DesignerExperience extends soundworks.Experience {
         this._stopRecording();
         break;
     }
-  }
-
-  _onConfigUpdate(xmmConfig, recordConfig) {
-    this.xmmDecoder.setConfig(xmmConfig);
-    this._trainModel();
-
-    this.autoTrigger.highThreshold = recordConfig.highThreshold;
-    this.autoTrigger.lowThreshold = recordConfig.lowThreshold;
-    this.autoTrigger.offDelay = recordConfig.offDelay;
   }
 
   _onRecord(cmd) {

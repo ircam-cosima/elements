@@ -14,26 +14,41 @@ const appStore = {
 
     // initialize projects with default values
     this.projects.forEach(project => {
+      // maybe `params` could be renamed to `clientParams`
       project.params = this._getProjectDefaultParams();
+      project.config = this._getProjectDefaultConfig();
       this.projectUsersMap.set(project, this._getEmptyUserMap());
     });
   },
 
+  // maybe this could be split properly between players and designers
   _getClientDefaultParams() {
     return {
       mute: false,
       intensity: false,
-      streamSensors: false,
+      // designer specific parameters
       recording: false,
-    }
+      streamSensors: false, // only one client can have this to `true`
+    };
   },
 
+  // project params are parameters that mimic client parameters
+  // and override them if needed, this object should never contain a key
+  // that is not part of `ClientDefaultParams`
   _getProjectDefaultParams() {
     return {
       mute: false,
       intensity: false,
-      // ...
-    }
+    };
+  },
+
+  // project config are parameters that are relative to the project itself
+  _getProjectDefaultConfig() {
+    return {
+      highThreshold: 0.05,
+      lowThreshold: 0.01,
+      offDelay: 200,
+    };
   },
 
   _getEmptyUserMap() {
@@ -114,14 +129,32 @@ const appStore = {
     this._emit('delete-project', project);
   },
 
-  // params handling
+  setProjectConfig(project, name, value) {
+    // sanitize values
+    switch (name) {
+      case 'highThreshold':
+      case 'lowThreshold':
+        value = Math.min(1, Math.max(0, value));
+        break;
+      case 'offDelay':
+        value = Math.max(20, value);
+        break;
+    }
+
+    project.config[name] = value;
+
+    this._emit('set-project-config', project);
+  },
+
+  // params handling project params are project level
+  // overrides of the client params
   setProjectParam(project, name, value) {
     project.params[name] = value;
 
     const users = this.projectUsersMap.get(project);
 
     if (users.designer)
-      this.setClientParam(users.designer, name, value);
+      this.setClientParam(users.designer, name, value, false);
 
     users.players.forEach(player => this.setClientParam(player, name, value, false));
 

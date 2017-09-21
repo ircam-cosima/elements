@@ -46,6 +46,7 @@ class ControllerExperience extends soundworks.Experience {
     };
 
     appStore.addListener('set-project-param', project => broadcast('project:update', project));
+    appStore.addListener('set-project-config', project => broadcast('project:update', project));
     appStore.addListener('set-project-model', project => broadcast('project:update', project));
 
     appStore.addListener('add-designer-to-project', project => broadcast('project:update', project));
@@ -108,10 +109,12 @@ class ControllerExperience extends soundworks.Experience {
       name: project.name,
       uuid: project.uuid,
       params: project.params,
+      config: project.config,
       hasDesigner: false,
+      clients: [],
+      // this could probably be cleaner...
       relativeRegularization: relativeRegularization,
       absoluteRegularization: absoluteRegularization,
-      clients: [],
     };
 
     // handle designer
@@ -194,29 +197,36 @@ class ControllerExperience extends soundworks.Experience {
 
   // absolute and relative regularization
   _onUpdateProjectConfig(client) {
-    return (uuid, paramName, value) => {
-      value = Math.min(1, Math.max(0.01, value));
+    return (uuid, name, value) => {
       const project = appStore.getProjectByUuid(uuid);
-      const { config, trainingSet } = appStore.getProjectTrainingData(project);
-      const xmmTrainingSet = rapidMixToXmmTrainingSet(trainingSet);
 
-      config.payload[paramName] = value;
+      if (name in project.config) {
+        // this is part of the project configuration
+        appStore.setProjectConfig(project, name, value);
+      } else {
+        // this is an xmm parameter, for now we only deal with regularization
+        value = Math.min(1, Math.max(0.01, value));
+        const { config, trainingSet } = appStore.getProjectTrainingData(project);
+        const xmmTrainingSet = rapidMixToXmmTrainingSet(trainingSet);
 
-      const algo = config.target.name.split(':')[1];
-      let x = (algo === 'hhmm') ? hx : gx;
+        config.payload[name] = value;
 
-      x.setConfig(config.payload);
-      x.setTrainingSet(xmmTrainingSet);
-      x.train((err, model) => {
-        if (err)
-          console.error(err.stack);
+        const algo = config.target.name.split(':')[1];
+        let x = (algo === 'hhmm') ? hx : gx;
 
-        const rapidModel = xmmToRapidMixModel(model);
-        const trainingData = { config, trainingSet };
+        x.setConfig(config.payload);
+        x.setTrainingSet(xmmTrainingSet);
+        x.train((err, model) => {
+          if (err)
+            console.error(err.stack);
 
-        appStore.setProjectTrainingData(project, trainingData);
-        appStore.setProjectModel(project, rapidModel);
-      });
+          const rapidModel = xmmToRapidMixModel(model);
+          const trainingData = { config, trainingSet };
+
+          appStore.setProjectTrainingData(project, trainingData);
+          appStore.setProjectModel(project, rapidModel);
+        });
+      }
     }
   }
 

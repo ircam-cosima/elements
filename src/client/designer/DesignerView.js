@@ -162,7 +162,7 @@ class DesignerView extends CanvasView {
         } else {
           const $el = this.$el;
 
-          const xmmConfig = {
+          const mlConfig = {
             modelType: $el.querySelector('#model-select').value,
             gaussians: parseFloat($el.querySelector('#gauss-select').value),
             covarianceMode: $el.querySelector('#cov-mode-select').value,
@@ -172,13 +172,16 @@ class DesignerView extends CanvasView {
             transitionMode: $el.querySelector('#trans-mode-select').value,
           };
 
-          const recordConfig = {
-            highThreshold: Math.min(1, Math.max($el.querySelector('#high-threshold').value, 0)),
-            lowThreshold: Math.min(1, Math.max($el.querySelector('#low-threshold').value, 0)),
-            offDelay: Math.max(20, $el.querySelector('#off-delay').value),
+          this._updateMLConfigCallback(mlConfig);
+
+          const projectConfig = {
+            highThreshold: parseFloat($el.querySelector('#high-threshold').value),
+            lowThreshold: parseFloat($el.querySelector('#low-threshold').value),
+            offDelay: parseFloat($el.querySelector('#off-delay').value),
           };
 
-          this._configCallback(xmmConfig, recordConfig);
+          this._updateProjectConfigCallback(projectConfig);
+
           this.$overlay.classList.remove('active');
         }
       },
@@ -221,9 +224,7 @@ class DesignerView extends CanvasView {
 
     for (let prop in presets) {
       const cmd = `touchstart #${prop}`;
-      viewEvents[cmd] = () => {
-        this.setConfig(presets[prop].preset);
-      };
+      viewEvents[cmd] = () => this.setConfig(presets[prop].preset);
     }
 
     this.installEvents(viewEvents);
@@ -294,7 +295,15 @@ class DesignerView extends CanvasView {
       this.$intensityBtn.classList.remove('active');
   }
 
-  setConfig(config) {
+  updateProjectConfig(config) {
+    const $el = this.$el;
+
+    $el.querySelector('#high-threshold').value = config.highThreshold;
+    $el.querySelector('#low-threshold').value = config.lowThreshold;
+    $el.querySelector('#off-delay').value = config.offDelay;
+  }
+
+  updateMLConfig(config) {
     const $el = this.$el;
 
     $el.querySelector('#model-select').value = config.modelType;
@@ -305,6 +314,7 @@ class DesignerView extends CanvasView {
     $el.querySelector('#states-select').value = config.states || 1;
     $el.querySelector('#trans-mode-select').value = config.transitionMode || 0;
   }
+
 
   setCurrentLabels(currentLabels) {
     this.currentLabels = currentLabels;
@@ -353,10 +363,6 @@ class DesignerView extends CanvasView {
     this._recordCallback = callback;
   }
 
-  setConfigCallback(callback) {
-    this._configCallback = callback;
-  }
-
   setClearLabelCallback(callback) {
     this._clearLabelCallback = callback;
   }
@@ -365,8 +371,16 @@ class DesignerView extends CanvasView {
     this._clearModelCallack = callback;
   }
 
+  setUpdateMLConfigCallback(callback) {
+    this._updateMLConfigCallback = callback;
+  }
+
   setUpdateParamCallback(callback) {
     this._updateParamCallback = callback;
+  }
+
+  setUpdateProjectConfigCallback(callback) {
+    this._updateProjectConfigCallback = callback;
   }
 };
 
