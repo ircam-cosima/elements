@@ -28,7 +28,6 @@ class ProjectChooser extends Service {
 
     // send to all clients (even deisgners that don't use the information)
     const refreshList = () => {
-      console.log('refresh');
       const clients = appStore.clients;
       const projectList = Array.from(appStore.projects);
       clients.forEach(client => this.send(client, 'project-list', projectList));

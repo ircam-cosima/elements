@@ -39,13 +39,8 @@ class ProjectChooser extends Service {
 
   /** @private */
   stop() {
-    super.stop();
-
-    this.stopReceiving('project-list', this._onReceiveProjectList);
-    this.stopReceiving('project-ack', this._onProjectAck);
-    this.stopReceiving('project-error', this._onProjectError);
-
     this.hide();
+    super.stop();
   }
 
   /** @private */
