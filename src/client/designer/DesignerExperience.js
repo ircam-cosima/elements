@@ -305,10 +305,26 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _feedRecorder(data) {
+    // check if some problem occured in preprocessing
+    for (let i = 0; i < data.length; i++) {
+      if (!Number.isFinite(data[i])) {
+        this.send('error:input-data', data);
+        return;
+      }
+    }
+
     this.trainingData.addElement(data);
   }
 
   _feedDecoder(data) {
+    // check if some problem occured in preprocessing
+    for (let i = 0; i < data.length; i++) {
+      if (!Number.isFinite(data[i])) {
+        this.send('error:input-data', data);
+        return;
+      }
+    }
+
     const results = this.xmmDecoder.run(data);
 
     const likelihoods = results ? results.likelihoods : [];
