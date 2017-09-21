@@ -1,6 +1,7 @@
 import { CanvasView } from 'soundworks/client';
-import ModalDialog from './ModalDialog';
 import { presets } from '../shared/config';
+import ModalDialog from './ModalDialog';
+import Notification from '../shared/Notification';
 
 const viewTemplate = `
   <canvas class=background noselect"></canvas>
@@ -272,6 +273,13 @@ class DesignerView extends CanvasView {
     });
 
     return promise;
+  }
+
+  showNotification(msg) {
+    const notification = new Notification(msg);
+    notification.render();
+    notification.show();
+    notification.appendTo(this.$el);
   }
 
   updateParams(params) {

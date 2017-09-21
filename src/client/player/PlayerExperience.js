@@ -5,7 +5,6 @@ import PlayerView from './PlayerView';
 import { labels } from  '../shared/config';
 import AudioEngine from '../shared/AudioEngine';
 import ProjectChooser from '../shared/services/ProjectChooser';
-import Notification from './Notification';
 
 const audioContext = soundworks.audioContext;
 
@@ -112,13 +111,8 @@ class PlayerExperience extends soundworks.Experience {
       this.xmmDecoder.setConfig(params.config);
       this.xmmDecoder.setModel(params.model);
 
-      if (params.notification) {
-        const msg = { msg: 'model updated !' };
-        const notification = new Notification(msg);
-        notification.render();
-        notification.show();
-        notification.appendTo(this.view.$el);
-      }
+      if (params.notification)
+        this.view.showNotification('Model updated');
     }
   }
 

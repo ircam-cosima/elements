@@ -11,12 +11,18 @@ const template = `
  * @param {Object} model - object containing the text to display
  */
 class Notification extends View {
-  constructor(model, duration = 1000) {
-    super(template, model, {}, {
+  constructor(msg, duration = 1000) {
+    super(template, { msg }, {}, {
       className: 'notification',
     });
 
-    setTimeout(() => { this.remove() }, duration);
+    this.duration = duration;
+  }
+
+  onRender() {
+    super.onRender();
+
+    setTimeout(() => this.remove(), this.duration);
   }
 }
 
