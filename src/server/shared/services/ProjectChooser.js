@@ -9,12 +9,11 @@ class ProjectChooser extends Service {
     super(SERVICE_ID);
 
     const defaults = {};
-
     this.configure(defaults);
 
     this.require('client-register');
 
-    this._chooseProjectCallback = () => {};
+    this._chooseProjectCallback = null;
   }
 
   /** @private */
