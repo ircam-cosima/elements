@@ -5,7 +5,7 @@ import * as imlMotion from 'iml-motion';
 import DesignerView from './DesignerView';
 import ProjectAdmin from '../shared/services/ProjectAdmin';
 import AudioEngine from '../shared/AudioEngine';
-import GranularAudioEngine from '../shared/GranularAudioEngine';
+// import GranularAudioEngine from '../shared/GranularAudioEngine';
 import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
 import { labels, clicks, presets } from '../shared/config';

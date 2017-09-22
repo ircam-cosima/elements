@@ -24,7 +24,7 @@ class GranularAudioEngineBase extends audio.GranularEngine {
   }
 
   advanceTime(time) {
-    this._selectBufferFromLikelihoods();
+    // this._selectBufferFromLikelihoods();
     return super.advanceTime(time);
   }
 
@@ -41,6 +41,7 @@ class GranularAudioEngineBase extends audio.GranularEngine {
 
   setModelResults(results) {
     this.modelResults = results;
+    this._selectBufferFromLikelihoods();
   }
 
     // probability of buffer for next grain directly from likelihoods
@@ -60,7 +61,7 @@ class GranularAudioEngineBase extends audio.GranularEngine {
     for (let i = 0; i < randomRanges.length; i++) {
       if (randomValue >= randomRanges[i][0] && randomValue <= randomRanges[i][1]) {
         this.buffer = this.buffers[this.labels[i]];
-        console.log(this.buffer);
+        // console.log(this.nextBuffer);
         return true;
       }
     }
