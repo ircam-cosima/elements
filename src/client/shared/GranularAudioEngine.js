@@ -132,7 +132,7 @@ class GranularAudioEngine {
   setPositionFromIntensity(value) {
     // TODO : tweak (boost ?) this value a little bit
     // console.log(this.engine);
-    // this.engine.position = this.engine.buffer.duration * 0.5;
+    this.engine.position = this.engine.buffer.duration * value;
   }
 };
 
