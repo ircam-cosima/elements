@@ -13,6 +13,8 @@
 /src/server/services/*
 !/src/server/services/Login.js
 
+# /src/client/shared/GranularAudioEngine.js
+
 scratch/
 
 # Transpiled files and dependencies

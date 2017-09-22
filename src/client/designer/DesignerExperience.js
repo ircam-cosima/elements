@@ -5,6 +5,7 @@ import * as imlMotion from 'iml-motion';
 import DesignerView from './DesignerView';
 import ProjectAdmin from '../shared/services/ProjectAdmin';
 import AudioEngine from '../shared/AudioEngine';
+import GranularAudioEngine from '../shared/GranularAudioEngine';
 import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
 import { labels, clicks, presets } from '../shared/config';
@@ -80,9 +81,8 @@ class DesignerExperience extends soundworks.Experience {
     this.receive('params:update', this._updateParams);
     this.receive('config:update', this._updateProjectConfig);
     this.receive('model:update', this._updateModel);
-    this.receive('command:trigger', this._triggerCommand)
+    this.receive('command:trigger', this._triggerCommand);
     this.receive('force:disconnect', () => window.location.reload());
-
 
     this.view = new DesignerView({
         sounds: labels,
@@ -107,7 +107,10 @@ class DesignerExperience extends soundworks.Experience {
 
     // rendering
     this.renderer = new LikelihoodsRenderer(this.view);
-    this.audioEngine = new AudioEngine(this.audioBufferManager.data.labels);
+
+    const buffers = this.audioBufferManager.data.labels;
+    this.audioEngine = new AudioEngine(buffers);
+    this.granularAudioEngine = new GranularAudioEngine(buffers);
 
     // preprocessing
     this.processedSensors = new imlMotion.ProcessedSensors();
@@ -177,12 +180,16 @@ class DesignerExperience extends soundworks.Experience {
       this.processedSensors.bandpassGain.params.set('factor', value);
     });
 
+    // this.audioEngine.start();
+    this.granularAudioEngine.start();
+
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
         this.view.addRenderer(this.renderer);
         this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
 
-        this.audioEngine.start();
+        // this.audioEngine.start();
+        // this.granularAudioEngine.start();
 
         this.processedSensors.start();
         this.eventIn.start();
@@ -209,6 +216,8 @@ class DesignerExperience extends soundworks.Experience {
         const model = response.model;
         const config = this.xmmDecoder.getConfig();
         const trainingSet = this.trainingData.getTrainingSet();
+
+        this.granularAudioEngine.setLabels(this.trainingData.getLabels());
 
         this._updateModelRequest({
           config: config,
@@ -309,7 +318,8 @@ class DesignerExperience extends soundworks.Experience {
 
     this.likeliest = this.view.getCurrentLabel();
     const labelIndex = this.labels.indexOf(this.likeliest);
-    this.audioEngine.fadeToNewSound(labelIndex);
+    // this.audioEngine.
+    // this.audioEngine.fadeToNewSound(labelIndex);
 
     // start recording
     this.trainingData.startRecording(this.likeliest);
@@ -373,9 +383,11 @@ class DesignerExperience extends soundworks.Experience {
     const formattedResults = {
       label: label,
       likeliest: likeliest,
-      likelihoods: likelihoods
+      likelihoods: likelihoods,
     };
 
+    this.granularAudioEngine.setModelResults(formattedResults);
+//
     this.renderer.setModelResults(formattedResults);
 
     this.likelihoods = likelihoods;
@@ -384,17 +396,26 @@ class DesignerExperience extends soundworks.Experience {
       this.likeliest = label;
 
       const index = this.labels.indexOf(label);
-      this.audioEngine.fadeToNewSound(index);
+      // this.audioEngine.fadeToNewSound(index);
     }
   }
 
   _feedIntensity(value) {
+    const scaled = value * 100 * this.sensitivity;
+
     this.autoTrigger.push(value * 100);
 
-    if (this.enableIntensity)
+    if (this.enableIntensity) {
       this.audioEngine.setGainFromIntensity(value * 100 * this.sensitivity);
-    else
+
+      this.granularAudioEngine.setGainFromIntensity(scaled);
+      this.granularAudioEngine.setPositionFromIntensity(scaled);
+    } else {
       this.audioEngine.setGainFromIntensity(1);
+
+      this.granularAudioEngine.setGainFromIntensity(1);
+      this.granularAudioEngine.setPositionFromIntensity(scaled);
+    }
   }
 
   _streamSensors(data) {

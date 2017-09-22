@@ -75,6 +75,7 @@ class AudioEngine {
 
   start() {
     this.fades = [];
+
     for (let i = 0; i < this.labels.length; i++) {
       const src = audioContext.createBufferSource();
       src.buffer = this.buffers[this.labels[i]];

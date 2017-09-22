@@ -100,6 +100,7 @@ const appStore = {
       name: name,
       uuid: uuidv4(),
       params: this._getProjectDefaultParams(),
+      config: this._getProjectDefaultConfig(),
     };
 
     this.projects.add(project);

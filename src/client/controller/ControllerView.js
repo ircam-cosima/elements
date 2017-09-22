@@ -207,6 +207,8 @@ class ControllerView extends soundworks.View {
         else if ($btn.classList.contains('stop'))
           cmd = 'stopRecording';
 
+        console.log(cmd);
+
         this._triggerClientCommandCallback(uuid, cmd);
       }
     });
