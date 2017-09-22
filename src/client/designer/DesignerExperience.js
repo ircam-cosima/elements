@@ -5,7 +5,7 @@ import * as imlMotion from 'iml-motion';
 import DesignerView from './DesignerView';
 import ProjectAdmin from '../shared/services/ProjectAdmin';
 import AudioEngine from '../shared/AudioEngine';
-// import GranularAudioEngine from '../shared/GranularAudioEngine';
+import GranularAudioEngine from '../shared/GranularAudioEngine';
 import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
 import { labels, clicks, presets } from '../shared/config';
@@ -180,8 +180,8 @@ class DesignerExperience extends soundworks.Experience {
       this.processedSensors.bandpassGain.params.set('factor', value);
     });
 
-    this.audioEngine.start();
-    // this.granularAudioEngine.start();
+    // this.audioEngine.start();
+    this.granularAudioEngine.start();
 
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
@@ -217,7 +217,7 @@ class DesignerExperience extends soundworks.Experience {
         const config = this.xmmDecoder.getConfig();
         const trainingSet = this.trainingData.getTrainingSet();
 
-        // this.granularAudioEngine.setLabels(this.trainingData.getLabels());
+        this.granularAudioEngine.setLabels(this.trainingData.getLabels());
 
         this._updateModelRequest({
           config: config,
@@ -318,7 +318,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.likeliest = this.view.getCurrentLabel();
     const labelIndex = this.labels.indexOf(this.likeliest);
-    this.audioEngine.fadeToNewSound(labelIndex);
+    // this.audioEngine.fadeToNewSound(labelIndex);
 
     // start recording
     this.trainingData.startRecording(this.likeliest);
@@ -385,7 +385,7 @@ class DesignerExperience extends soundworks.Experience {
       likelihoods: likelihoods,
     };
 
-    // this.granularAudioEngine.setModelResults(formattedResults);
+    this.granularAudioEngine.setModelResults(formattedResults);
     this.renderer.setModelResults(formattedResults);
 
     this.likelihoods = likelihoods;
@@ -394,7 +394,7 @@ class DesignerExperience extends soundworks.Experience {
       this.likeliest = label;
 
       const index = this.labels.indexOf(label);
-      this.audioEngine.fadeToNewSound(index);
+      // this.audioEngine.fadeToNewSound(index);
     }
   }
 
@@ -406,11 +406,13 @@ class DesignerExperience extends soundworks.Experience {
     if (this.enableIntensity) {
       this.audioEngine.setGainFromIntensity(value * 100 * this.sensitivity);
 
+    this.granularAudioEngine.setIntensity(scaled);
       // this.granularAudioEngine.setGainFromIntensity(scaled);
       // this.granularAudioEngine.setPositionFromIntensity(scaled);
     } else {
       this.audioEngine.setGainFromIntensity(1);
 
+    this.granularAudioEngine.setIntensity(scaled);
       // this.granularAudioEngine.setGainFromIntensity(1);
       // this.granularAudioEngine.setPositionFromIntensity(scaled);
     }

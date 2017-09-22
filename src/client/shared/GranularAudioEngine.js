@@ -11,12 +11,19 @@ class GranularAudioEngineBase extends audio.GranularEngine {
     this.buffers = {};
     this.labels = [];
 
-    this.period = 0.06;
-    this.periodVar = 0.02;
-    this.positionVar = 0.05;
-    this.durationAbs = 0.1;
+    this.periodAbs   = 0.05;
+    this.periodRel = 0.01;
+    this.periodVar = 0;
+    this.positionVar = 0.01;
+    this.durationAbs = 0.12;
+    this.durationRel = 0;
+    this.attackAbs = 0;
+    this.attackRel = 0.5;
+    this.releaseAbs = 0;
+    this.releaseRel = 0.5;
 
     this.gain = 1;
+    this.intensity = 0;
 
     this.modelResults = {
       likelihoods: [],
@@ -42,6 +49,12 @@ class GranularAudioEngineBase extends audio.GranularEngine {
   setModelResults(results) {
     this.modelResults = results;
     this._selectBufferFromLikelihoods();
+    this.position = (this.buffer.duration - this.durationAbs) * this.intensity;
+  }
+
+  setIntensity(value) {
+    this.intensity = value;
+    console.log(this.intensity);
   }
 
     // probability of buffer for next grain directly from likelihoods
@@ -49,7 +62,6 @@ class GranularAudioEngineBase extends audio.GranularEngine {
     let sum = 0;
     const randomRanges = [];
     const likelihoods = this.modelResults.likelihoods;
-    console.log(likelihoods);
 
     for (let i = 0; i < likelihoods.length; i++) {
       randomRanges.push([ sum, sum + likelihoods[i] ]);
@@ -87,7 +99,7 @@ class GranularAudioEngine {
 
     this.scale = new lfo.operator.Scale({
       inputMin: 0,
-      inputMax: 5,
+      inputMax: 1,
       outputMin: 0,
       outputMax: 1,
     });
@@ -121,6 +133,14 @@ class GranularAudioEngine {
     this.masterNode.gain.setValueAtTime(value, audioContext.currentTime);
   }
 
+  setIntensity(value) {
+    const scaled = this.scale.inputVector([ value ]);
+    const clipped = this.clip.inputVector(scaled);
+    this.intensity = clipped[0];
+    this.gainNode.gain.value = this.intensity;
+    this.engine.setIntensity(this.intensity);
+  }
+
   setGainFromIntensity(value) {
     // const scaled = this.scale.inputVector([ value ]);
     // const clipped = this.clip.inputVector([ scaled ]);
@@ -132,7 +152,7 @@ class GranularAudioEngine {
   setPositionFromIntensity(value) {
     // TODO : tweak (boost ?) this value a little bit
     // console.log(this.engine);
-    this.engine.position = this.engine.buffer.duration * value;
+    this.engine.position = (this.engine.buffer.duration - this.engine.durationAbs) * value;
   }
 };
 
