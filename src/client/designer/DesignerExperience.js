@@ -110,7 +110,7 @@ class DesignerExperience extends soundworks.Experience {
 
     const buffers = this.audioBufferManager.data.labels;
     this.audioEngine = new AudioEngine(buffers);
-    this.granularAudioEngine = new GranularAudioEngine(buffers);
+    // this.granularAudioEngine = new GranularAudioEngine(buffers);
 
     // preprocessing
     this.processedSensors = new imlMotion.ProcessedSensors();
@@ -181,14 +181,14 @@ class DesignerExperience extends soundworks.Experience {
     });
 
     // this.audioEngine.start();
-    this.granularAudioEngine.start();
+    // this.granularAudioEngine.start();
 
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
         this.view.addRenderer(this.renderer);
         this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
 
-        // this.audioEngine.start();
+        this.audioEngine.start();
         // this.granularAudioEngine.start();
 
         this.processedSensors.start();
@@ -217,7 +217,7 @@ class DesignerExperience extends soundworks.Experience {
         const config = this.xmmDecoder.getConfig();
         const trainingSet = this.trainingData.getTrainingSet();
 
-        this.granularAudioEngine.setLabels(this.trainingData.getLabels());
+        // this.granularAudioEngine.setLabels(this.trainingData.getLabels());
 
         this._updateModelRequest({
           config: config,
@@ -385,7 +385,7 @@ class DesignerExperience extends soundworks.Experience {
       likelihoods: likelihoods,
     };
 
-    this.granularAudioEngine.setModelResults(formattedResults);
+    // this.granularAudioEngine.setModelResults(formattedResults);
     this.renderer.setModelResults(formattedResults);
 
     this.likelihoods = likelihoods;
@@ -406,15 +406,11 @@ class DesignerExperience extends soundworks.Experience {
     if (this.enableIntensity) {
       this.audioEngine.setGainFromIntensity(value * 100 * this.sensitivity);
 
-    this.granularAudioEngine.setIntensity(scaled);
-      // this.granularAudioEngine.setGainFromIntensity(scaled);
-      // this.granularAudioEngine.setPositionFromIntensity(scaled);
+      // this.granularAudioEngine.setIntensity(scaled);
     } else {
       this.audioEngine.setGainFromIntensity(1);
 
-    this.granularAudioEngine.setIntensity(scaled);
-      // this.granularAudioEngine.setGainFromIntensity(1);
-      // this.granularAudioEngine.setPositionFromIntensity(scaled);
+      // this.granularAudioEngine.setIntensity(scaled);
     }
   }
 
