@@ -318,7 +318,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.likeliest = this.view.getCurrentLabel();
     const labelIndex = this.labels.indexOf(this.likeliest);
-    // this.audioEngine.fadeToNewSound(labelIndex);
+    this.audioEngine.fadeToNewSound(labelIndex);
 
     // start recording
     this.trainingData.startRecording(this.likeliest);
@@ -394,7 +394,7 @@ class DesignerExperience extends soundworks.Experience {
       this.likeliest = label;
 
       const index = this.labels.indexOf(label);
-      // this.audioEngine.fadeToNewSound(index);
+      this.audioEngine.fadeToNewSound(index);
     }
   }
 
