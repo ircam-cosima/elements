@@ -112,6 +112,11 @@ class PlayerExperience extends soundworks.Experience {
       this.xmmDecoder.setConfig(params.config);
       this.xmmDecoder.setModel(params.model);
 
+      const currentLabels = params.model.payload.models.map(model => model.label);
+
+      this.audioEngine.updateSounds(currentLabels);
+      this.likeliest = undefined; // otherwise won't fade to new sound on model update
+
       if (params.notification)
         this.view.showNotification('Model updated');
     }
@@ -160,9 +165,8 @@ class PlayerExperience extends soundworks.Experience {
     this.likelihoods = res ? res.likelihoods : [];
 
     if (this.likeliest !== label) {
-      const index = this.labels.indexOf(label);
       this.likeliest = label;
-      this.audioEngine.fadeToNewSound(index);
+      this.audioEngine.fadeToNewSound(this.likeliest);
 
       this.view.model.likeliest = label;
       this.view.render('#likeliest')

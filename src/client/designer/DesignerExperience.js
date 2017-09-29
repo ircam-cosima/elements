@@ -110,6 +110,7 @@ class DesignerExperience extends soundworks.Experience {
 
     const buffers = this.audioBufferManager.data.labels;
     this.audioEngine = new AudioEngine(buffers);
+    this.previewAudioEngine = new AudioEngine(buffers);
     // this.granularAudioEngine = new GranularAudioEngine(buffers);
 
     // preprocessing
@@ -132,8 +133,17 @@ class DesignerExperience extends soundworks.Experience {
     });
 
     this.processedSensors.addListener(data => {
+      for (let i = 0; i < data.length; i++) {
+        if (!Number.isFinite(data[i]) && data[i] !== null) {
+        // if (Number.isNaN(data[i])) {
+          this.send('error:input-data', data);
+          return;
+        }
+      }
+
       this.eventIn.process(null, data);
-      this._feedIntensity(data[0]);
+      this._feedIntensity(data[0]); // audio gain control
+      this._feedEnhancedIntensity(data[1]); // thresholded recording control
     });
 
     this.eventIn.connect(this.decoderOnOff);
@@ -189,6 +199,7 @@ class DesignerExperience extends soundworks.Experience {
         this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
 
         this.audioEngine.start();
+        this.previewAudioEngine.start();
         // this.granularAudioEngine.start();
 
         this.processedSensors.start();
@@ -278,6 +289,9 @@ class DesignerExperience extends soundworks.Experience {
     });
     const currentLabels = model.payload.models.map(model => model.label);
 
+    this.audioEngine.updateSounds(currentLabels);
+    this.likeliest = undefined; // otherwise won't fade to new sound on model update
+
     this.view.updateMLConfig(viewConfig);
     this.view.setCurrentLabels(currentLabels);
 
@@ -317,14 +331,16 @@ class DesignerExperience extends soundworks.Experience {
     this.decoderOnOff.setState('off');
 
     this.likeliest = this.view.getCurrentLabel();
-    const labelIndex = this.labels.indexOf(this.likeliest);
-    this.audioEngine.fadeToNewSound(labelIndex);
 
     // start recording
     this.trainingData.startRecording(this.likeliest);
     this.view.startRecording();
 
     playSound(this.audioBufferManager.data.clicks['startRec']);
+    this.previewAudioEngine.addSound(this.likeliest);
+    this.previewAudioEngine.fadeToNewSound(this.likeliest);
+    this.audioEngine.fadeToNewSound(null);
+
     this.send('param:update', 'recording', true);
   }
 
@@ -338,6 +354,8 @@ class DesignerExperience extends soundworks.Experience {
     this.autoTrigger.setState('off');
 
     playSound(this.audioBufferManager.data.clicks['stopRec']);
+    this.previewAudioEngine.removeSound(this.view.getCurrentLabel());
+
     this.send('param:update', 'recording', false);
 
     this.view.confirm('send').then(() => {
@@ -353,7 +371,7 @@ class DesignerExperience extends soundworks.Experience {
   _feedRecorder(data) {
     // check if some problem occured in preprocessing
     for (let i = 0; i < data.length; i++) {
-      if (!Number.isFinite(data[i])) {
+      if (Number.isNaN(data[i])) {
         this.send('error:input-data', data);
         return;
       }
@@ -365,7 +383,7 @@ class DesignerExperience extends soundworks.Experience {
   _feedDecoder(data) {
     // check if some problem occured in preprocessing
     for (let i = 0; i < data.length; i++) {
-      if (!Number.isFinite(data[i])) {
+      if (Number.isNaN(data[i])) {
         this.send('error:input-data', data);
         return;
       }
@@ -392,26 +410,27 @@ class DesignerExperience extends soundworks.Experience {
 
     if (this.likeliest !== label) {
       this.likeliest = label;
-
-      const index = this.labels.indexOf(label);
-      this.audioEngine.fadeToNewSound(index);
+      this.audioEngine.fadeToNewSound(label);
     }
   }
 
   _feedIntensity(value) {
-    const scaled = value * 100 * this.sensitivity;
-
-    this.autoTrigger.push(value * 100);
-
     if (this.enableIntensity) {
-      this.audioEngine.setGainFromIntensity(value * 100 * this.sensitivity);
+      const intensity = value * 100 * this.sensitivity;
+      this.audioEngine.setGainFromIntensity(intensity);
+      this.previewAudioEngine.setGainFromIntensity(intensity);
 
       // this.granularAudioEngine.setIntensity(scaled);
     } else {
       this.audioEngine.setGainFromIntensity(1);
+      this.previewAudioEngine.setGainFromIntensity(1);
 
       // this.granularAudioEngine.setIntensity(scaled);
     }
+  }
+
+  _feedEnhancedIntensity(value) {
+    this.autoTrigger.push(value * 100);
   }
 
   _streamSensors(data) {
