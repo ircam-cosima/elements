@@ -13,12 +13,6 @@ import { labels, clicks, presets } from '../shared/config';
 const audioContext = soundworks.audioContext;
 const client = soundworks.client;
 
-const autoTriggerDefaults = {
-  highThreshold: 0.05,
-  lowThreshold: 0.01,
-  offDelay: 200,
-}
-
 function playSound(buffer) {
   const src = audioContext.createBufferSource();
   src.connect(audioContext.destination);
@@ -87,7 +81,6 @@ class DesignerExperience extends soundworks.Experience {
     this.view = new DesignerView({
         sounds: labels,
         assetsDomain: this.config.assetsDomain,
-        record: autoTriggerDefaults,
         recBtnState: 0, // 0 is waiting, 1 is armed, 2 is recording, 3 is idle
         presets: presets,
       }, {}, {
@@ -156,10 +149,12 @@ class DesignerExperience extends soundworks.Experience {
     this.xmmDecoder = new imlMotion.XmmProcessor({ url: this.config.trainUrl });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
+    const defaultProjectConfig = this.config.defaultProjectConfig;
+
     this.autoTrigger = new AutoMotionTrigger({
-      highThreshold: autoTriggerDefaults.highThreshold,
-      lowThreshold: autoTriggerDefaults.lowThreshold,
-      offDelay: autoTriggerDefaults.offDelay,
+      highThreshold: defaultProjectConfig.highThreshold,
+      lowThreshold: defaultProjectConfig.lowThreshold,
+      offDelay: defaultProjectConfig.offDelay,
       startCallback: this._startRecording,
       stopCallback: this._stopRecording,
     });

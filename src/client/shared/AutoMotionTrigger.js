@@ -59,6 +59,7 @@ class AutoMotionTrigger {
   }
 
   setState(onOff) {
+    console.log(onOff);
     this.state = onOff;
 
     if (onOff === 'off') {

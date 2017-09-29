@@ -71,13 +71,13 @@ const viewTemplate = `
         <h2>Recording parameters</h2>
 
         <label class="text-container">High Threshold:
-          <input id="high-threshold" type="number" value="<%= record.highThreshold %>" />
+          <input id="high-threshold" type="number" value="0.2" />
         </label>
         <label class="text-container">Low Threshold:
-          <input id="low-threshold" type="number" value="<%= record.lowThreshold %>" />
+          <input id="low-threshold" type="number" value="0.05" />
         </label>
         <label class="text-container">Off Delay:
-          <input id="off-delay" type="number" value="<%= record.offDelay %>" />
+          <input id="off-delay" type="number" value="" />
         </label>
 
       </div>
@@ -151,6 +151,7 @@ class DesignerView extends CanvasView {
           this._recordCallback('arm');
         } else {
           this.stopRecording();
+          // FIX ME : commenting the line below prevents to cancel armed recording !!!!!!!!!
           // this._recordCallback('stop')
         }
       },

@@ -23,9 +23,6 @@ const labels = {
   voice_breath_02: 'sounds/labels/voice_breath_02.mp3',
   eggcutter_01: 'sounds/labels/eggcutter_01.mp3',
   bowed_piano_01: 'sounds/labels/bowed_piano_01.mp3',
-  GoodMorningAllOfYouPresent: 'sounds/labels/GoodMorningAllOfYouPresent.mp3',
-  HowAreYou: 'sounds/labels/HowAreYou.mp3',
-  WeAllAreFine: 'sounds/labels/WeAllAreFine.mp3',
 };
 
 const clicks = {

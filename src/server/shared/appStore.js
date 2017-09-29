@@ -1,6 +1,7 @@
 import projectDbMapper from './projectDbMapper';
 import xmmDbMapper from './xmmDbMapper';
 import uuidv4 from 'uuid/v4';
+import config from '../config/default';
 
 const appStore = {
   init() {
@@ -44,11 +45,7 @@ const appStore = {
 
   // project config are parameters that are relative to the project itself
   _getProjectDefaultConfig() {
-    return {
-      highThreshold: 0.05,
-      lowThreshold: 0.01,
-      offDelay: 200,
-    };
+    return config.defaultProjectConfig;
   },
 
   _getEmptyUserMap() {

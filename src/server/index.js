@@ -39,6 +39,7 @@ server.setClientConfigDefinition((clientType, config, httpRequest) => {
     clientType: clientType,
     env: config.env,
     trainUrl: config.trainUrl,
+    defaultProjectConfig: config.defaultProjectConfig,
     appName: config.appName,
     websockets: config.websockets,
     version: config.version,

@@ -18,6 +18,13 @@ export default {
   // url of the rest api for model training
   trainUrl: '/train',
 
+  // default project config
+  defaultProjectConfig: {
+    highThreshold: 0.2,
+    lowThreshold: 0.05,
+    offDelay: 200,
+  },
+
   // version of application, can be used to force reload css and js files
   // from server (cf. `html/default.ejs`)
   version: '0.0.1',
