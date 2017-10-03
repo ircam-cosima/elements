@@ -151,7 +151,9 @@ class DesignerView extends CanvasView {
           this._recordCallback('arm');
         } else {
           this.stopRecording();
-          // FIX ME : commenting the line below prevents to cancel armed recording !!!!!!!!!
+          // FIX ME : commenting the line below prevents to cancel
+          // armed recording from designer's rec button !!!!!!!!!
+
           // this._recordCallback('stop')
         }
       },
