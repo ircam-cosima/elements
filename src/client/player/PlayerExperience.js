@@ -2,7 +2,7 @@ import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
 import * as imlMotion from 'iml-motion';
 import PlayerView from './PlayerView';
-import { labels } from  '../shared/config';
+import { labels } from  '../../shared/config/audio';
 import AudioEngine from '../shared/AudioEngine';
 import ProjectChooser from '../shared/services/ProjectChooser';
 

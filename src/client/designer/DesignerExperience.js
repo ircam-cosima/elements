@@ -8,7 +8,8 @@ import AudioEngine from '../shared/AudioEngine';
 import GranularAudioEngine from '../shared/GranularAudioEngine';
 import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
-import { labels, clicks, presets } from '../shared/config';
+import { labels, clicks } from '../../shared/config/audio';
+import { presets } from '../../shared/config/ml-presets';
 
 const audioContext = soundworks.audioContext;
 const client = soundworks.client;

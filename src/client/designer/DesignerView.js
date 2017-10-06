@@ -1,5 +1,5 @@
 import { CanvasView } from 'soundworks/client';
-import { presets } from '../shared/config';
+import { presets } from '../../shared/config/ml-presets';
 import ModalDialog from './ModalDialog';
 import Notification from '../shared/Notification';
 
