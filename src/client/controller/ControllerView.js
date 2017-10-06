@@ -16,30 +16,33 @@ const projectTemplate = `
     </div>
 
     <div>
-      <div class="number-box absolute-regularization"">
-        <input type="number" value="<%= absoluteRegularization %>" data-target="<%= uuid %>" />
+      Global:
+      <div class="number-box">
+        <input type="number" value="<%= absoluteRegularization %>" data-target="<%= uuid %>" data-param="absoluteRegularization" class="project-configuration" />
         Absolute Regularization
       </div>
 
-      <div class="number-box relative-regularization"">
-        <input type="number" value="<%= relativeRegularization %>" data-target="<%= uuid %>" />
+      <div class="number-box">
+        <input type="number" value="<%= relativeRegularization %>" data-target="<%= uuid %>" data-param="relativeRegularization" class="project-configuration" />
         Relative Regularization
       </div>
     </div>
 
     <div>
-      <div class="number-box high-threshold">
-        <input type="number" value="<%= config.highThreshold %>" data-target="<%= uuid %>" />
+      Recording:
+
+      <div class="number-box">
+        <input type="number" value="<%= config.highThreshold %>" data-target="<%= uuid %>" data-param="highThreshold" class="project-configuration" />
         High Threshold
       </div>
 
-      <div class="number-box low-threshold">
-        <input type="number" value="<%= config.lowThreshold %>" data-target="<%= uuid %>" />
+      <div class="number-box">
+        <input type="number" value="<%= config.lowThreshold %>" data-target="<%= uuid %>" data-param="lowThreshold" class="project-configuration" />
         Low Threshold
       </div>
 
-      <div class="number-box off-delay">
-        <input type="number" value="<%= config.offDelay %>" data-target="<%= uuid %>" />
+      <div class="number-box">
+        <input type="number" value="<%= config.offDelay %>" data-target="<%= uuid %>" data-param="offDelay" class="project-configuration" />
         Off Delay
       </div>
     </div>
@@ -130,51 +133,28 @@ class ControllerView extends soundworks.View {
         const value = e.target.value;
         this._selectProject(value);
       },
-      // project params
-      'click .project .project-header .mute': (e) => {
+      // project params: apply to all clients
+      'click .project .mute': (e) => {
         const $btn = e.target.closest('.mute');
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
         this._updateProjectParamCallback(uuid, 'mute', !active);
       },
-      'click .project .project-header .intensity': (e) => {
+      'click .project .intensity': (e) => {
         const $btn = e.target.closest('.intensity');
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
         this._updateProjectParamCallback(uuid, 'intensity', !active);
       },
       // project config
-      'change .project .project-header .high-threshold': (e) => {
-        const $input = e.target;
-        const value = parseFloat($input.value);
-        const uuid = $input.dataset.target;
-        this._updateProjectConfigCallback(uuid, 'highThreshold', value);
-      },
-      'change .project .project-header .low-threshold': (e) => {
-        const $input = e.target;
-        const value = parseFloat($input.value);
-        const uuid = $input.dataset.target;
-        this._updateProjectConfigCallback(uuid, 'lowThreshold', value);
-      },
-      'change .project .project-header .off-delay': (e) => {
-        const $input = e.target;
-        const value = parseFloat($input.value);
-        const uuid = $input.dataset.target;
-        this._updateProjectConfigCallback(uuid, 'offDelay', value);
-      },
-      // xmm project config - these config trigger a new model training
+      // depending on the parameter, may trigger a new model training
       // cf. server/ControllerExperience::_onUpdateProjectConfig
-      'change .project .project-header .absolute-regularization': (e) => {
+      'change .project .project-configuration': (e) => {
         const $input = e.target;
         const value = parseFloat($input.value);
         const uuid = $input.dataset.target;
-        this._updateProjectConfigCallback(uuid, 'absoluteRegularization', value);
-      },
-      'change .project .project-header .relative-regularization': (e) => {
-        const $input = e.target;
-        const value = parseFloat($input.value);
-        const uuid = $input.dataset.target;
-        this._updateProjectConfigCallback(uuid, 'relativeRegularization', value);
+        const param = $input.dataset.param;
+        this._updateProjectConfigCallback(uuid, param, value);
       },
       // client params
       'click .project .client .mute': (e) => {
