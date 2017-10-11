@@ -209,11 +209,15 @@ class ControllerExperience extends soundworks.Experience {
       } else {
         // this is an xmm parameter, for now we only deal with regularization
 
+        // appStore should be the one that handles this
         switch(name) {
-        case 'absoluteRegularization':
-        case 'relativeRegularization':
-          value = Math.min(1, Math.max(0.01, value));
-          break;
+          case 'absoluteRegularization':
+          case 'relativeRegularization':
+            value = Math.min(1, Math.max(0.01, value));
+            break;
+
+          default:
+            break;
         }
 
         const { config, trainingSet } = appStore.getProjectTrainingData(project);

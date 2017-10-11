@@ -15,20 +15,19 @@ const projectTemplate = `
       <div class="toggle-btn"><div></div></div> Intensity
     </div>
 
-    <div>
-      Global:
+    <div>Global:
 
-      <div class="select-container"> Gaussians:
+      <div class="select-container">Gaussians
         <select class="project-configuration" data-target="<%= uuid %>" data-param="gaussians" >
-          <% for (var i = 0; i < 10; i++) { %>
-            <option value="<%= i+1 %>" <% if (gaussians === i+1) { %> <%= 'selected' %> <% } %> >
-              <%= i+1 %>
+          <% for (var i = 1; i <= 10; i++) { %>
+            <option value="<%= i %>" <% if (gaussians === i) { %> <%= 'selected' %> <% } %> >
+              <%= i %>
             </option>
           <% } %>
         </select>
       </div>
 
-      <div class="select-container"> Covariance:
+      <div class="select-container">Covariance
         <select class="project-configuration" data-target="<%= uuid %>" data-param="covarianceMode" >
           <% ['full', 'diagonal'].forEach(function(opt) { %>
           <option value="<%= opt %>" <% if (covarianceMode === opt) { %> <%= 'selected' %> <% } %> ><%= opt %></option>
@@ -36,40 +35,58 @@ const projectTemplate = `
         </select>
       </div>
 
-      <div class="number-box">
+      <div class="number-box">Absolute regularization
         <input type="number" value="<%= absoluteRegularization %>" data-target="<%= uuid %>" data-param="absoluteRegularization" class="project-configuration" />
-        Absolute Regularization
       </div>
 
-      <div class="number-box">
+      <div class="number-box">Relative regularization
         <input type="number" value="<%= relativeRegularization %>" data-target="<%= uuid %>" data-param="relativeRegularization" class="project-configuration" />
-        Relative Regularization
       </div>
-    </div>
 
-    <div>
-      Recording:
+    </div> <!-- Global -->
 
-      <div class="number-box">
+    <div class="hhmm-configuration">HHMM:
+
+      <div class="select-container">States
+        <select class="project-configuration" data-target="<%= uuid %>" data-param="states" >
+          <% for (var i = 1; i <= 20; i++) { %>
+            <option value="<%= i %>" <% if (states === i) { %> <%= 'selected' %> <% } %> >
+              <%= i %>
+            </option>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="select-container">Transition
+        <select class="project-configuration" data-target="<%= uuid %>" data-param="transitionMode" >
+          <% ['ergodic', 'leftright'].forEach(function(opt) { %>
+          <option value="<%= opt %>" <% if (transitionMode === opt) { %> <%= 'selected' %> <% } %> ><%= opt %></option>
+          <% }); %>
+        </select>
+      </div>
+
+    </div> <!-- HHMM -->
+
+    <div>Recording:
+
+      <div class="number-box">High Threshold
         <input type="number" value="<%= config.highThreshold %>" data-target="<%= uuid %>" data-param="highThreshold" class="project-configuration" />
-        High Threshold
       </div>
 
-      <div class="number-box">
+      <div class="number-box">Low Threshold
         <input type="number" value="<%= config.lowThreshold %>" data-target="<%= uuid %>" data-param="lowThreshold" class="project-configuration" />
-        Low Threshold
       </div>
 
-      <div class="number-box">
+      <div class="number-box">Off Delay
         <input type="number" value="<%= config.offDelay %>" data-target="<%= uuid %>" data-param="offDelay" class="project-configuration" />
-        Off Delay
       </div>
-    </div>
+
+    </div> <!-- Recording -->
 
     <% if (!hasDesigner) { %>
     <button class="btn danger delete-project" data-target="<%= uuid %>">Delete</button>
     <% } %>
-  </div>
+  </div> <!-- Project Header -->
 
   <% if (clients.length > 0) { %>
   <ul class="clients">
@@ -77,13 +94,13 @@ const projectTemplate = `
     <li class="client <%= client.type %>" id="<%= client.uuid %>">
       <p><%= client.type %></p>
 
-      <div class="toggle-container mute <%= client.params.mute ? 'active' : '' %>" data-target="<%= client.uuid %>">
+      <div class="toggle-container mute <%= client.params.mute ? 'active' : '' %>" data-target="<%= client.uuid %>" class="client-configuration">
         <div class="toggle-btn"><div></div></div> Mute
       </div>
-      <div class="toggle-container intensity <%= client.params.intensity ? 'active' : '' %>" data-target="<%= client.uuid %>">
+      <div class="toggle-container intensity <%= client.params.intensity ? 'active' : '' %>" data-target="<%= client.uuid %>" class="client-configuration">
         <div class="toggle-btn"><div></div></div> Intensity
       </div>
-      <div class="toggle-container stream-sensors <%= client.params.streamSensors ? 'active' : '' %>" data-target="<%= client.uuid %>">
+      <div class="toggle-container stream-sensors <%= client.params.streamSensors ? 'active' : '' %>" data-target="<%= client.uuid %>" class="client-configuration">
         <div class="toggle-btn"><div></div></div> Stream sensors
       </div>
 
@@ -129,7 +146,7 @@ const mainTemplate = `
 class ControllerView extends soundworks.View {
   constructor() {
     super(mainTemplate, {}, {}, {
-      id: 'master',
+      id: 'controller',
     });
 
     this._deleteProjectCallback = null;
@@ -173,12 +190,24 @@ class ControllerView extends soundworks.View {
         const uuid = $input.dataset.target;
         const param = $input.dataset.param;
 
+        // appStore should conform the values
         let value;
         switch(param) {
+
+          // string
           case 'covarianceMode':
+          case 'transitionMode':
             value = $input.value;
             break;
 
+          // number
+          case 'absoluteRegularization':
+          case 'gaussians':
+          case 'highThreshold':
+          case 'lowThreshold':
+          case 'offDelay':
+          case 'relativeRegularization':
+          case 'states':
           default:
             value = parseFloat($input.value);
             break;
