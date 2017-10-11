@@ -38,6 +38,7 @@ server.setClientConfigDefinition((clientType, config, httpRequest) => {
   return {
     clientType: clientType,
     env: config.env,
+    port: config.port,
     trainUrl: config.trainUrl,
     defaultProjectConfig: config.defaultProjectConfig,
     appName: config.appName,

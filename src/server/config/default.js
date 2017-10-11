@@ -19,10 +19,29 @@ export default {
   trainUrl: '/train',
 
   // default project config
+  // defaultProjectConfig: {
+  //   highThreshold: 0.2,
+  //   lowThreshold: 0.05,
+  //   offDelay: 200,
+  // },
+
   defaultProjectConfig: {
-    highThreshold: 0.2,
-    lowThreshold: 0.05,
-    offDelay: 200,
+    recording: {
+      highThreshold: 0.2,
+      lowThreshold: 0.05,
+      offDelay: 200,
+    },
+    training: {
+      modelType: 'gmm',
+      absoluteRegularization: 0.1,
+      relativeRegularization: 0.1,
+      gaussians: 1,
+      covarianceMode: 'full',
+      hierarchical: true,
+      states: 1,
+      transitionMode: 'leftright',
+      regressionEstimator: 'full',
+    }
   },
 
   // version of application, can be used to force reload css and js files

@@ -242,6 +242,17 @@ $elmHeight: 36px;
   font-size: 1.4em;
   background-color: $backgroundColor;
 
+  .section-wrapper {
+    display: none;
+
+    &.show {
+      display: block;
+    }
+  }
+  // .section-wrapper, .show {
+  //   display: block;
+  // }
+
   #nav {
     z-index: 3;
     width: 100%;

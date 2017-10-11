@@ -1,6 +1,8 @@
 import { Experience } from 'soundworks/server';
 import appStore from './shared/appStore';
 import logger from './shared/errorLogger';
+import * as imlMotion from 'iml-motion/common';
+// import xmm from 'xmm-node';
 
 const cwd = process.cwd();
 
@@ -8,6 +10,9 @@ const cwd = process.cwd();
 class DesignerExperience extends Experience {
   constructor(clientType, config, comm) {
     super(clientType);
+
+    // this.trainingData = new Map();
+    // this.machineLearning = new Map();
 
     this.config = config;
     this.comm = comm;
@@ -19,6 +24,11 @@ class DesignerExperience extends Experience {
     this.rawSocket = this.require('raw-socket', {
       protocol: { channel: 'sensors', type: 'Float32' },
     });
+
+    // we assume the api simulation will run on the localhost (see server/index.js)
+    // this.trainer = new imlMotion.XmmProcessor({
+    //   url: `http://localhost:${this.config.port}${this.config.trainUrl}`
+    // })
   }
 
   start() {
@@ -60,6 +70,10 @@ class DesignerExperience extends Experience {
     const project = client.project;
     const trainingData = appStore.getProjectTrainingData(project);
 
+    // if (!this.xmms.has(project)) {
+    //   this.xmms.set(project, new xmm());
+    // }
+
     this.send(client, 'init', trainingData);
     this.send(client, 'params:update', client.params);
     this.send(client, 'config:update', project.config);
@@ -68,6 +82,8 @@ class DesignerExperience extends Experience {
     this.receive(client, 'config:update', this._onConfigUpdate(client));
     this.receive(client, 'model:update', this._onModelUpdate(client));
     this.receive(client, 'error:input-data', this._onBadInputData(client));
+
+    this.receive(client, 'phrase', this._onPhraseOperation(client));
 
     this.rawSocket.receive(client, 'sensors', data => {
       this.comm.emit('sensors', data);
@@ -98,9 +114,15 @@ class DesignerExperience extends Experience {
   }
 
   _onConfigUpdate(client) {
-    return (name, value) => {
+    // return (name, value) => {
+    //   const project = client.project;
+    //   appStore.setProjectConfig(project, name, value);
+
+    //   this._trainProjectModel(project);
+    // }
+    return config => {
       const project = client.project;
-      appStore.setProjectConfig(project, name, value);
+      appStore.setProjectConfig(project, config);
     }
   }
 
@@ -109,6 +131,53 @@ class DesignerExperience extends Experience {
       logger.append('Input data bad format', data, client);
     }
   }
+
+  _onPhraseOperation(client) {
+    return args => {
+      const project = client.project;
+      // const trainingData = new imlMotion.TrainingData();
+      // const data = appStore.getProjectTrainingData(project);
+      // trainingData.setTrainingSet(data.trainingSet);
+
+      switch (args.cmd) {
+        case 'add':
+          appStore.addPhraseToProject(project, args.data);
+          // trainingData.addPhrase(args.data); // rapidmix phrase object
+          break;
+        case 'clear':
+          appStore.removePhrasesFromProject(project, args.data);
+          // trainingData.removeElementsByLabel(args.data); // label string
+          break;
+        case 'clearall':
+          appStore.removeAllPhrasesFromProject(project);
+          // trainingData.clear(); // no 2nd arg
+          break;
+        default: // never happens
+          break;
+      }
+
+      // data.trainingSet = trainingData.getTrainingSet();
+      // appStore.setProjectTrainingData(project, trainingData);
+
+      // this._trainProjectModel(project);
+    }
+  }
+
+  /*
+  _trainProjectModel(project) {
+    // const trainer = new imlMotion.XmmProcessor({ url: 'http://localhost:8000/train' });
+    const data = appStore.getProjectTrainingData(project);
+    console.log(data);
+    this.trainer.setConfig(data.config)
+    this.trainer.train(data.trainingSet)
+      .then(response => {
+        console.log('server side training');
+        console.log(response);
+        appStore.setProjectModel(project, response.model);
+      })
+      .catch(err => console.error(err.stack));
+  }
+  */
 }
 
 export default DesignerExperience;

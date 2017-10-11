@@ -4,9 +4,13 @@ import ModalDialog from './ModalDialog';
 import Notification from '../shared/Notification';
 
 const viewTemplate = `
+  <div id="canvas-wrapper" class="section-wrapper">
   <canvas class=background noselect"></canvas>
+  </div>
+
   <div class="content foreground">
 
+    <div id="configuration-wrapper" class="section-wrapper">
     <div id="nav"></div>
 
     <section id="overlay">
@@ -82,16 +86,21 @@ const viewTemplate = `
 
       </div>
     </section>
+    </div>
 
     <section id="main">
       <div class="wrapper">
+
+        <div id="basic-controls-wrapper" class="section-wrapper">
         <div class="toggle-container" id="mute">
           <div class="toggle-btn"><div></div></div> Mute
         </div>
         <div class="toggle-container" id="intensity">
           <div class="toggle-btn"><div></div></div> Intensity
         </div>
+        </div>
 
+        <div id="advanced-controls-wrapper" class="section-wrapper">
         <div class="labels-wrapper">
           <label class="select-container">Label:
             <select id="label-select">
@@ -118,12 +127,16 @@ const viewTemplate = `
           <% } %>
           <p>
         </button>
+        </div>
+
       </div>
 
     </section>
 
   </div>
 `;
+
+const noop = () => {};
 
 /**
  * @todo - move more logic into the template:
@@ -135,11 +148,12 @@ class DesignerView extends CanvasView {
   constructor(content, events, options) {
     super(viewTemplate, content, events, options);
 
-    this._configUpdateCallback = null;
-    this._clearLabelCallback = null;
-    this._clearModelCallback = null;
-    this._recordCallback = null;
-    this.__updateParamCallback = null;
+    this._configUpdateCallback = noop;
+    this._clearLabelCallback = noop;
+    this._clearModelCallback = noop;
+    this._recordCallback = noop;
+    this._updateParamCallback = noop;
+    this._updateParamsCallback = noop;
 
     const viewEvents = {
       'touchstart #rec-btn': () => {
@@ -165,7 +179,7 @@ class DesignerView extends CanvasView {
         } else {
           const $el = this.$el;
 
-          const mlConfig = {
+          const trainingConfig = {
             modelType: $el.querySelector('#model-select').value,
             gaussians: parseFloat($el.querySelector('#gauss-select').value),
             covarianceMode: $el.querySelector('#cov-mode-select').value,
@@ -175,15 +189,20 @@ class DesignerView extends CanvasView {
             transitionMode: $el.querySelector('#trans-mode-select').value,
           };
 
-          this._updateMLConfigCallback(mlConfig);
+          // this._updateMLConfigCallback(trainingConfig);
 
-          const projectConfig = {
+          const recordingConfig = {
             highThreshold: parseFloat($el.querySelector('#high-threshold').value),
             lowThreshold: parseFloat($el.querySelector('#low-threshold').value),
             offDelay: parseFloat($el.querySelector('#off-delay').value),
           };
 
-          this._updateProjectConfigCallback(projectConfig);
+          // this._updateProjectConfigCallback(generalConfig);
+
+          this._updateProjectConfigCallback({
+            training: trainingConfig,
+            recording: recordingConfig,
+          });
 
           this.$overlay.classList.remove('active');
         }
@@ -246,6 +265,11 @@ class DesignerView extends CanvasView {
     this.$clearAll = this.$el.querySelector('#clear-all');
     this.$overlay = this.$el.querySelector('#overlay');
 
+    this.$configSection = this.$el.querySelector('#configuration-wrapper');
+    this.$basicSection = this.$el.querySelector('#basic-controls-wrapper');
+    this.$advancedSection = this.$el.querySelector('#advanced-controls-wrapper');
+    this.$canvasSection = this.$el.querySelector('#canvas-wrapper');
+
     this.$clearLabel.textContent = `clear ${this.getCurrentLabel()} recordings`;
   }
 
@@ -301,9 +325,21 @@ class DesignerView extends CanvasView {
   updateProjectConfig(config) {
     const $el = this.$el;
 
-    $el.querySelector('#high-threshold').value = config.highThreshold;
-    $el.querySelector('#low-threshold').value = config.lowThreshold;
-    $el.querySelector('#off-delay').value = config.offDelay;
+    const rCfg = config.recording;
+
+    $el.querySelector('#high-threshold').value = rCfg.highThreshold;
+    $el.querySelector('#low-threshold').value = rCfg.lowThreshold;
+    $el.querySelector('#off-delay').value = rCfg.offDelay;
+
+    const tCfg = config.training;
+
+    $el.querySelector('#model-select').value = tCfg.modelType;
+    $el.querySelector('#gauss-select').value = tCfg.gaussians;
+    $el.querySelector('#cov-mode-select').selectedIndex = tCfg.covarianceMode;
+    $el.querySelector('#abs-reg').value = tCfg.absoluteRegularization;
+    $el.querySelector('#rel-reg').value = tCfg.relativeRegularization;
+    $el.querySelector('#states-select').value = tCfg.states || 1;
+    $el.querySelector('#trans-mode-select').value = tCfg.transitionMode || 0;
   }
 
   updateMLConfig(config) {
@@ -362,6 +398,34 @@ class DesignerView extends CanvasView {
     this.$recBtn.classList.remove('active', 'armed');
   }
 
+  setSectionsVisibility(flags) {
+    for (let f in flags) {
+      let section = null;
+
+      switch (f) {
+        case 'configuration':
+          section = this.$configSection;
+          break;
+        case 'basicControls':
+          section = this.$basicSection;
+          break;
+        case 'advancedControls':
+          section = this.$advancedSection;
+          break;
+        case 'canvas':
+          section = this.$canvasSection;
+          break;
+      }
+
+      console.log(f + ' ' + flags[f]);
+
+      if (flags[f] && !section.classList.contains('show'))
+        section.classList.add('show');
+      else if (section.classList.contains('show'))
+        section.classList.remove('show');
+    }
+  }
+
   setRecordCallback(callback) {
     this._recordCallback = callback;
   }
@@ -380,6 +444,10 @@ class DesignerView extends CanvasView {
 
   setUpdateParamCallback(callback) {
     this._updateParamCallback = callback;
+  }
+
+  setUpdateParamsCallback(callback) {
+    this._updateParamsCallback = callback;
   }
 
   setUpdateProjectConfigCallback(callback) {

@@ -1,3 +1,4 @@
+import * as imlMotion from 'iml-motion/common';
 import projectDbMapper from './projectDbMapper';
 import xmmDbMapper from './xmmDbMapper';
 import uuidv4 from 'uuid/v4';
@@ -7,6 +8,7 @@ const appStore = {
   init() {
     this.projects = projectDbMapper.getList(); // project = { name, uuid }
     this.projectUsersMap = new Map();
+    this.projectDataMap = new Map();
 
     this.uuidClientMap = new Map();
     this.clients = new Set();
@@ -19,7 +21,19 @@ const appStore = {
       project.params = this._getProjectDefaultParams();
       project.config = this._getProjectDefaultConfig();
       this.projectUsersMap.set(project, this._getEmptyUserMap());
+
+      const tc = this._getNewTrainingClasses();
+      tc.data.setTrainingSet(xmmDbMapper.getTrainingSet(project));
+      tc.algo.setConfig(xmmDbMapper.getConfig(project));
+      this.projectDataMap.set(project, tc);
     });
+
+    // we assume the api simulation will run on the localhost (see server/index.js)
+    this.trainer = new imlMotion.XmmProcessor({
+      url: `http://localhost:${config.port}${config.trainUrl}`
+    })
+
+    this.trainers = new Map();
   },
 
   // maybe this could be split properly between players and designers
@@ -52,6 +66,15 @@ const appStore = {
     return {
       designer: null,
       players: new Set(),
+    };
+  },
+
+  _getNewTrainingClasses() {
+    return {
+      data: new imlMotion.TrainingData(),
+      algo: new imlMotion.XmmProcessor({
+        url: `http://localhost:${config.port}${config.trainUrl}`
+      }),
     };
   },
 
@@ -102,6 +125,7 @@ const appStore = {
 
     this.projects.add(project);
     this.projectUsersMap.set(project, this._getEmptyUserMap());
+    this.projectDataMap.set(project, this._getNewTrainingClasses());
 
     projectDbMapper.persist(this.projects);
 
@@ -116,6 +140,7 @@ const appStore = {
   deleteProject(project) {
     // @todo - check if users
     this.projectUsersMap.delete(project);
+    this.projectDataMap.delete(project);
     this.projects.delete(project);
 
     xmmDbMapper.deleteTrainingSet(project);
@@ -127,19 +152,26 @@ const appStore = {
     this._emit('delete-project', project);
   },
 
-  setProjectConfig(project, name, value) {
-    // sanitize values
-    switch (name) {
-      case 'highThreshold':
-      case 'lowThreshold':
-        value = Math.min(1, Math.max(0, value));
-        break;
-      case 'offDelay':
-        value = Math.max(20, value);
-        break;
-    }
+  // setProjectConfig(project, name, value) {
+  //   // sanitize values
+  //   switch (name) {
+  //     case 'highThreshold':
+  //     case 'lowThreshold':
+  //       value = Math.min(1, Math.max(0, value));
+  //       break;
+  //     case 'offDelay':
+  //       value = Math.max(20, value);
+  //       break;
+  //   }
 
-    project.config[name] = value;
+  //   project.config[name] = value;
+
+  //   this._emit('set-project-config', project);
+  // },
+
+  setProjectConfig(project, config) {
+    for (let c in config) // subconfigs
+      project.config[c] = config[c];
 
     this._emit('set-project-config', project);
   },
@@ -169,7 +201,9 @@ const appStore = {
     this._emit('set-client-param', project, client);
   },
 
-  // group ahndling
+  /////////// USERS ///////////
+
+  // group handling
   addDesignerToProject(client, project) {
     const users = this.projectUsersMap.get(project);
 
@@ -220,18 +254,95 @@ const appStore = {
     }
   },
 
-  // xmm data
-  setProjectTrainingData(project, trainingData) {
-    xmmDbMapper.persistConfig(project, trainingData.config);
-    xmmDbMapper.persistTrainingSet(project, trainingData.trainingSet);
+  ////////// PHRASES //////////
 
-    this._emit('set-project-training-data', project, trainingData);
+  addPhraseToProject(project, phrase) {
+    const td = this.projectDataMap.get(project).data;
+    td.addPhrase(phrase);
+    xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
+
+    this.trainProject(project);
+  },
+
+  removePhrasesFromProject(project, label) {
+    const td = this.projectDataMap.get(project).data;
+    td.removeElementsByLabel(label);
+    xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
+
+    this.trainProject(project);
+  },
+
+  removeAllPhrasesFromProject(project) {
+    const td = this.projectDataMap.get(project).data;
+    td.clear();
+    xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
+
+    this.trainProject(project);
+  },
+
+  /////////// TRAIN ///////////
+
+  trainProject(project) {
+    const tc = this.projectDataMap.get(project);
+    tc.algo.train(xmmDbMapper.getTrainingSet(project))
+      .then(response => {
+        this.setProjectModel(project, response.model);
+      })
+      .catch(err => console.error(err));
+  },
+
+  ////////// SETTERS //////////
+
+  setProjectTrainingSet(project, trainingSet) {
+    const tc = this.projectDataMap.get(project);
+    tc.data.setTrainingSet(trainingSet);
+    xmmDbMapper.persistTrainingSet(project, tc.data.getTrainingSet());
+
+    this._emit('set-project-training-set', project, trainingSet);
+
+    this.trainProject(project);
+  },
+
+  setProjectTrainingConfig(project, config) {
+    const tc = this.projectDataMap.get(project);
+    tc.algo.setConfig(config);
+    xmmDbMapper.persistConfig(project, tc.algo.getConfig());
+
+    this._emit('set-project-training-config', project, config);
+
+    this.trainProject(project);
   },
 
   setProjectModel(project, model) {
     xmmDbMapper.persistModel(project, model);
 
     this._emit('set-project-model', project, model);
+  },
+
+  // xmm data
+  setProjectTrainingData(project, trainingData) {
+    const tc = this.projectDataMap.get(project);
+    tc.algo.setConfig(trainingData.config);
+    tc.data.setTrainingSet(trainingData.trainingSet);
+
+    xmmDbMapper.persistConfig(project, trainingData.config);
+    xmmDbMapper.persistTrainingSet(project, trainingData.trainingSet);
+
+    this._emit('set-project-training-data', project, trainingData);
+  },
+
+  ////////// GETTERS //////////
+
+  getProjectTrainingSet(project) {
+    return xmmDbMapper.getTrainingSet(project);
+  },
+
+  getProjectTrainingConfig(project) {
+    return xmmDbMapper.getConfig(project);
+  },
+
+  getProjectModel(project) {
+    return xmmDbMapper.getModel(project);
   },
 
   getProjectTrainingData(project) {
@@ -241,10 +352,7 @@ const appStore = {
     return { config, trainingSet };
   },
 
-  getProjectModel(project) {
-    return xmmDbMapper.getModel(project);
-  },
-
+  /////////////////////////////
   // generic getters
   getProjectByUuid(uuid) {
     let _project = null;
