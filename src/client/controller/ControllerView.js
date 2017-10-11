@@ -17,6 +17,25 @@ const projectTemplate = `
 
     <div>
       Global:
+
+      <div class="select-container"> Gaussians:
+        <select class="project-configuration" data-target="<%= uuid %>" data-param="gaussians" >
+          <% for (var i = 0; i < 10; i++) { %>
+            <option value="<%= i+1 %>" <% if (gaussians === i+1) { %> <%= 'selected' %> <% } %> >
+              <%= i+1 %>
+            </option>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="select-container"> Covariance:
+        <select class="project-configuration" data-target="<%= uuid %>" data-param="covarianceMode" >
+          <% ['full', 'diagonal'].forEach(function(opt) { %>
+          <option value="<%= opt %>" <% if (covarianceMode === opt) { %> <%= 'selected' %> <% } %> ><%= opt %></option>
+          <% }); %>
+        </select>
+      </div>
+
       <div class="number-box">
         <input type="number" value="<%= absoluteRegularization %>" data-target="<%= uuid %>" data-param="absoluteRegularization" class="project-configuration" />
         Absolute Regularization
@@ -151,9 +170,20 @@ class ControllerView extends soundworks.View {
       // cf. server/ControllerExperience::_onUpdateProjectConfig
       'change .project .project-configuration': (e) => {
         const $input = e.target;
-        const value = parseFloat($input.value);
         const uuid = $input.dataset.target;
         const param = $input.dataset.param;
+
+        let value;
+        switch(param) {
+          case 'covarianceMode':
+            value = $input.value;
+            break;
+
+          default:
+            value = parseFloat($input.value);
+            break;
+        }
+
         this._updateProjectConfigCallback(uuid, param, value);
       },
       // client params

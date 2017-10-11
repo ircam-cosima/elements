@@ -102,9 +102,6 @@ class ControllerExperience extends soundworks.Experience {
    */
   _serializeProject(project) {
     const { config } = appStore.getProjectTrainingData(project);
-    const relativeRegularization = config !== null ? config.payload.relativeRegularization : 0.1;
-    const absoluteRegularization = config !== null ? config.payload.absoluteRegularization : 0.1;
-
     const serialized = {
       name: project.name,
       uuid: project.uuid,
@@ -113,8 +110,14 @@ class ControllerExperience extends soundworks.Experience {
       hasDesigner: false,
       clients: [],
       // this could probably be cleaner...
-      relativeRegularization: relativeRegularization,
-      absoluteRegularization: absoluteRegularization,
+      gaussians: (config !== null ? config.payload.gaussians : 1),
+      relativeRegularization: (config !== null ? config.payload.relativeRegularization : 0.1),
+      absoluteRegularization: (config !== null ? config.payload.absoluteRegularization : 0.1),
+      covarianceMode: (config !== null ? config.payload.covarianceMode : 'full'),
+      hierarchical: (config !== null ? config.payload.hierarchical : true),
+      states: (config !== null ? config.payload.states : 1),
+      transitionMode: (config !== null ? config.payload.transitionMode : 'leftright'),
+      regressionEstimator: (config !== null ? config.payload.regressionEstimator : 'full'),
     };
 
     // handle designer
@@ -205,8 +208,15 @@ class ControllerExperience extends soundworks.Experience {
         appStore.setProjectConfig(project, name, value);
       } else {
         // this is an xmm parameter, for now we only deal with regularization
-        value = Math.min(1, Math.max(0.01, value));
-        const { config, trainingSet } = appStore.getProjectTrainingData(project);
+
+        switch(name) {
+        case 'absoluteRegularization':
+        case 'relativeRegularization':
+          value = Math.min(1, Math.max(0.01, value));
+          break;
+        }
+
+        const { config, trainingSet } = appStore.getProjectTrainingData(project);
         const xmmTrainingSet = rapidMixToXmmTrainingSet(trainingSet);
 
         config.payload[name] = value;
