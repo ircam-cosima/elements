@@ -218,6 +218,8 @@ for (var i = 0; i < args.length; i += 2) {
   argv[args[i]] = args[i + 1];
 }
 
+var serverArgs = args; // no other use for args now
+
 switch (command) {
   case '--watch':
     // watch ejs templates
@@ -231,13 +233,13 @@ switch (command) {
     // watch common javascript files
     watchSharedJavascriptFiles(sharedSrcDirectories, sharedDistDirectories);
 
-    server.start(serverIndex);
+    server.start(serverIndex, serverArgs);
     break;
   case '--transpile':
     transpile();
     break;
   case '--start':
-    server.start(serverIndex);
+    server.start(serverIndex, serverArgs);
     break;
   case '--minify':
     minify();
@@ -259,12 +261,12 @@ function watchServerTemplates(srcDirectory) {
   watch.createMonitor(srcDirectory, getWatchOptions(), function(monitor) {
     monitor.on('created', function(filename) {
       if (isAllowed(filename))
-        server.restart();
+        server.restart(serverIndex, serverArgs);
     });
 
     monitor.on('changed', function(filename) {
       if (isAllowed(filename))
-        server.restart();
+        server.restart(serverIndex, serverArgs);
     });
   });
 }
@@ -300,21 +302,21 @@ function watchServerJavascriptFiles(srcDirectory, distDirectory) {
     monitor.on('created', function(filename) {
       if (isAllowed(filename) && !isSharedFile(filename)) {
         server.stop();
-        transpiler.transpile(filename, [], () => server.start(serverIndex));
+        transpiler.transpile(filename, [], () => server.start(serverIndex, serverArgs));
       }
     });
 
     monitor.on('changed', function(filename) {
       if (isAllowed(filename) && !isSharedFile(filename)) {
         server.stop();
-        transpiler.transpile(filename, [], () => server.start(serverIndex));
+        transpiler.transpile(filename, [], () => server.start(serverIndex, serverArgs));
       }
     });
 
     monitor.on('removed', function(filename) {
       if (isAllowed(filename, false) && !isSharedFile(filename)) {
         server.stop();
-        transpiler.delete(filename, () => server.start(serverIndex));
+        transpiler.delete(filename, () => server.start(serverIndex, serverArgs));
       }
     });
   });
@@ -370,21 +372,21 @@ function watchSharedJavascriptFiles(srcDirectories, distDirectories) {
         monitor.on('created', function(filename) {
           if (isAllowed(filename)) {
             server.stop();
-            transpiler.transpile(filename, [], () => server.start(serverIndex));
+            transpiler.transpile(filename, [], () => server.start(serverIndex, serverArgs));
           }
         });
 
         monitor.on('changed', function(filename) {
           if (isAllowed(filename)) {
             server.stop();
-            transpiler.transpile(filename, [], () => server.start(serverIndex));
+            transpiler.transpile(filename, [], () => server.start(serverIndex, serverArgs));
           }
         });
 
         monitor.on('removed', function(filename) {
           if (isAllowed(filename, false)) {
             server.stop();
-            transpiler.delete(filename, () => server.start(serverIndex));
+            transpiler.delete(filename, () => server.start(serverIndex, serverArgs));
           }
         });
       });

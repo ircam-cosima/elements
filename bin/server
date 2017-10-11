@@ -17,14 +17,14 @@ var server = null;
 /**
  * Run the `serverIndex` in a forked process
  */
-function start(serverIndex) {
+function start(serverIndex, serverArgs) {
   try {
     if (fse.statSync(serverIndex).isFile()) {
       if (server)
         stop();
 
       log.serverStart();
-      server = childProcess.fork(serverIndex);
+      server = childProcess.fork(serverIndex, { execArgv: serverArgs });
     }
   } catch(err) {
     log.serverError(serverIndex);
@@ -45,9 +45,9 @@ function stop() {
 /**
  *
  */
-function restart() {
+function restart(serverIndex, serverArgs) {
   stop();
-  start();
+  start(serverIndex, serverArgs);
 }
 
 /**
