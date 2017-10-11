@@ -8,11 +8,15 @@ import template from 'lodash.template';
 const projectTemplate = `
   <div class="project-header">
     <h4><%= name %></h4>
-    <div class="toggle-container mute <%= params.mute ? 'active' : '' %>" data-target="<%= uuid %>">
-      <div class="toggle-btn"><div></div></div> Mute
+    <div class="toggle-container project-param mute <%= params.mute ? 'active' : '' %>" data-target="<%= uuid %>">
+      <div class="toggle-btn">
+        <div></div>
+      </div>Mute
     </div>
-    <div class="toggle-container intensity <%= params.intensity ? 'active' : '' %>" data-target="<%= uuid %>">
-      <div class="toggle-btn"><div></div></div> Intensity
+    <div class="toggle-container project-param intensity <%= params.intensity ? 'active' : ''%>" data-target="<%= uuid %>">
+      <div class="toggle-btn">
+        <div></div>
+      </div>Intensity
     </div>
 
     <div>Global:
@@ -20,9 +24,7 @@ const projectTemplate = `
       <div class="select-container">Gaussians
         <select class="project-configuration" data-target="<%= uuid %>" data-param="gaussians" >
           <% for (var i = 1; i <= 10; i++) { %>
-            <option value="<%= i %>" <% if (gaussians === i) { %> <%= 'selected' %> <% } %> >
-              <%= i %>
-            </option>
+          <option value="<%= i %>" <%= gaussians === i ? 'selected' : '' %> ><%= i %> </option>
           <% } %>
         </select>
       </div>
@@ -30,7 +32,7 @@ const projectTemplate = `
       <div class="select-container">Covariance
         <select class="project-configuration" data-target="<%= uuid %>" data-param="covarianceMode" >
           <% ['full', 'diagonal'].forEach(function(opt) { %>
-          <option value="<%= opt %>" <% if (covarianceMode === opt) { %> <%= 'selected' %> <% } %> ><%= opt %></option>
+          <option value="<%= opt %>" <%= covarianceMode === opt ? 'selected' : '' %> ><%= opt %></option>
           <% }); %>
         </select>
       </div>
@@ -50,9 +52,7 @@ const projectTemplate = `
       <div class="select-container">States
         <select class="project-configuration" data-target="<%= uuid %>" data-param="states" >
           <% for (var i = 1; i <= 20; i++) { %>
-            <option value="<%= i %>" <% if (states === i) { %> <%= 'selected' %> <% } %> >
-              <%= i %>
-            </option>
+          <option value="<%= i %>" <%= states === i ? 'selected' : '' %> ><%= i %></option>
           <% } %>
         </select>
       </div>
@@ -60,7 +60,7 @@ const projectTemplate = `
       <div class="select-container">Transition
         <select class="project-configuration" data-target="<%= uuid %>" data-param="transitionMode" >
           <% ['ergodic', 'leftright'].forEach(function(opt) { %>
-          <option value="<%= opt %>" <% if (transitionMode === opt) { %> <%= 'selected' %> <% } %> ><%= opt %></option>
+          <option value="<%= opt %>" <%= transitionMode === opt ? 'selected' : '' %> ><%= opt %></option>
           <% }); %>
         </select>
       </div>
@@ -170,13 +170,13 @@ class ControllerView extends soundworks.View {
         this._selectProject(value);
       },
       // project params: apply to all clients
-      'click .project .mute': (e) => {
+      'click .project .project-param.mute': (e) => {
         const $btn = e.target.closest('.mute');
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
         this._updateProjectParamCallback(uuid, 'mute', !active);
       },
-      'click .project .intensity': (e) => {
+      'click .project .project-param.intensity': (e) => {
         const $btn = e.target.closest('.intensity');
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
