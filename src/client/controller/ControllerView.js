@@ -1,9 +1,6 @@
 import * as soundworks from 'soundworks/client';
 import template from 'lodash.template';
-
-// highThreshold
-// lowThreshold
-// offDelay
+import { presets as mlPresets } from '../../shared/config/ml-presets';
 
 const projectTemplate = `
   <div class="project-header">
@@ -18,6 +15,14 @@ const projectTemplate = `
         <div></div>
       </div>Intensity
     </div>
+
+    <div class="select-container">Presets:
+      <% for (var p in mlPresets) { %>
+       <button class="btn project-configuration ml-preset" data-target="<%= uuid %>" value="<%= p %>">
+          <%= mlPresets[p].name %>
+        </button>
+      <% } %>
+    </div><!-- Presets -->
 
     <div>Global:
 
@@ -224,6 +229,15 @@ class ControllerView extends soundworks.View {
 
         this._updateProjectConfigCallback(uuid, param, value);
       },
+      'click .project .project-configuration.ml-preset': (e) => {
+        const $input = e.target;
+        const uuid = $input.dataset.target;
+        const value = $input.value;
+        const preset = mlPresets[value].preset;
+        for(let param in preset) {
+          this._updateProjectConfigCallback(uuid, param, preset[param]);
+        }
+      },
       // client params
       'click .project .client .mute': (e) => {
         const $btn = e.target.closest('.mute');
@@ -314,7 +328,7 @@ class ControllerView extends soundworks.View {
     $container.classList.add('project');
     $container.style.display = 'none';
 
-    const content = this.projectTemplate(project);
+    const content = this.projectTemplate(Object.assign({}, project, { mlPresets }));
     $container.innerHTML = content;
 
     this.$projects.appendChild($container);
@@ -331,7 +345,7 @@ class ControllerView extends soundworks.View {
 
   updateProject(project) {
     const $container = this.projectUuidContainerMap.get(project.uuid);
-    const content = this.projectTemplate(project);
+    const content = this.projectTemplate(Object.assign({}, project, { mlPresets }));
 
     $container.innerHTML = content;
   }
