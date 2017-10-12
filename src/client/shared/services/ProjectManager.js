@@ -28,6 +28,8 @@ class ProjectManager extends Service {
     this._onReceiveProjectList = this._onReceiveProjectList.bind(this);
     this._onProjectAck = this._onProjectAck.bind(this);
     this._onProjectError = this._onProjectError.bind(this);
+
+    this.project = null;
   }
 
   /** @private */
@@ -50,8 +52,8 @@ class ProjectManager extends Service {
 
     /** @private */
   stop() {
-    super.stop();
     this.hide();
+    super.stop();
   }
 
 
@@ -75,6 +77,7 @@ class ProjectManager extends Service {
 
   /** @private */
   _onProjectAck(project) {
+    this.project = project;
     this.ready();
   }
 
@@ -85,6 +88,10 @@ class ProjectManager extends Service {
   _onProjectError() {
     this.view.model.error = true;
     this.view.render();
+  }
+
+  getProject() {
+    return this.project;
   }
 }
 

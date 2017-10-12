@@ -217,6 +217,7 @@ const appStore = {
   /////////// USERS ///////////
 
   // group handling
+  /*
   addDesignerToProject(client, project) {
     const users = this.projectUsersMap.get(project);
 
@@ -266,6 +267,7 @@ const appStore = {
       this._emit('remove-player-from-project', project);
     }
   },
+  */
 
   addClientToProject(client, project) {
     const clients = this.projectClientsMap.get(project);
@@ -293,7 +295,7 @@ const appStore = {
 
   ////////// PHRASES //////////
 
-  addPhraseToProject(project, phrase) {
+  addExampleToProject(project, phrase) {
     const td = this.projectDataMap.get(project).data;
     td.addExample(phrase);
     xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
@@ -301,7 +303,7 @@ const appStore = {
     this.trainProject(project);
   },
 
-  removePhrasesFromProject(project, label) {
+  removeExamplesFromProject(project, label) {
     const td = this.projectDataMap.get(project).data;
     td.removeExamplesByLabel(label);
     xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
@@ -309,7 +311,7 @@ const appStore = {
     this.trainProject(project);
   },
 
-  removeAllPhrasesFromProject(project) {
+  removeAllExamplesFromProject(project) {
     const td = this.projectDataMap.get(project).data;
     td.clear();
     xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
@@ -332,6 +334,7 @@ const appStore = {
 
   // We should normally not use this one,
   // as everything is managed from phrase operations (see just above) :
+  /*
   setProjectTrainingSet(project, trainingSet) {
     const tc = this.projectDataMap.get(project);
     tc.data.setTrainingSet(trainingSet);
@@ -341,6 +344,7 @@ const appStore = {
 
     this.trainProject(project);
   },
+  */
 
   setProjectTrainingConfig(project, config) {
     const tc = this.projectDataMap.get(project);
@@ -362,6 +366,7 @@ const appStore = {
   // xmm data
   // We should normally not use this one anymore,
   // but setProjectTrainingConfig instead
+  /*
   setProjectTrainingData(project, trainingData) {
     const tc = this.projectDataMap.get(project);
     tc.algo.setConfig(trainingData.config);
@@ -372,6 +377,7 @@ const appStore = {
 
     this._emit('set-project-training-data', project, trainingData);
   },
+  */
 
   ////////// GETTERS //////////
 

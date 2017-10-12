@@ -11,7 +11,6 @@ class ProjectManager extends Service {
 
     const defaults = {};
 
-    this.loggedProjectMap = new Map();
     this.configure(defaults);
 
     this.require('client-register');
@@ -25,6 +24,16 @@ class ProjectManager extends Service {
   /** @private */
   start() {
     super.start();
+
+    const refreshList = () => {
+      const clients = appStore.clients;
+      const projectList = Array.from(appStore.projects);
+      clients.forEach(client => this.send(client, 'project-list', projectList));
+    }
+
+    appStore.addListener('create-project', refreshList);
+    appStore.addListener('delete-project', refreshList);
+
     this.ready();
   }
 
@@ -48,6 +57,7 @@ class ProjectManager extends Service {
   exitProject(client) {
     // console.log('exitProject', client);
     appStore.removeClientFromProject(client);
+    this.project = null;
   }
 
   /** @private */
@@ -60,6 +70,7 @@ class ProjectManager extends Service {
 
       appStore.addClientToProject(client, project);
       this.send(client, 'project-ack', project);
+      this._chooseProjectCallback(client)
     }
   }
 

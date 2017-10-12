@@ -280,6 +280,28 @@ $elmHeight: 36px;
   font-size: 1.4em;
   background-color: $backgroundColor;
 
+  #project-name {
+    position: relative;
+    height: 40px;
+    margin-bottom: 20px;
+
+    p {
+      line-height: 40px;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .btn {
+      z-index: 2;
+      width: auto;
+      position: absolute;
+      top: 0;
+      right: 0;
+      margin-bottom: 0;
+      padding: 0 20px;
+    }
+  }
+
   .section-wrapper {
     display: none;
 
@@ -287,9 +309,6 @@ $elmHeight: 36px;
       display: block;
     }
   }
-  // .section-wrapper, .show {
-  //   display: block;
-  // }
 
   #nav {
     z-index: 3;

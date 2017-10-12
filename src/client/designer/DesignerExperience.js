@@ -31,12 +31,12 @@ class DesignerExperience extends soundworks.Experience {
     this.labels = Object.keys(labels);
     this.likeliest = undefined;
     this.likelihoods = [];
+    this.aggregatedOutput = new Float32Array();
     this.sensitivity = 1;
 
     this.streamSensors = false;
 
     this.platform = this.require('platform', { features: ['web-audio'] });
-    // this.projectAdmin = this.require('project-admin');
     this.projectManager = this.require('project-manager');
     this.sharedParams = this.require('shared-params');
 
@@ -68,7 +68,6 @@ class DesignerExperience extends soundworks.Experience {
     this._updateTrainingConfig = this._updateTrainingConfig.bind(this);
     this._updateProjectConfigRequest = this._updateProjectConfigRequest.bind(this);
     this._updateProjectConfig = this._updateProjectConfig.bind(this);
-    // this._updateModelRequest = this._updateModelRequest.bind(this);
     this._updateModel = this._updateModel.bind(this);
     this._triggerCommand = this._triggerCommand.bind(this);
   }
@@ -85,6 +84,7 @@ class DesignerExperience extends soundworks.Experience {
     this.receive('force:disconnect', () => window.location.reload());
 
     this.view = new DesignerView({
+        title: '',
         sounds: labels,
         assetsDomain: this.config.assetsDomain,
         recBtnState: 0, // 0 is waiting, 1 is armed, 2 is recording, 3 is idle
@@ -96,6 +96,7 @@ class DesignerExperience extends soundworks.Experience {
       }
     );
 
+    this.view.setSwitchProjectCallback(() => this.projectManager.show());
     this.view.setRecordCallback(this._onRecord);
     this.view.setClearLabelCallback(this._onClearLabel);
     this.view.setClearModelCallback(this._onClearModel);
@@ -105,7 +106,8 @@ class DesignerExperience extends soundworks.Experience {
     this.view.setUpdateProjectConfigCallback(this._updateProjectConfigRequest);
 
     // rendering
-    this.renderer = new LikelihoodsRenderer(this.view);
+    this.likelihoodsRenderer = new LikelihoodsRenderer(this.view);
+    this.fullColorRenderer = new FullColorRenderer(this.view);
 
     const buffers = this.audioBufferManager.data.labels;
     this.audioEngine = new AudioEngine(buffers);
@@ -127,6 +129,8 @@ class DesignerExperience extends soundworks.Experience {
       processFrame: frame => this._feedDecoder(frame.data),
     });
 
+    this.recorderOnOff = new lfo.operator.OnOff({ state: 'off' });
+
     this.recorderBridge = new lfo.sink.Bridge({
       processFrame: frame => this._feedRecorder(frame.data),
     });
@@ -134,7 +138,6 @@ class DesignerExperience extends soundworks.Experience {
     this.processedSensors.addListener(data => {
       for (let i = 0; i < data.length; i++) {
         if (!Number.isFinite(data[i]) && data[i] !== null) {
-        // if (Number.isNaN(data[i])) {
           this.send('error:input-data', data);
           return;
         }
@@ -147,12 +150,13 @@ class DesignerExperience extends soundworks.Experience {
 
     this.eventIn.connect(this.decoderOnOff);
     this.decoderOnOff.connect(this.decoderBridge);
-    this.eventIn.connect(this.recorderBridge);
+    this.eventIn.connect(this.recorderOnOff);
+    this.recorderOnOff.connect(this.recorderBridge);
 
-    // recording and decoding
-    this.phraseRecorder = new imlMotion.Example();
-    this.trainingData = new imlMotion.TrainingData();
+    // recording
+    this.exampleRecorder = new imlMotion.Example();
 
+    // decoding
     this.xmmDecoder = new imlMotion.XmmProcessor({ url: this.config.trainUrl });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
@@ -198,17 +202,16 @@ class DesignerExperience extends soundworks.Experience {
 
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
-        const fcRenderer = new FullColorRenderer(this.view);
-        this.view.addRenderer(this.renderer);
-        this.view.addRenderer(fcRenderer);
+        this.view.addRenderer(this.likelihoodsRenderer);
+        this.view.addRenderer(this.fullColorRenderer);
         this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
         this.view.setSectionsVisibility({
-          configuration: true,
+          configuration: false,
           basicControls: true,
           advancedControls: false,
           canvas: true,
         });
-        this.view.removeRenderer(fcRenderer);
+        this.view.removeRenderer(this.fullColorRenderer);
 
         // this.audioEngine.start();
         // this.previewAudioEngine.start();
@@ -221,7 +224,9 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _init() {
-    this.send('project:fetch-all');
+    this.projectManager.hide();
+    this.view.updateProjectName(this.projectManager.getProject().name);
+    this.send('project:fetch-all-request');
   }
 
   _updateParamRequest(name, value) {
@@ -282,9 +287,7 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _updateModel(model) {
-    // console.log(model);
     this.xmmDecoder.setModel(model);
-    // this.xmmDecoder.reset();
 
     const currentLabels = model
                         ? model.payload.models.map(model => model.label)
@@ -320,13 +323,14 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _startRecording() {
+    // disable recognition, enable recording input flow@
     this.decoderOnOff.setState('off');
+    this.recorderOnOff.setState('on');
 
     this.likeliest = this.view.getCurrentLabel();
 
     // start recording
-    // this.trainingData.startRecording(this.likeliest);
-    this.phraseRecorder.clear();
+    this.exampleRecorder.clear();
     this.view.startRecording();
 
     playSound(this.audioBufferManager.data.clicks['startRec']);
@@ -338,10 +342,9 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _stopRecording() {
-    // stop recording
-    // this.trainingData.stopRecording();
-    // enable recognition back
+    // enable recognition back, disable recording input flow
     this.decoderOnOff.setState('on');
+    this.recorderOnOff.setState('off');
 
     this.view.stopRecording();
     this.autoTrigger.setState('off');
@@ -352,11 +355,10 @@ class DesignerExperience extends soundworks.Experience {
     this.send('param:update', 'recording', false);
 
     this.view.confirm('send').then(() => {
-      this.phraseRecorder.setLabel(this.view.getCurrentLabel());
-      this.send('phrase', { cmd: 'add', data: this.phraseRecorder.getExample() });
-      // this._trainModel();
+      this.exampleRecorder.setLabel(this.view.getCurrentLabel());
+      this.send('example', { cmd: 'add', data: this.exampleRecorder.getExample() });
     }, () => { // if cancelled (reject)
-      // this.trainingData.deleteRecording(this.trainingData.length - 1);
+      // just don't send anything
     }).catch((err) => {
       if (err instanceof Error)
         console.error(err.stack)
@@ -372,8 +374,7 @@ class DesignerExperience extends soundworks.Experience {
       }
     }
 
-    // this.trainingData.addElement(data);
-    this.phraseRecorder.addElement(data);
+    this.exampleRecorder.addElement(data);
   }
 
   _feedDecoder(data) {
@@ -400,7 +401,7 @@ class DesignerExperience extends soundworks.Experience {
     };
 
     // this.granularAudioEngine.setModelResults(formattedResults);
-    this.renderer.setModelResults(formattedResults);
+    this.likelihoodsRenderer.setModelResults(formattedResults);
 
     this.likelihoods = likelihoods;
 
@@ -415,12 +416,10 @@ class DesignerExperience extends soundworks.Experience {
       const intensity = value * 100 * this.sensitivity;
       this.audioEngine.setGainFromIntensity(intensity);
       this.previewAudioEngine.setGainFromIntensity(intensity);
-
       // this.granularAudioEngine.setIntensity(intensity);
     } else {
       this.audioEngine.setGainFromIntensity(1);
       this.previewAudioEngine.setGainFromIntensity(1);
-
       // this.granularAudioEngine.setIntensity(1);
     }
   }
@@ -430,26 +429,28 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _streamSensors(data) {
-    const aggregated = new Float32Array(data.length + this.likelihoods.length);
+    // we need to check this as the likelihoods length could change anytime :
+    if (this.aggregatedOutput.length != data.length + this.likelihoods.length)
+      this.aggregatedOutput = new Float32Array(data.length + this.likelihoods.length);
 
     for (let i = 0; i < data.length; i++)
-      aggregated[i] = data[i];
+      this.aggregatedOutput[i] = data[i];
 
     for (let i = 0; i < this.likelihoods.length; i++)
-      aggregated[i + data.length] = this.likelihoods[i];
+      this.aggregatedOutput[i + data.length] = this.likelihoods[i];
 
     this.rawSocket.send('sensors', aggregated);
   }
 
   _onClearLabel(label) {
     this.view.confirm('clear-label', label).then(() => {
-      this.send('phrase', { cmd: 'clear', data: label });
+      this.send('example', { cmd: 'clear', data: label });
     }).catch(() => {});
   }
 
   _onClearModel() {
     this.view.confirm('clear-all').then(() => {
-      this.send('phrase', { cmd: 'clearall', data: null });
+      this.send('example', { cmd: 'clearall', data: null });
     }).catch(() => {});
   }
 };

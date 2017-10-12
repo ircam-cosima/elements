@@ -49,11 +49,11 @@ class ControllerExperience extends soundworks.Experience {
     appStore.addListener('set-project-config', project => broadcast('project:update', project));
     appStore.addListener('set-project-model', project => broadcast('project:update', project));
 
-    appStore.addListener('add-designer-to-project', project => broadcast('project:update', project));
-    appStore.addListener('add-player-to-project', project => broadcast('project:update', project));
+    // appStore.addListener('add-designer-to-project', project => broadcast('project:update', project));
+    // appStore.addListener('add-player-to-project', project => broadcast('project:update', project));
 
-    appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
-    appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
+    // appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
+    // appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
 
     appStore.addListener('add-client-to-project', project => broadcast('project:update', project));
     appStore.addListener('remove-client-from-project', project => broadcast('project:update', project));

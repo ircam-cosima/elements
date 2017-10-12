@@ -91,6 +91,13 @@ const viewTemplate = `
     <section id="main">
       <div class="wrapper">
 
+        <div id="project-name">
+          <p><%= title %></p>
+          <button class="btn" id="switch-project">
+            Switch project
+          </button>
+        </div>
+
         <div id="basic-controls-wrapper" class="section-wrapper">
         <div class="toggle-container" id="mute">
           <div class="toggle-btn"><div></div></div> Mute
@@ -154,8 +161,13 @@ class DesignerView extends CanvasView {
     this._recordCallback = noop;
     this._updateParamCallback = noop;
     this._updateParamsCallback = noop;
+    this._switchProjectCallback = noop;
 
     const viewEvents = {
+      'touchstart #switch-project': (e) => {
+        this._switchProjectCallback();
+        e.preventDefault()
+      },
       'touchstart #rec-btn': () => {
         if (this.$recBtn.classList.contains('active'))
           return;
@@ -337,6 +349,14 @@ class DesignerView extends CanvasView {
     $el.querySelector('#trans-mode-select').value = config.transitionMode || 0;
   }
 
+  setSwitchProjectCallback(callback) {
+    this._switchProjectCallback = callback;
+  }
+
+  updateProjectName(name) {
+    this.model.title = name;
+    this.render('#project-name');
+  }
 
   setCurrentLabels(currentLabels) {
     this.currentLabels = currentLabels;
