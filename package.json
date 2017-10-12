@@ -29,7 +29,7 @@
     "body-parser": "^1.17.2",
     "chalk": "^2.1.0",
     "debug": "^2.6.8",
-    "iml-motion": "github:ircam-rnd/iml-motion#develop",
+    "iml-motion": "github:ircam-rnd/iml-motion",
     "lodash.template": "^4.4.0",
     "soundworks": "collective-soundworks/soundworks#marco-revelo",
     "source-map-support": "^0.4.17",
