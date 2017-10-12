@@ -11,6 +11,7 @@ import PlayerExperience from './PlayerExperience';
 // services
 import ProjectAdmin from './shared/services/ProjectAdmin';
 import ProjectChooser from './shared/services/ProjectChooser';
+import ProjectManager from './shared/services/ProjectManager';
 import ClientRegister from './shared/services/ClientRegister';
 import appStore from './shared/appStore';
 

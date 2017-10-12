@@ -92,6 +92,44 @@ body.white {
   }
 }
 
+#service-project-manager {
+  input[type=text], input[type=password] {
+    font-size: 1.4rem;
+    height: 30px;
+    text-align: center;
+    color: #343434;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  select {
+    width: 80%;
+    font-size: 1.2rem;
+    line-height: 2rem;
+    height: 2rem;
+  }
+
+  .section-center {
+    position: relative;
+  }
+
+  .error {
+    font-size: 1rem;
+    color: orange;
+    position: absolute;
+    top: -24px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .grey {
+    color: #bcbcbc;
+    font-size: 1rem;
+    display: block;
+  }
+}
+
 //============================================================================//
 
 // body.designer, html.designer {

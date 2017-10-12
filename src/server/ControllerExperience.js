@@ -55,6 +55,9 @@ class ControllerExperience extends soundworks.Experience {
     appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
     appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
 
+    appStore.addListener('add-client-to-project', project => broadcast('project:update', project));
+    appStore.addListener('remove-client-from-project', project => broadcast('project:update', project));
+
     this.comm.addListener('sensors', data => {
       const features = new Float32Array(8) // nb of features to extract
 
@@ -118,6 +121,7 @@ class ControllerExperience extends soundworks.Experience {
     };
 
     // handle designer
+    /*
     const designer = appStore.getProjectDesigner(project);
 
     if (designer !== null) {
@@ -142,6 +146,23 @@ class ControllerExperience extends soundworks.Experience {
 
       serialized.clients.push(client);
     });
+    */
+
+    const clients = appStore.getProjectClients(project);
+
+    if (clients.size > 0)
+      serialized.hasDesigner = true;
+
+    clients.forEach(client => {
+      const c = {
+        type: 'designer',
+        uuid: client.uuid,
+        params: client.params,
+      };
+
+      serialized.clients.push(c);
+    });
+    //
 
     return serialized;
   }

@@ -1,4 +1,5 @@
 import {
+  View,
   SegmentedView,
   SelectView,
   SpaceView,
@@ -26,6 +27,92 @@ import {
 const noop = () => {};
 
 const serviceViews = {
+  // ------------------------------------------------
+  // ProjectManager
+  // ------------------------------------------------
+  'service:project-manager': class ProjectManagerView extends View {
+    constructor() {
+      super();
+
+      // chooser
+      this.template = `
+        <div class="section-top flex-center">
+          <div>
+            <p>Select project</p>
+            <p class="error">
+            <% if (error === true) { %>
+              Sorry, an error occured
+            <% } %>
+            </p>
+            <div>
+              <select id="project-select">
+                <option value="">Choose a project</option>
+                <% projects.forEach(function(project) { %>
+                <option value="<%= project.name %>"><%= project.name %></option>
+                <% }); %>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-center flex-center">
+          <div>
+            <p>Enter / Create Project</p>
+            <% if (error) { %>
+            <p class="error">
+              Sorry project "<%= name %>" is already in use
+            </p>
+            <% } %>
+            <input type="text" id="name" placeholder="project name" value="" />
+            <button class="btn" id="login">Send</button>
+          </div>
+        </div>
+        <div class="section-bottom"></div>
+      `;
+
+      this.model = {
+        projects: [],
+        error: false,
+        name: null,
+      };
+
+      this._loginCallback = noop;
+
+      this.installEvents({
+        'change #project-select': () => {
+          const name = this.$select.value;
+
+          if (name !== '')
+            this._loginCallback(name);
+        },
+        'click #login': () => {
+          const name = this.$el.querySelector('#name').value;
+
+          if (name !== '')
+            this._loginCallback(name);
+        },
+      });
+    }
+
+    onRender() {
+      super.onRender();
+
+      this.$select = this.$el.querySelector('#project-select');
+    }
+
+    setProjectList(projects) {
+      this.model.projects = projects;
+    }
+
+    setSelectCallback(callback) {
+      this._selectCallback = callback;
+    }
+
+    setLoginCallback(callback) {
+      this._loginCallback = callback;
+    }
+  },
+
   // ------------------------------------------------
   // ProjectChooser
   // ------------------------------------------------

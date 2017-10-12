@@ -65,7 +65,7 @@ const projectTemplate = `
         <div class="toggle-btn"><div></div></div> Stream sensors
       </div>
 
-      <% if (client.type === 'designer') { %>
+      <% if (true || client.type === 'designer') { %>
         <% if (!client.params.recording) { %>
         <button class="btn toggle-record record" data-target="<%= client.uuid %>">Rec</button>
         <% } else { %>

@@ -8,6 +8,7 @@ const appStore = {
   init() {
     this.projects = projectDbMapper.getList(); // project = { name, uuid }
     this.projectUsersMap = new Map();
+    this.projectClientsMap = new Map();
     this.projectDataMap = new Map();
 
     this.uuidClientMap = new Map();
@@ -19,21 +20,28 @@ const appStore = {
     this.projects.forEach(project => {
       // maybe `params` could be renamed to `clientParams`
       project.params = this._getProjectDefaultParams();
-      project.config = this._getProjectDefaultConfig();
+      // leave config as loaded from drive :
+      // project.config = this._getProjectDefaultConfig();
+
       this.projectUsersMap.set(project, this._getEmptyUserMap());
+      this.projectClientsMap.set(project, new Set());
 
       const tc = this._getNewTrainingClasses();
-      tc.data.setTrainingSet(xmmDbMapper.getTrainingSet(project));
-      tc.algo.setConfig(xmmDbMapper.getConfig(project));
+      const trainingSet = xmmDbMapper.getTrainingSet(project);
+      const config = xmmDbMapper.getConfig(project);
+
+      if (trainingSet)
+        tc.data.setTrainingSet(trainingSet);
+      else
+        xmmDbMapper.persistTrainingSet(project, tc.data.getTrainingSet());
+
+      if (config)
+        tc.algo.setConfig(config);
+      else
+        xmmDbMapper.persistConfig(project, tc.algo.getConfig());
+
       this.projectDataMap.set(project, tc);
     });
-
-    // we assume the api simulation will run on the localhost (see server/index.js)
-    this.trainer = new imlMotion.XmmProcessor({
-      url: `http://localhost:${config.port}${config.trainUrl}`
-    })
-
-    this.trainers = new Map();
   },
 
   // maybe this could be split properly between players and designers
@@ -73,6 +81,7 @@ const appStore = {
     return {
       data: new imlMotion.TrainingData(),
       algo: new imlMotion.XmmProcessor({
+        // we assume the api simulation will run on the localhost (see server/index.js)
         url: `http://localhost:${config.port}${config.trainUrl}`
       }),
     };
@@ -125,9 +134,14 @@ const appStore = {
 
     this.projects.add(project);
     this.projectUsersMap.set(project, this._getEmptyUserMap());
+    this.projectClientsMap.set(project, new Set());
     this.projectDataMap.set(project, this._getNewTrainingClasses());
 
     projectDbMapper.persist(this.projects);
+
+    const tc = this.projectDataMap.get(project);
+    xmmDbMapper.persistTrainingSet(project, tc.data.getTrainingSet());
+    xmmDbMapper.persistConfig(project, tc.algo.getConfig());
 
     this._emit('create-project', project);
 
@@ -140,6 +154,7 @@ const appStore = {
   deleteProject(project) {
     // @todo - check if users
     this.projectUsersMap.delete(project);
+    this.projectClientsMap.delete(project);
     this.projectDataMap.delete(project);
     this.projects.delete(project);
 
@@ -152,26 +167,21 @@ const appStore = {
     this._emit('delete-project', project);
   },
 
-  // setProjectConfig(project, name, value) {
-  //   // sanitize values
-  //   switch (name) {
-  //     case 'highThreshold':
-  //     case 'lowThreshold':
-  //       value = Math.min(1, Math.max(0, value));
-  //       break;
-  //     case 'offDelay':
-  //       value = Math.max(20, value);
-  //       break;
-  //   }
+  setProjectConfig(project, name, value) {
+    // sanitize values
+    switch (name) {
+      case 'highThreshold':
+      case 'lowThreshold':
+        value = Math.min(1, Math.max(0, value));
+        break;
+      case 'offDelay':
+        value = Math.max(20, value);
+        break;
+    }
 
-  //   project.config[name] = value;
+    project.config[name] = value;
 
-  //   this._emit('set-project-config', project);
-  // },
-
-  setProjectConfig(project, config) {
-    for (let c in config) // subconfigs
-      project.config[c] = config[c];
+    projectDbMapper.persist(this.projects);
 
     this._emit('set-project-config', project);
   },
@@ -181,12 +191,15 @@ const appStore = {
   setProjectParam(project, name, value) {
     project.params[name] = value;
 
-    const users = this.projectUsersMap.get(project);
+    // const users = this.projectUsersMap.get(project);
+    const clients = this.projectClientsMap.get(project);
 
-    if (users.designer)
-      this.setClientParam(users.designer, name, value, false);
+    // if (users.designer)
+    //   this.setClientParam(users.designer, name, value, false);
 
-    users.players.forEach(player => this.setClientParam(player, name, value, false));
+    // users.players.forEach(player => this.setClientParam(player, name, value, false));
+
+    clients.forEach(client => this.setClientParam(client, name, value, false));
 
     this._emit('set-project-param', project);
   },
@@ -254,11 +267,35 @@ const appStore = {
     }
   },
 
+  addClientToProject(client, project) {
+    const clients = this.projectClientsMap.get(project);
+
+    for (let name in project.params)
+      client.params[name] = project.params[name];
+
+    clients.add(client);
+    client.project = project;
+
+    this._emit('add-client-to-project', project);
+  },
+
+  removeClientFromProject(client) {
+    const project = client.project;
+    const clients = this.projectClientsMap.get(project);
+
+    if (clients) {
+      clients.delete(client);
+      client.project = null;
+
+      this._emit('remove-client-from-project', project);
+    }
+  },
+
   ////////// PHRASES //////////
 
   addPhraseToProject(project, phrase) {
     const td = this.projectDataMap.get(project).data;
-    td.addPhrase(phrase);
+    td.addExample(phrase);
     xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
 
     this.trainProject(project);
@@ -266,7 +303,7 @@ const appStore = {
 
   removePhrasesFromProject(project, label) {
     const td = this.projectDataMap.get(project).data;
-    td.removeElementsByLabel(label);
+    td.removeExamplesByLabel(label);
     xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
 
     this.trainProject(project);
@@ -293,6 +330,8 @@ const appStore = {
 
   ////////// SETTERS //////////
 
+  // We should normally not use this one,
+  // as everything is managed from phrase operations (see just above) :
   setProjectTrainingSet(project, trainingSet) {
     const tc = this.projectDataMap.get(project);
     tc.data.setTrainingSet(trainingSet);
@@ -306,7 +345,8 @@ const appStore = {
   setProjectTrainingConfig(project, config) {
     const tc = this.projectDataMap.get(project);
     tc.algo.setConfig(config);
-    xmmDbMapper.persistConfig(project, tc.algo.getConfig());
+    config = tc.algo.getConfig();
+    xmmDbMapper.persistConfig(project, config);
 
     this._emit('set-project-training-config', project, config);
 
@@ -320,6 +360,8 @@ const appStore = {
   },
 
   // xmm data
+  // We should normally not use this one anymore,
+  // but setProjectTrainingConfig instead
   setProjectTrainingData(project, trainingData) {
     const tc = this.projectDataMap.get(project);
     tc.algo.setConfig(trainingData.config);
@@ -387,6 +429,10 @@ const appStore = {
   getProjectPlayers(project) {
     const users = this.projectUsersMap.get(project);
     return users.players;
+  },
+
+  getProjectClients(project) {
+    return this.projectClientsMap.get(project);
   },
 };
 

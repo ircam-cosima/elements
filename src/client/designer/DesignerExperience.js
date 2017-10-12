@@ -4,10 +4,12 @@ import * as imlMotion from 'iml-motion';
 
 import DesignerView from './DesignerView';
 import ProjectAdmin from '../shared/services/ProjectAdmin';
+import ProjectManager from '../shared/services/ProjectManager';
 import AudioEngine from '../shared/AudioEngine';
 import GranularAudioEngine from '../shared/GranularAudioEngine';
 import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
+import FullColorRenderer from '../shared/FullColorRenderer';
 import { labels, clicks, presets } from '../shared/config';
 
 const audioContext = soundworks.audioContext;
@@ -33,7 +35,8 @@ class DesignerExperience extends soundworks.Experience {
     this.streamSensors = false;
 
     this.platform = this.require('platform', { features: ['web-audio'] });
-    this.projectAdmin = this.require('project-admin');
+    // this.projectAdmin = this.require('project-admin');
+    this.projectManager = this.require('project-manager');
     this.sharedParams = this.require('shared-params');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
@@ -47,7 +50,6 @@ class DesignerExperience extends soundworks.Experience {
 
     this.rawSocket = this.require('raw-socket');
 
-    this._updateMLConfig = this._updateMLConfig.bind(this);
     this._onRecord = this._onRecord.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
     this._onClearModel = this._onClearModel.bind(this);
@@ -61,6 +63,8 @@ class DesignerExperience extends soundworks.Experience {
     this._init = this._init.bind(this);
     this._updateParamRequest = this._updateParamRequest.bind(this);
     this._updateParams = this._updateParams.bind(this);
+    this._updateTrainingConfigRequest = this._updateTrainingConfigRequest.bind(this);
+    this._updateTrainingConfig = this._updateTrainingConfig.bind(this);
     this._updateProjectConfigRequest = this._updateProjectConfigRequest.bind(this);
     this._updateProjectConfig = this._updateProjectConfig.bind(this);
     // this._updateModelRequest = this._updateModelRequest.bind(this);
@@ -74,6 +78,7 @@ class DesignerExperience extends soundworks.Experience {
     this.receive('init', this._init);
     this.receive('params:update', this._updateParams);
     this.receive('config:update', this._updateProjectConfig);
+    this.receive('training-config:update', this._updateTrainingConfig);
     this.receive('model:update', this._updateModel);
     this.receive('command:trigger', this._triggerCommand);
     this.receive('force:disconnect', () => window.location.reload());
@@ -90,14 +95,12 @@ class DesignerExperience extends soundworks.Experience {
       }
     );
 
-    this.view.setUpdateMLConfigCallback(this._updateMLConfig);
     this.view.setRecordCallback(this._onRecord);
     this.view.setClearLabelCallback(this._onClearLabel);
     this.view.setClearModelCallback(this._onClearModel);
 
     this.view.setUpdateParamCallback(this._updateParamRequest);
-
-    this.view.setUpdateParamsCallback(this._updateParamsRequest);
+    this.view.setUpdateTrainingConfigCallback(this._updateTrainingConfigRequest);
     this.view.setUpdateProjectConfigCallback(this._updateProjectConfigRequest);
 
     // rendering
@@ -146,7 +149,7 @@ class DesignerExperience extends soundworks.Experience {
     this.eventIn.connect(this.recorderBridge);
 
     // recording and decoding
-    this.phraseRecorder = new imlMotion.Phrase();
+    this.phraseRecorder = new imlMotion.Example();
     this.trainingData = new imlMotion.TrainingData();
 
     this.xmmDecoder = new imlMotion.XmmProcessor({ url: this.config.trainUrl });
@@ -188,22 +191,26 @@ class DesignerExperience extends soundworks.Experience {
       this.processedSensors.bandpassGain.params.set('factor', value);
     });
 
-    // this.audioEngine.start();
+    this.audioEngine.start();
+    this.previewAudioEngine.start();
     // this.granularAudioEngine.start();
 
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
+        const fcRenderer = new FullColorRenderer(this.view);
         this.view.addRenderer(this.renderer);
+        this.view.addRenderer(fcRenderer);
         this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
         this.view.setSectionsVisibility({
           configuration: true,
           basicControls: true,
-          advancedControls: true,
+          advancedControls: false,
           canvas: true,
         });
+        this.view.removeRenderer(fcRenderer);
 
-        this.audioEngine.start();
-        this.previewAudioEngine.start();
+        // this.audioEngine.start();
+        // this.previewAudioEngine.start();
         // this.granularAudioEngine.start();
 
         this.processedSensors.start();
@@ -212,49 +219,13 @@ class DesignerExperience extends soundworks.Experience {
       .catch(err => console.error(err.stack));
   }
 
-  _init(trainingData) {
-    // if (trainingData.config !== null)
-    //   this.xmmDecoder.setConfig(trainingData.config);
-
-    // if (trainingData.trainingSet !== null) {
-    //   this.trainingData.setTrainingSet(trainingData.trainingSet);
-    //   this._trainModel();
-    // }
-  }
-
-  _trainModel() {
-    this.send('model:train');
-    return;
-
-    // this._updateModelRequest should be removed too
-
-    // const trainingSet = this.trainingData.getTrainingSet();
-
-    // this.xmmDecoder
-    //   .train(trainingSet)
-    //   .then(response => {
-    //     const model = response.model;
-    //     const config = this.xmmDecoder.getConfig();
-    //     const trainingSet = this.trainingData.getTrainingSet();
-
-    //     // this.granularAudioEngine.setLabels(this.trainingData.getLabels());
-
-    //     this._updateModelRequest({
-    //       config: config,
-    //       trainingSet: trainingSet,
-    //       model: model,
-    //     });
-    //   })
-    //   .catch(err => console.error(err.stack));
+  _init() {
+    this.send('project:fetch-all');
   }
 
   _updateParamRequest(name, value) {
     this.send('param:update', name, value);
   }
-
-  // _updateParamsRequest(params) {
-  //   this.send('params:update', params);
-  // }
 
   _updateParams(params) {
     this.audioEngine.mute = params.mute;
@@ -277,64 +248,52 @@ class DesignerExperience extends soundworks.Experience {
   // so explode it... this will trigger 3 refresh. This is bad but prepare
   // the field for more dynamic and consistent behavior in some future
   _updateProjectConfigRequest(config) {
-    // for (let name in config)
-    //   this.send('config:update', name, config[name]);
-
-    console.log('about to request project config update');
-    this.send('config:update', config);
+    for (let name in config)
+      this.send('config:update', name, config[name]);
   }
 
   _updateProjectConfig(config) {
-    console.log(config);
-    const rCfg = config.recording;
+    this.autoTrigger.highThreshold = config.highThreshold;
+    this.autoTrigger.lowThreshold = config.lowThreshold;
+    this.autoTrigger.offDelay = config.offDelay;
 
-    this.autoTrigger.highThreshold = rCfg.highThreshold;
-    this.autoTrigger.lowThreshold = rCfg.lowThreshold;
-    this.autoTrigger.offDelay = rCfg.offDelay;
-
-    const tCfg = config.training;
-    this.xmmDecoder.setConfig(tCfg);
-
-    // const newTrainingConfig = Object.assign({}, tCfg.payload, {
-    //   modelType: tCfg.target.name.split(':')[1],
-    // });
-
-    this.view.updateProjectConfig({
-      recording: rCfg,
-      training: tCfg,
-    });
+    this.view.updateProjectConfig(config);
   }
 
-  // _updateModelRequest(data) {
-  //   this.send('model:update', data);
-  // }
+  // at some point, this could probably go in the same information pipeline
+  // as everything else
+  _updateTrainingConfigRequest(config) {
+    this.send('training-config:update', config);
+  }
 
-  _updateModel(model, config) {
+  _updateTrainingConfig(config) {
+    this.xmmDecoder.setConfig(config);
+
+    const viewConfig = Object.assign({}, config.payload, {
+      modelType: config.target.name.split(':')[1],
+    });
+
+    this.view.updateTrainingConfig(viewConfig);
+  }
+
+  _updateModelRequest() {
+    this.send('model:update-request');
+  }
+
+  _updateModel(model) {
+    // console.log(model);
     this.xmmDecoder.setModel(model);
+    // this.xmmDecoder.reset();
 
-    const currentLabels = model.payload.models.map(model => model.label);
+    const currentLabels = model
+                        ? model.payload.models.map(model => model.label)
+                        : [];
 
     this.audioEngine.updateSounds(currentLabels);
     this.likeliest = undefined; // otherwise won't fade to new sound on model update
 
     this.view.setCurrentLabels(currentLabels);
     this.view.showNotification('Model updated');
-  }
-
-  // at some point, this could probably go in the same information pipeline
-  // as everything else
-  _updateMLConfig(config) {
-    this.xmmDecoder.setConfig(config);
-
-    console.log(config);
-
-    const viewConfig = Object.assign({}, config.payload, {
-      modelType: config.target.name.split(':')[1],
-    });
-
-    this.view.updateMLConfig(viewConfig);
-    this._trainModel();
-
   }
 
   _triggerCommand(cmd, ...args) {
@@ -393,7 +352,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.view.confirm('send').then(() => {
       this.phraseRecorder.setLabel(this.view.getCurrentLabel());
-      this.send('phrase', { cmd: 'add', data: this.phraseRecorder.getPhrase() });
+      this.send('phrase', { cmd: 'add', data: this.phraseRecorder.getExample() });
       // this._trainModel();
     }, () => { // if cancelled (reject)
       // this.trainingData.deleteRecording(this.trainingData.length - 1);
@@ -456,12 +415,12 @@ class DesignerExperience extends soundworks.Experience {
       this.audioEngine.setGainFromIntensity(intensity);
       this.previewAudioEngine.setGainFromIntensity(intensity);
 
-      // this.granularAudioEngine.setIntensity(scaled);
+      // this.granularAudioEngine.setIntensity(intensity);
     } else {
       this.audioEngine.setGainFromIntensity(1);
       this.previewAudioEngine.setGainFromIntensity(1);
 
-      // this.granularAudioEngine.setIntensity(scaled);
+      // this.granularAudioEngine.setIntensity(1);
     }
   }
 
@@ -483,18 +442,13 @@ class DesignerExperience extends soundworks.Experience {
 
   _onClearLabel(label) {
     this.view.confirm('clear-label', label).then(() => {
-      this.trainingData.deleteRecordingsByLabel(label);
       this.send('phrase', { cmd: 'clear', data: label });
-      // this._trainModel();
     }).catch(() => {});
   }
 
   _onClearModel() {
     this.view.confirm('clear-all').then(() => {
-      this.trainingData.clear();
       this.send('phrase', { cmd: 'clearall', data: null });
-      // this._trainModel();
-      // this.send('clear');
     }).catch(() => {});
   }
 };

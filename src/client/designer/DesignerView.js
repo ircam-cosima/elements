@@ -189,7 +189,7 @@ class DesignerView extends CanvasView {
             transitionMode: $el.querySelector('#trans-mode-select').value,
           };
 
-          // this._updateMLConfigCallback(trainingConfig);
+          this._updateTrainingConfigCallback(trainingConfig);
 
           const recordingConfig = {
             highThreshold: parseFloat($el.querySelector('#high-threshold').value),
@@ -197,12 +197,7 @@ class DesignerView extends CanvasView {
             offDelay: parseFloat($el.querySelector('#off-delay').value),
           };
 
-          // this._updateProjectConfigCallback(generalConfig);
-
-          this._updateProjectConfigCallback({
-            training: trainingConfig,
-            recording: recordingConfig,
-          });
+          this._updateProjectConfigCallback(recordingConfig);
 
           this.$overlay.classList.remove('active');
         }
@@ -246,7 +241,7 @@ class DesignerView extends CanvasView {
 
     for (let prop in presets) {
       const cmd = `touchstart #${prop}`;
-      viewEvents[cmd] = () => this.updateMLConfig(presets[prop].preset);
+      viewEvents[cmd] = () => this.updateTrainingConfig(presets[prop].preset);
     }
 
     this.installEvents(viewEvents);
@@ -325,24 +320,12 @@ class DesignerView extends CanvasView {
   updateProjectConfig(config) {
     const $el = this.$el;
 
-    const rCfg = config.recording;
-
-    $el.querySelector('#high-threshold').value = rCfg.highThreshold;
-    $el.querySelector('#low-threshold').value = rCfg.lowThreshold;
-    $el.querySelector('#off-delay').value = rCfg.offDelay;
-
-    const tCfg = config.training;
-
-    $el.querySelector('#model-select').value = tCfg.modelType;
-    $el.querySelector('#gauss-select').value = tCfg.gaussians;
-    $el.querySelector('#cov-mode-select').selectedIndex = tCfg.covarianceMode;
-    $el.querySelector('#abs-reg').value = tCfg.absoluteRegularization;
-    $el.querySelector('#rel-reg').value = tCfg.relativeRegularization;
-    $el.querySelector('#states-select').value = tCfg.states || 1;
-    $el.querySelector('#trans-mode-select').value = tCfg.transitionMode || 0;
+    $el.querySelector('#high-threshold').value = config.highThreshold;
+    $el.querySelector('#low-threshold').value = config.lowThreshold;
+    $el.querySelector('#off-delay').value = config.offDelay;
   }
 
-  updateMLConfig(config) {
+  updateTrainingConfig(config) {
     const $el = this.$el;
 
     $el.querySelector('#model-select').value = config.modelType;
@@ -417,8 +400,6 @@ class DesignerView extends CanvasView {
           break;
       }
 
-      console.log(f + ' ' + flags[f]);
-
       if (flags[f] && !section.classList.contains('show'))
         section.classList.add('show');
       else if (section.classList.contains('show'))
@@ -438,16 +419,12 @@ class DesignerView extends CanvasView {
     this._clearModelCallack = callback;
   }
 
-  setUpdateMLConfigCallback(callback) {
-    this._updateMLConfigCallback = callback;
-  }
-
   setUpdateParamCallback(callback) {
     this._updateParamCallback = callback;
   }
 
-  setUpdateParamsCallback(callback) {
-    this._updateParamsCallback = callback;
+  setUpdateTrainingConfigCallback(callback) {
+    this._updateTrainingConfigCallback = callback;
   }
 
   setUpdateProjectConfigCallback(callback) {
