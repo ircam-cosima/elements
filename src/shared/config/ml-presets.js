@@ -7,6 +7,8 @@ export const presets = {
       absoluteRegularization: 0.01,
       relativeRegularization: 0.01,
       covarianceMode: 'full',
+      states: 1,
+      transitionMode: 'ergodic',
     },
   },
   shortGestures: {

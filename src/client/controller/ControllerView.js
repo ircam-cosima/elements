@@ -21,6 +21,14 @@ const projectTemplate = `
 
     <div>Global:
 
+      <div class="select-container">Model type
+        <select class="project-configuration" data-target="<%= uuid %>" data-param="modelType" >
+          <% ['gmm', 'hhmm'].forEach(function(opt) { %>
+          <option value="<%= opt %>" <%= modelType === opt ? 'selected' : '' %> ><%= opt %></option>
+          <% }); %>
+        </select>
+      </div>
+
       <div class="select-container">Gaussians
         <select class="project-configuration" data-target="<%= uuid %>" data-param="gaussians" >
           <% for (var i = 1; i <= 10; i++) { %>
@@ -104,7 +112,7 @@ const projectTemplate = `
         <div class="toggle-btn"><div></div></div> Stream sensors
       </div>
 
-      <% if (client.type === 'designer') { %>
+      <% if (true || client.type === 'designer') { %>
         <% if (!client.params.recording) { %>
         <button class="btn toggle-record record" data-target="<%= client.uuid %>">Rec</button>
         <% } else { %>
@@ -197,6 +205,7 @@ class ControllerView extends soundworks.View {
           // string
           case 'covarianceMode':
           case 'transitionMode':
+          case 'modelType':
             value = $input.value;
             break;
 

@@ -11,6 +11,7 @@ import PlayerExperience from './PlayerExperience';
 // services
 import ProjectAdmin from './shared/services/ProjectAdmin';
 import ProjectChooser from './shared/services/ProjectChooser';
+import ProjectManager from './shared/services/ProjectManager';
 import ClientRegister from './shared/services/ClientRegister';
 import appStore from './shared/appStore';
 
@@ -38,6 +39,7 @@ server.setClientConfigDefinition((clientType, config, httpRequest) => {
   return {
     clientType: clientType,
     env: config.env,
+    port: config.port,
     trainUrl: config.trainUrl,
     defaultProjectConfig: config.defaultProjectConfig,
     appName: config.appName,

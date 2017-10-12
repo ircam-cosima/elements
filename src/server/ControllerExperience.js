@@ -55,6 +55,9 @@ class ControllerExperience extends soundworks.Experience {
     appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
     appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
 
+    appStore.addListener('add-client-to-project', project => broadcast('project:update', project));
+    appStore.addListener('remove-client-from-project', project => broadcast('project:update', project));
+
     this.comm.addListener('sensors', data => {
       const features = new Float32Array(8) // nb of features to extract
 
@@ -101,7 +104,7 @@ class ControllerExperience extends soundworks.Experience {
    * Given a project, returns a serialize version of all it clients
    */
   _serializeProject(project) {
-    const { config } = appStore.getProjectTrainingData(project);
+    const config = appStore.getProjectTrainingConfig(project);
     const serialized = {
       name: project.name,
       uuid: project.uuid,
@@ -110,6 +113,7 @@ class ControllerExperience extends soundworks.Experience {
       hasDesigner: false,
       clients: [],
       // this could probably be cleaner...
+      modelType: (config !== null ? config.target.name.split(':')[1] : 'gmm'),
       gaussians: (config !== null ? config.payload.gaussians : 1),
       relativeRegularization: (config !== null ? config.payload.relativeRegularization : 0.1),
       absoluteRegularization: (config !== null ? config.payload.absoluteRegularization : 0.1),
@@ -121,6 +125,7 @@ class ControllerExperience extends soundworks.Experience {
     };
 
     // handle designer
+    /*
     const designer = appStore.getProjectDesigner(project);
 
     if (designer !== null) {
@@ -145,6 +150,23 @@ class ControllerExperience extends soundworks.Experience {
 
       serialized.clients.push(client);
     });
+    */
+
+    const clients = appStore.getProjectClients(project);
+
+    if (clients.size > 0)
+      serialized.hasDesigner = true;
+
+    clients.forEach(client => {
+      const c = {
+        type: 'designer',
+        uuid: client.uuid,
+        params: client.params,
+      };
+
+      serialized.clients.push(c);
+    });
+    //
 
     return serialized;
   }
@@ -220,26 +242,16 @@ class ControllerExperience extends soundworks.Experience {
             break;
         }
 
-        const { config, trainingSet } = appStore.getProjectTrainingData(project);
-        const xmmTrainingSet = rapidMixToXmmTrainingSet(trainingSet);
+        // flatten rapidmix config
+        let config = appStore.getProjectTrainingConfig(project);
+        const modelType = config.target.name.split(':')[1];
+        config = config.payload;
+        config.modelType = modelType;
 
-        config.payload[name] = value;
+        // update desired param
+        config[name] = value;
 
-        const algo = config.target.name.split(':')[1];
-        let x = (algo === 'hhmm') ? hx : gx;
-
-        x.setConfig(config.payload);
-        x.setTrainingSet(xmmTrainingSet);
-        x.train((err, model) => {
-          if (err)
-            console.error(err.stack);
-
-          const rapidModel = xmmToRapidMixModel(model);
-          const trainingData = { config, trainingSet };
-
-          appStore.setProjectTrainingData(project, trainingData);
-          appStore.setProjectModel(project, rapidModel);
-        });
+        appStore.setProjectTrainingConfig(project, config);
       }
     }
   }
