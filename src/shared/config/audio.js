@@ -23,7 +23,7 @@ export const labels = {
   bowed_piano_01: 'sounds/labels/bowed_piano_01.mp3',
 };
 
-export const clicks = {
-  startRec: 'sounds/clicks/tik.mp3',
-  stopRec: 'sounds/clicks/tik.mp3',
+export const ui = {
+  startRec: 'sounds/ui/tik.mp3',
+  stopRec: 'sounds/ui/tik.mp3',
 };
