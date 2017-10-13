@@ -2,7 +2,7 @@ import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/common';
 import * as imlMotion from 'iml-motion';
 
-import { labels, clicks } from '../../../shared/config/audio';
+import { labels, ui } from '../../../shared/config/audio';
 import { presets } from '../../../shared/config/ml-presets';
 
 import ClientView from './ClientView';
@@ -46,7 +46,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: config.assetsDomain,
-      files: { labels: labels, clicks: clicks }
+      files: { labels, ui }
     });
 
     this.motionInput = this.require('motion-input', {
@@ -397,7 +397,7 @@ class DesignerExperience extends soundworks.Experience {
     this.exampleRecorder.clear();
     this.view.startRecording();
 
-    playSound(this.audioBufferManager.data.clicks['startRec']);
+    playSound(this.audioBufferManager.data.ui['startRec']);
 
     this.previewAudioEngine.addSound(this.likeliest);
     this.previewAudioEngine.fadeToNewSound(this.likeliest);
@@ -416,7 +416,7 @@ class DesignerExperience extends soundworks.Experience {
     this.view.stopRecording();
     this.autoTrigger.setState('off');
 
-    playSound(this.audioBufferManager.data.clicks['stopRec']);
+    playSound(this.audioBufferManager.data.ui['stopRec']);
     this.previewAudioEngine.removeSound(this.view.getCurrentLabel());
 
     this.view.confirm('send')
