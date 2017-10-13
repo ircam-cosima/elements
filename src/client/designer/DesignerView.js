@@ -123,14 +123,14 @@ const viewTemplate = `
         <button id="rec-btn">
           <div class="bg"></div>
           <p>
-          <% if (recBtnState === 0) { %>
+          <% if (recBtnState === 'idle') { %>
             start<br/>recording
-          <% } else if (recBtnState === 1) { %>
+          <% } else if (recBtnState === 'armed') { %>
             move<br/>or<br/>cancel
-          <% } else if (recBtnState === 2) { %>
+          <% } else if (recBtnState === 'recording') { %>
             recording
-          <% } else if (recBtnState === 3) { %>
-            idle
+          <% } else { %>
+            <%= recBtnState %>
           <% } %>
           <p>
         </button>
@@ -177,6 +177,7 @@ class DesignerView extends CanvasView {
           this._recordCallback('arm');
         } else {
           this.stopRecording();
+          this._recordCallback('idle');
           // FIX ME : commenting the line below prevents to cancel
           // armed recording from designer's rec button !!!!!!!!!
 
@@ -383,20 +384,20 @@ class DesignerView extends CanvasView {
   }
 
   armRecording() {
-    this.model.recBtnState = 1; // "armed" state
+    this.model.recBtnState = 'armed'; // "armed" state
     this.render('#rec-btn');
     this.$recBtn.classList.add('armed');
   }
 
   startRecording() {
-    this.model.recBtnState = 2; // "recording" state
+    this.model.recBtnState = 'recording'; // "recording" state
     this.render('#rec-btn');
     this.$recBtn.classList.remove('armed');
     this.$recBtn.classList.add('active');
   }
 
   stopRecording() {
-    this.model.recBtnState = 0; // "waiting" state
+    this.model.recBtnState = 'idle'; // "waiting" state
     this.render('#rec-btn');
     this.$recBtn.classList.remove('active', 'armed');
   }
