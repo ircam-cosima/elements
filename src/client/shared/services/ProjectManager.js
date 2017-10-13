@@ -50,14 +50,12 @@ class ProjectManager extends Service {
     this.show();
   }
 
-    /** @private */
+  /** @private */
   stop() {
     this.hide();
     super.stop();
   }
 
-
-  // disconnect client
   logout() {
     this.send('logout');
   }

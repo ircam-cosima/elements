@@ -1,7 +1,8 @@
 import { CanvasView } from 'soundworks/client';
-import { presets } from '../../shared/config/ml-presets';
 import ModalDialog from './ModalDialog';
-import Notification from '../shared/Notification';
+import Notification from './Notification';
+
+import { presets } from '../../../shared/config/ml-presets';
 
 const viewTemplate = `
   <div id="canvas-wrapper" class="section-wrapper">

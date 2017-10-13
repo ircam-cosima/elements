@@ -24,14 +24,14 @@ class PlayerExperience extends Experience {
     this.projectChooser.setChooseProjectCallback(this._updateProject);
 
     appStore.addListener('set-client-param', (project, client) => {
-      const players = appStore.getProjectPlayers(project);
+      const clients = appStore.getProjectClients(project);
 
-      if (players.has(client))
+      if (clients.has(client))
         this.send(client, 'params:update', client.params);
     });
 
     appStore.addListener('set-project-model', (project) => {
-      const clients = appStore.getProjectPlayers(project);
+      const clients = appStore.getProjectClients(project);
       const { config } = appStore.getProjectTrainingData(project);
       const model = appStore.getProjectModel(project);
 

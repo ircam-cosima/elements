@@ -7,7 +7,7 @@ import * as imlMotion from 'iml-motion/common';
 const cwd = process.cwd();
 
 // server-side 'designer' experience.
-class DesignerExperience extends Experience {
+class ClientExperience extends Experience {
   constructor(clientType, config, comm) {
     super(clientType);
 
@@ -36,22 +36,19 @@ class DesignerExperience extends Experience {
     });
 
     appStore.addListener('set-project-config', project => {
-      appStore.getProjectClients(project).forEach(client => {
-        this.send(client, 'config:update', project.config);
-      });
+      const clients = appStore.getProjectClients(project);
+      clients.forEach(client => this.send(client, 'config:update', project.config));
     });
 
     appStore.addListener('set-project-training-config', (project, config) => {
-      appStore.getProjectClients(project).forEach(client => {
-        this.send(client, 'training-config:update', config);
-      });
+      const clients = appStore.getProjectClients(project);
+      clients.forEach(client => this.send(client, 'training-config:update', config));
     });
 
     // xmm model
     appStore.addListener('set-project-model', (project, model) => {
-      appStore.getProjectClients(project).forEach(client => {
-        this.send(client, 'model:update', model);
-      });
+      const clients = appStore.getProjectClients(project);
+      clients.forEach(client => this.send(client, 'model:update', model));
     });
 
     this.comm.addListener('command:trigger', (uuid, cmd, ...args) => {
@@ -165,4 +162,4 @@ class DesignerExperience extends Experience {
   }
 }
 
-export default DesignerExperience;
+export default ClientExperience;

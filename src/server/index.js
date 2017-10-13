@@ -2,15 +2,14 @@ import 'source-map-support/register'; // enable sourcemaps in node
 import { EventEmitter } from 'events';
 import path from 'path';
 import * as soundworks from 'soundworks/server';
+
 import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'iml-motion/common';
 import xmm from 'xmm-node';
 import bodyParser from 'body-parser';
+
 import ControllerExperience from './ControllerExperience';
-import DesignerExperience from './DesignerExperience';
-import PlayerExperience from './PlayerExperience';
+import ClientExperience from './ClientExperience';
 // services
-import ProjectAdmin from './shared/services/ProjectAdmin';
-import ProjectChooser from './shared/services/ProjectChooser';
 import ProjectManager from './shared/services/ProjectManager';
 import ClientRegister from './shared/services/ClientRegister';
 import appStore from './shared/appStore';
@@ -61,11 +60,9 @@ sharedParams.addNumber('bandpassGain', 'Bandpass gain', 0, 2, 0.01, 1);
 const comm = new EventEmitter();
 
 const controller = new ControllerExperience('controller', comm, config.osc);
-const designer = new DesignerExperience('designer', config, comm);
-const player = new PlayerExperience('player', comm);
+const client = new ClientExperience(['player', 'designer'], config, comm);
 
-const parameters = new soundworks.ControllerExperience('parameters');
-parameters.require('auth');
+const parameters = new soundworks.ControllerExperience('parameters', { auth: true });
 
 server.start();
 

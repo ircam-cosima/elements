@@ -2,16 +2,16 @@ import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/common';
 import * as imlMotion from 'iml-motion';
 
-import DesignerView from './DesignerView';
-import ProjectAdmin from '../shared/services/ProjectAdmin';
-import ProjectManager from '../shared/services/ProjectManager';
-import AudioEngine from '../shared/AudioEngine';
-import GranularAudioEngine from '../shared/GranularAudioEngine';
-import AutoMotionTrigger from '../shared/AutoMotionTrigger';
-import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
-import { labels, clicks } from '../../shared/config/audio';
-import { presets } from '../../shared/config/ml-presets';
-import FullColorRenderer from '../shared/FullColorRenderer';
+import { labels, clicks } from '../../../shared/config/audio';
+import { presets } from '../../../shared/config/ml-presets';
+
+import ClientView from './ClientView';
+import AutoMotionTrigger from './AutoMotionTrigger';
+import LikelihoodsRenderer from './LikelihoodsRenderer';
+import FullColorRenderer from './FullColorRenderer';
+
+import AudioEngine from '../audio/AudioEngine';
+import GranularAudioEngine from '../audio/GranularAudioEngine';
 
 const audioContext = soundworks.audioContext;
 const client = soundworks.client;
@@ -24,10 +24,12 @@ function playSound(buffer) {
 }
 
 class DesignerExperience extends soundworks.Experience {
-  constructor(config) {
+  constructor(config, viewVisibilityOptions) {
     super();
 
     this.config = config;
+    this.viewVisibilityOptions = viewVisibilityOptions;
+
     this.labels = Object.keys(labels);
     this.likeliest = undefined;
     this.likelihoods = [];
@@ -91,7 +93,7 @@ class DesignerExperience extends soundworks.Experience {
     this.receive('command:trigger', this._triggerCommand);
     this.receive('force:disconnect', () => window.location.reload());
 
-    this.view = new DesignerView({
+    this.view = new ClientView({
         title: '',
         sounds: labels,
         assetsDomain: this.config.assetsDomain,
@@ -120,7 +122,6 @@ class DesignerExperience extends soundworks.Experience {
     const buffers = this.audioBufferManager.data.labels;
     this.audioEngine = new AudioEngine(buffers);
     this.previewAudioEngine = new AudioEngine(buffers);
-    // this.granularAudioEngine = new GranularAudioEngine(buffers);
 
     // preprocessing
     this.processedSensors = new imlMotion.ProcessedSensors();
@@ -206,24 +207,13 @@ class DesignerExperience extends soundworks.Experience {
 
     this.audioEngine.start();
     this.previewAudioEngine.start();
-    // this.granularAudioEngine.start();
 
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
-        this.view.addRenderer(this.likelihoodsRenderer);
         this.view.addRenderer(this.fullColorRenderer);
+        this.view.addRenderer(this.likelihoodsRenderer);
         this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
-        this.view.setSectionsVisibility({
-          configuration: true,
-          basicControls: true,
-          advancedControls: true,
-          canvas: true,
-        });
-        this.view.removeRenderer(this.fullColorRenderer);
-
-        // this.audioEngine.start();
-        // this.previewAudioEngine.start();
-        // this.granularAudioEngine.start();
+        this.view.setSectionsVisibility(this.viewVisibilityOptions);
 
         this.processedSensors.start();
         this.eventIn.start();
@@ -436,7 +426,6 @@ class DesignerExperience extends soundworks.Experience {
         this._cancelRecordingRequest();
       })
       .catch((err) => {
-        console.log(err);
         if (err instanceof Error)
           console.error(err.stack);
       });
