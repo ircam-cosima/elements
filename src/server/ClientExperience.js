@@ -71,11 +71,12 @@ class ClientExperience extends Experience {
     this.send(client, 'params:update', client.params);
     this.send(client, 'config:update', project.config);
 
-    this.receive(client, 'model:update-request', this._onModelUpdateRequest(client));
+    this.receive(client, 'updateProjectConfigRequest', this._updateProjectConfigRequest(client));
     this.receive(client, 'project:fetch-all-request', this._onProjectFetchAllRequest(client));
+    // this.receive(client, 'model:update-request', this._modelUpdateRequest(client));
+
 
     this.receive(client, 'param:update', this._onParamUpdate(client));
-    this.receive(client, 'config:update', this._onConfigUpdate(client));
     this.receive(client, 'training-config:update', this._onTrainingConfigUpdate(client));
 
     this.receive(client, 'example', this._onExampleOperation(client));
@@ -119,7 +120,7 @@ class ClientExperience extends Experience {
     }
   }
 
-  _onConfigUpdate(client) {
+  _updateProjectConfigRequest(client) {
     return (name, value) => {
       const project = client.project;
       appStore.setProjectConfig(project, name, value);
@@ -130,12 +131,6 @@ class ClientExperience extends Experience {
     return config => {
       const project = client.project;
       appStore.setProjectTrainingConfig(project, config);
-    }
-  }
-
-  _onBadInputData(client) {
-    return data => {
-      logger.append('Input data bad format', data, client);
     }
   }
 
@@ -155,9 +150,13 @@ class ClientExperience extends Experience {
         case 'clearall':
           appStore.removeAllExamplesFromProject(project);
           break;
-        default: // never happens
-          break;
       }
+    }
+  }
+
+  _onBadInputData(client) {
+    return data => {
+      logger.append('Input data bad format', data, client);
     }
   }
 }

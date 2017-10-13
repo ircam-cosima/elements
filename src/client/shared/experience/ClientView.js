@@ -6,7 +6,7 @@ import { presets } from '../../../shared/config/ml-presets';
 
 const viewTemplate = `
   <div id="canvas-wrapper" class="section-wrapper">
-  <canvas class=background noselect"></canvas>
+    <canvas class=background noselect"></canvas>
   </div>
 
   <div class="content foreground">
@@ -144,8 +144,6 @@ const viewTemplate = `
   </div>
 `;
 
-const noop = () => {};
-
 /**
  * @todo - move more logic into the template:
  *   * enable / disable clear buttons
@@ -156,18 +154,19 @@ class DesignerView extends CanvasView {
   constructor(content, events, options) {
     super(viewTemplate, content, events, options);
 
-    this._configUpdateCallback = noop;
-    this._clearLabelCallback = noop;
-    this._clearModelCallback = noop;
-    this._recordCallback = noop;
-    this._updateParamCallback = noop;
-    this._updateParamsCallback = noop;
-    this._switchProjectCallback = noop;
+    this.recordCallback = null;
+    this.clearLabelCallback = null;
+    this.clearModelCallback = null;
+    this.clearModelCallback = null;
+    this.updateParamCallback = null;
+    this.updateTrainingConfigCallback = null;
+    this.updateProjectConfigCallback = null;
+    this.switchProjectCallback = null;
 
     const viewEvents = {
       'touchstart #switch-project': (e) => {
-        this._switchProjectCallback();
-        e.preventDefault()
+        e.preventDefault();
+        this.switchProjectCallback();
       },
       'touchstart #rec-btn': () => {
         if (this.$recBtn.classList.contains('active'))
@@ -175,14 +174,10 @@ class DesignerView extends CanvasView {
 
         if (!this.$recBtn.classList.contains('armed')) {
           this.armRecording();
-          this._recordCallback('arm');
+          this.recordCallback('arm');
         } else {
           this.stopRecording();
-          this._recordCallback('idle');
-          // FIX ME : commenting the line below prevents to cancel
-          // armed recording from designer's rec button !!!!!!!!!
-
-          // this._recordCallback('stop')
+          this.recordCallback('idle');
         }
       },
       'touchstart #nav': () => {
@@ -203,7 +198,7 @@ class DesignerView extends CanvasView {
             transitionMode: $el.querySelector('#trans-mode-select').value,
           };
 
-          this._updateTrainingConfigCallback(trainingConfig);
+          this.updateTrainingConfigCallback(trainingConfig);
 
           const recordingConfig = {
             highThreshold: parseFloat($el.querySelector('#high-threshold').value),
@@ -211,7 +206,7 @@ class DesignerView extends CanvasView {
             offDelay: parseFloat($el.querySelector('#off-delay').value),
           };
 
-          this._updateProjectConfigCallback(recordingConfig);
+          this.updateProjectConfigCallback(recordingConfig);
 
           this.$overlay.classList.remove('active');
         }
@@ -232,7 +227,7 @@ class DesignerView extends CanvasView {
           return;
 
         const label = this.$labelSelect.value;
-        this._clearLabelCallback(label);
+        this.clearLabelCallback(label);
       },
       'touchstart #clear-all': (e) => {
         e.preventDefault();
@@ -240,16 +235,16 @@ class DesignerView extends CanvasView {
         if (this.$clearAll.hasAttribute('disabled'))
           return;
 
-        this._clearModelCallack();
+        this.clearModelCallback();
       },
 
       'touchstart #mute': () => {
         const active = this.$muteBtn.classList.contains('active');
-        this._updateParamCallback('mute', !active);
+        this.updateParamCallback('mute', !active);
       },
       'touchstart #intensity': () => {
         const active = this.$intensityBtn.classList.contains('active');
-        this._updateParamCallback('intensity', !active);
+        this.updateParamCallback('intensity', !active);
       },
     };
 
@@ -351,10 +346,6 @@ class DesignerView extends CanvasView {
     $el.querySelector('#trans-mode-select').value = config.transitionMode || 0;
   }
 
-  setSwitchProjectCallback(callback) {
-    this._switchProjectCallback = callback;
-  }
-
   updateProjectName(name) {
     this.model.title = name;
     this.render('#project-name');
@@ -404,10 +395,10 @@ class DesignerView extends CanvasView {
   }
 
   setSectionsVisibility(flags) {
-    for (let f in flags) {
+    for (let key in flags) {
       let section = null;
 
-      switch (f) {
+      switch (key) {
         case 'configuration':
           section = this.$configSection;
           break;
@@ -422,35 +413,11 @@ class DesignerView extends CanvasView {
           break;
       }
 
-      if (flags[f] && !section.classList.contains('show'))
+      if (flags[key] && !section.classList.contains('show'))
         section.classList.add('show');
       else if (section.classList.contains('show'))
         section.classList.remove('show');
     }
-  }
-
-  setRecordCallback(callback) {
-    this._recordCallback = callback;
-  }
-
-  setClearLabelCallback(callback) {
-    this._clearLabelCallback = callback;
-  }
-
-  setClearModelCallback(callback) {
-    this._clearModelCallack = callback;
-  }
-
-  setUpdateParamCallback(callback) {
-    this._updateParamCallback = callback;
-  }
-
-  setUpdateTrainingConfigCallback(callback) {
-    this._updateTrainingConfigCallback = callback;
-  }
-
-  setUpdateProjectConfigCallback(callback) {
-    this._updateProjectConfigCallback = callback;
   }
 };
 

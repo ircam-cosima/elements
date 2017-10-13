@@ -55,10 +55,10 @@ class DesignerExperience extends soundworks.Experience {
 
     this.rawSocket = this.require('raw-socket');
 
+    this._onRecord = this._onRecord.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
     this._onClearModel = this._onClearModel.bind(this);
 
-    this._onRecord = this._onRecord.bind(this);
     this._idleRecordingRequest = this._idleRecordingRequest.bind(this);
     this._armRecordingRequest = this._armRecordingRequest.bind(this);
     this._startRecordingRequest = this._startRecordingRequest.bind(this);
@@ -100,20 +100,20 @@ class DesignerExperience extends soundworks.Experience {
         recBtnState: 'idle', // in ['idle', 'armed', 'recording']
         presets: presets,
       }, {}, {
+        id: client.type,
         preservePixelRatio: false,
-        id: 'designer',
         ratios: { '.content': 1 },
       }
     );
 
-    this.view.setSwitchProjectCallback(() => this.projectManager.show());
-    this.view.setRecordCallback(this._onRecord);
-    this.view.setClearLabelCallback(this._onClearLabel);
-    this.view.setClearModelCallback(this._onClearModel);
-
-    this.view.setUpdateParamCallback(this._updateParamRequest);
-    this.view.setUpdateTrainingConfigCallback(this._updateTrainingConfigRequest);
-    this.view.setUpdateProjectConfigCallback(this._updateProjectConfigRequest);
+    this.view.switchProjectCallback = () => this.projectManager.show();
+    this.view.recordCallback = this._onRecord;
+    this.view.clearLabelCallback = this._onClearLabel;
+    this.view.clearModelCallback = this._onClearModel;
+    this.view.clearModelCallback = this._onClearModel;
+    this.view.updateParamCallback = this._updateParamRequest;
+    this.view.updateTrainingConfigCallback = this._updateTrainingConfigRequest;
+    this.view.updateProjectConfigCallback = this._updateProjectConfigRequest;
 
     // rendering
     this.likelihoodsRenderer = new LikelihoodsRenderer(this.view);
@@ -249,7 +249,7 @@ class DesignerExperience extends soundworks.Experience {
         break;
 
       case 'recording':
-        if ( ['idle', 'armed'].includes(this.recordState) ) {
+        if (['idle', 'armed'].includes(this.recordState)) {
           this._startRecording();
         }
         break;
@@ -272,9 +272,10 @@ class DesignerExperience extends soundworks.Experience {
         }
         break;
     }
+
     this.recordState = params.recordState;
 
-    // stream sensors to
+    // stream sensors to admin
     if (params.streamSensors !== this.streamSensors) {
       if (params.streamSensors === true)
         this.processedSensors.addListener(this._streamSensors);
@@ -292,7 +293,7 @@ class DesignerExperience extends soundworks.Experience {
   // the field for more dynamic and consistent behavior in some future
   _updateProjectConfigRequest(config) {
     for (let name in config)
-      this.send('config:update', name, config[name]);
+      this.send('updateProjectConfigRequest', name, config[name]);
   }
 
   _updateProjectConfig(config) {
@@ -320,7 +321,7 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _updateModelRequest() {
-    this.send('model:update-request');
+    this.send('ModelUpdateRequest');
   }
 
   _updateModel(model) {
@@ -484,9 +485,7 @@ class DesignerExperience extends soundworks.Experience {
       likelihoods: likelihoods,
     };
 
-    // this.granularAudioEngine.setModelResults(formattedResults);
     this.likelihoodsRenderer.setModelResults(formattedResults);
-
     this.likelihoods = likelihoods;
 
     if (this.likeliest !== label) {
