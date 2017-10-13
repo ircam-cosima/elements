@@ -49,8 +49,7 @@ const appStore = {
     return {
       mute: false,
       intensity: false,
-      // designer specific parameters
-      recording: false,
+      recordState: 'idle', // in ['idle', 'armed', 'recording', 'pending', 'cancelled', 'confirmed']
       streamSensors: false, // only one client can have this to `true`
     };
   },

@@ -12,8 +12,6 @@ class AutoMotionTrigger {
     this.isMoving = false;
     this.timeoutId = null;
     this.state = 'off';
-
-    this._stop = this._stop.bind(this);
   }
 
   set highThreshold(value) {
@@ -44,12 +42,22 @@ class AutoMotionTrigger {
     if (this.state === 'on') {
       if (value > this.params.highThreshold && !this.isMoving) {
         this.isMoving = true;
-        this._start();
+
+        if (this.timeoutId === null) {
+          this.params.startCallback();
+        } else {
+          clearTimeout(this.timeoutId);
+          this.timeoutId = null;
+        }
+
       } else if (value < this.params.lowThreshold && this.isMoving) {
         this.isMoving = false; // keep this out of the timeout
 
         if (this.timeoutId === null) {
-          this.timeoutId = setTimeout(this._stop, this.params.offDelay);
+          this.timeoutId = setTimeout(() => {
+            this.params.stopCallback();
+            this.timeoutId = null;
+          }, this.params.offDelay);
         }
       }
     } else {
@@ -59,26 +67,12 @@ class AutoMotionTrigger {
   }
 
   setState(onOff) {
-    console.log(onOff);
     this.state = onOff;
 
     if (onOff === 'off') {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }
-  }
-
-  _start() {
-    if (this.timeoutId === null) {
-      this.params.startCallback();
-    } else {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-  }
-
-  _stop() {
-    this.params.stopCallback();
   }
 }
 

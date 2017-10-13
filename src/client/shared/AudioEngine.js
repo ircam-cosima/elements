@@ -41,7 +41,7 @@ class MvAvrg {
 class AudioEngine {
   constructor(buffers) {
     this._fadeInTime = 0.5;
-    this._fadeOutTime = 1;
+    this._fadeOutTime = 0.5;
 
     this.buffers = buffers;
     this.labels = [];

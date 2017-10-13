@@ -34,6 +34,8 @@ class DesignerExperience extends soundworks.Experience {
     this.aggregatedOutput = new Float32Array();
     this.sensitivity = 1;
 
+    this.recordState = 'idle';
+
     this.streamSensors = false;
 
     this.platform = this.require('platform', { features: ['web-audio'] });
@@ -51,11 +53,17 @@ class DesignerExperience extends soundworks.Experience {
 
     this.rawSocket = this.require('raw-socket');
 
-    this._onRecord = this._onRecord.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
     this._onClearModel = this._onClearModel.bind(this);
-    this._startRecording = this._startRecording.bind(this);
-    this._stopRecording = this._stopRecording.bind(this);
+
+    this._onRecord = this._onRecord.bind(this);
+    this._idleRecordingRequest = this._idleRecordingRequest.bind(this);
+    this._armRecordingRequest = this._armRecordingRequest.bind(this);
+    this._startRecordingRequest = this._startRecordingRequest.bind(this);
+    this._stopRecordingRequest = this._stopRecordingRequest.bind(this);
+    this._cancelRecordingRequest = this._cancelRecordingRequest.bind(this);
+    this._confirmRecordingRequest = this._confirmRecordingRequest.bind(this);
+
     this._feedDecoder = this._feedDecoder.bind(this);
     this._feedRecorder = this._feedRecorder.bind(this);
     this._feedIntensity = this._feedIntensity.bind(this);
@@ -87,7 +95,7 @@ class DesignerExperience extends soundworks.Experience {
         title: '',
         sounds: labels,
         assetsDomain: this.config.assetsDomain,
-        recBtnState: 0, // 0 is waiting, 1 is armed, 2 is recording, 3 is idle
+        recBtnState: 'idle', // in ['idle', 'armed', 'recording']
         presets: presets,
       }, {}, {
         preservePixelRatio: false,
@@ -166,8 +174,8 @@ class DesignerExperience extends soundworks.Experience {
       highThreshold: defaultProjectConfig.highThreshold,
       lowThreshold: defaultProjectConfig.lowThreshold,
       offDelay: defaultProjectConfig.offDelay,
-      startCallback: this._startRecording,
-      stopCallback: this._stopRecording,
+      startCallback: this._startRecordingRequest,
+      stopCallback: this._stopRecordingRequest,
     });
 
     // shared parameters mapping
@@ -237,6 +245,45 @@ class DesignerExperience extends soundworks.Experience {
     this.audioEngine.mute = params.mute;
     this.enableIntensity = params.intensity;
 
+    switch (params.recordState) {
+      case 'idle':
+        if (this.recordState !== params.recordState) {
+          this._idleRecording();
+        }
+        break;
+
+      case 'armed':
+        if (this.recordState !== params.recordState) {
+          this._armRecording();
+        }
+        break;
+
+      case 'recording':
+        if ( ['idle', 'armed'].includes(this.recordState) ) {
+          this._startRecording();
+        }
+        break;
+
+      case 'pending':
+        if (this.recordState === 'recording') {
+          this._stopRecording();
+        }
+        break;
+
+      case 'cancelled':
+        if (this.recordState === 'pending') {
+          this._cancelRecording();
+        }
+        break;
+
+      case 'confirmed':
+        if (this.recordState === 'pending') {
+          this._confirmRecording();
+        }
+        break;
+    }
+    this.recordState = params.recordState;
+
     // stream sensors to
     if (params.streamSensors !== this.streamSensors) {
       if (params.streamSensors === true)
@@ -302,24 +349,51 @@ class DesignerExperience extends soundworks.Experience {
 
   _triggerCommand(cmd, ...args) {
     switch (cmd) {
-      case 'startRecording':
-        this._startRecording();
-        break;
-      case 'stopRecording':
-        this._stopRecording();
-        break;
+        // insert your command here
     }
   }
 
   _onRecord(cmd) {
     switch (cmd) {
+      case 'idle':
+        this._idleRecordingRequest();
+        break;
       case 'arm':
-        this.autoTrigger.setState('on');
+        this._armRecordingRequest();
+        break;
+      case 'start':
+        this._startRecordingRequest();
         break;
       case 'stop':
-        this._stopRecording();
+        this._stopRecordingRequest();
+        break;
+      case 'confirm':
+        this._confirmRecordingRequest();
+        break;
+      case 'cancel':
+        this._cancelRecordingRequest();
         break;
     }
+  }
+
+  _idleRecordingRequest() {
+    this.send('param:update', 'recordState', 'idle');
+  }
+
+  _idleRecording() {
+    this.autoTrigger.setState('off');
+  }
+
+  _armRecordingRequest() {
+    this.send('param:update', 'recordState', 'armed');
+  }
+
+  _armRecording() {
+    this.autoTrigger.setState('on');
+  }
+
+  _startRecordingRequest() {
+    this.send('param:update', 'recordState', 'recording');
   }
 
   _startRecording() {
@@ -338,8 +412,10 @@ class DesignerExperience extends soundworks.Experience {
     this.previewAudioEngine.addSound(this.likeliest);
     this.previewAudioEngine.fadeToNewSound(this.likeliest);
     this.audioEngine.fadeToNewSound(null);
+  }
 
-    this.send('param:update', 'recording', true);
+  _stopRecordingRequest() {
+    this.send('param:update', 'recordState', 'pending');
   }
 
   _stopRecording() {
@@ -353,17 +429,35 @@ class DesignerExperience extends soundworks.Experience {
     playSound(this.audioBufferManager.data.clicks['stopRec']);
     this.previewAudioEngine.removeSound(this.view.getCurrentLabel());
 
-    this.send('param:update', 'recording', false);
+    this.view.confirm('send')
+      .then(() => {
+        this._confirmRecordingRequest();
+      }, () => { // if cancelled (reject)
+        this._cancelRecordingRequest();
+      })
+      .catch((err) => {
+        console.log(err);
+        if (err instanceof Error)
+          console.error(err.stack);
+      });
+  }
 
-    this.view.confirm('send').then(() => {
-      this.exampleRecorder.setLabel(this.view.getCurrentLabel());
-      this.send('example', { cmd: 'add', data: this.exampleRecorder.getExample() });
-    }, () => { // if cancelled (reject)
-      // just don't send anything
-    }).catch((err) => {
-      if (err instanceof Error)
-        console.error(err.stack)
-    });
+  _cancelRecordingRequest() {
+    this.send('param:update', 'recordState', 'cancelled');
+  }
+
+  _cancelRecording() {
+    this._idleRecordingRequest();
+  }
+
+  _confirmRecordingRequest() {
+    this.send('param:update', 'recordState', 'confirmed');
+  }
+
+  _confirmRecording() {
+    this.exampleRecorder.setLabel(this.view.getCurrentLabel());
+    this.send('example', { cmd: 'add', data: this.exampleRecorder.getExample() });
+    this._idleRecordingRequest();
   }
 
   _feedRecorder(data) {
@@ -440,7 +534,7 @@ class DesignerExperience extends soundworks.Experience {
     for (let i = 0; i < this.likelihoods.length; i++)
       this.aggregatedOutput[i + data.length] = this.likelihoods[i];
 
-    this.rawSocket.send('sensors', aggregated);
+    this.rawSocket.send('sensors', this.aggregatedOutput);
   }
 
   _onClearLabel(label) {
