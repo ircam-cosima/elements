@@ -34,8 +34,10 @@ const errorLogger = {
     let entry = `${getFormattedDate()}\n`;
     entry += `Project: ${client.project.name} - Client: ${client.uuid} (${client.type})\n`;
     entry += `${msg} : ${JSON.stringify(data)}\n\n`;
+
     fse.appendFile(getFilePath(), entry, (err) => {
-      if (err) console.error(err.message);
+      if (err)
+        console.error(err.message);
     });
   },
 }

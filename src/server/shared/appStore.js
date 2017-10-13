@@ -6,8 +6,8 @@ import config from '../config/default';
 
 const appStore = {
   init() {
-    this.projects = projectDbMapper.getList(); // project = { name, uuid }
-    this.projectUsersMap = new Map();
+    this.projects = projectDbMapper.getList();
+
     this.projectClientsMap = new Map();
     this.projectDataMap = new Map();
 
@@ -22,8 +22,8 @@ const appStore = {
       project.params = this._getProjectDefaultParams();
       // leave config as loaded from drive :
       // project.config = this._getProjectDefaultConfig();
+      // this.projectUsersMap.set(project, this._getEmptyUserMap());
 
-      this.projectUsersMap.set(project, this._getEmptyUserMap());
       this.projectClientsMap.set(project, new Set());
 
       const tc = this._getNewTrainingClasses();
@@ -133,7 +133,7 @@ const appStore = {
     };
 
     this.projects.add(project);
-    this.projectUsersMap.set(project, this._getEmptyUserMap());
+    // this.projectUsersMap.set(project, this._getEmptyUserMap());
     this.projectClientsMap.set(project, new Set());
     this.projectDataMap.set(project, this._getNewTrainingClasses());
 
@@ -153,7 +153,7 @@ const appStore = {
    */
   deleteProject(project) {
     // @todo - check if users
-    this.projectUsersMap.delete(project);
+    // this.projectUsersMap.delete(project);
     this.projectClientsMap.delete(project);
     this.projectDataMap.delete(project);
     this.projects.delete(project);
@@ -180,7 +180,6 @@ const appStore = {
     }
 
     project.config[name] = value;
-
     projectDbMapper.persist(this.projects);
 
     this._emit('set-project-config', project);
@@ -191,14 +190,7 @@ const appStore = {
   setProjectParam(project, name, value) {
     project.params[name] = value;
 
-    // const users = this.projectUsersMap.get(project);
     const clients = this.projectClientsMap.get(project);
-
-    // if (users.designer)
-    //   this.setClientParam(users.designer, name, value, false);
-
-    // users.players.forEach(player => this.setClientParam(player, name, value, false));
-
     clients.forEach(client => this.setClientParam(client, name, value, false));
 
     this._emit('set-project-param', project);
@@ -207,7 +199,7 @@ const appStore = {
   setClientParam(client, name, value, _triggerProject = true) {
     const project = client.project;
     client.params[name] = value;
-    // emit something
+
     if (_triggerProject === true)
       this._emit('set-project-param', project);
 
@@ -215,59 +207,6 @@ const appStore = {
   },
 
   /////////// USERS ///////////
-
-  // group handling
-  /*
-  addDesignerToProject(client, project) {
-    const users = this.projectUsersMap.get(project);
-
-    // set user params to project params
-    for (let name in project.params)
-      client.params[name] = project.params[name];
-
-    users.designer = client;
-    client.project = project;
-
-    this._emit('add-designer-to-project', project);
-  },
-
-  removeDesignerFromProject(client) {
-    const project = client.project;
-    const users = this.projectUsersMap.get(project);
-
-    if (users) {
-      users.designer = null;
-      client.project = null;
-
-      this._emit('remove-designer-from-project', project);
-    }
-  },
-
-  addPlayerToProject(client, project) {
-    const users = this.projectUsersMap.get(project);
-
-    // set user params to project params
-    for (let name in project.params)
-      client.params[name] = project.params[name];
-
-    users.players.add(client);
-    client.project = project;
-
-    this._emit('add-player-to-project', project);
-  },
-
-  removePlayerFromProject(client) {
-    const project = client.project;
-    const users = this.projectUsersMap.get(project);
-
-    if (users) {
-      users.players.delete(client);
-      client.project = null;
-
-      this._emit('remove-player-from-project', project);
-    }
-  },
-  */
 
   addClientToProject(client, project) {
     const clients = this.projectClientsMap.get(project);
@@ -296,25 +235,25 @@ const appStore = {
   ////////// PHRASES //////////
 
   addExampleToProject(project, phrase) {
-    const td = this.projectDataMap.get(project).data;
-    td.addExample(phrase);
-    xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
+    const trainingData = this.projectDataMap.get(project).data;
+    trainingData.addExample(phrase);
+    xmmDbMapper.persistTrainingSet(project, trainingData.getTrainingSet());
 
     this.trainProject(project);
   },
 
   removeExamplesFromProject(project, label) {
-    const td = this.projectDataMap.get(project).data;
-    td.removeExamplesByLabel(label);
-    xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
+    const trainingData = this.projectDataMap.get(project).data;
+    trainingData.removeExamplesByLabel(label);
+    xmmDbMapper.persistTrainingSet(project, trainingData.getTrainingSet());
 
     this.trainProject(project);
   },
 
   removeAllExamplesFromProject(project) {
-    const td = this.projectDataMap.get(project).data;
-    td.clear();
-    xmmDbMapper.persistTrainingSet(project, td.getTrainingSet());
+    const trainingData = this.projectDataMap.get(project).data;
+    trainingData.clear();
+    xmmDbMapper.persistTrainingSet(project, trainingData.getTrainingSet());
 
     this.trainProject(project);
   },
@@ -322,8 +261,8 @@ const appStore = {
   /////////// TRAIN ///////////
 
   trainProject(project) {
-    const tc = this.projectDataMap.get(project);
-    tc.algo.train(xmmDbMapper.getTrainingSet(project))
+    const trainingConfig = this.projectDataMap.get(project);
+    trainingConfig.algo.train(xmmDbMapper.getTrainingSet(project))
       .then(response => {
         this.setProjectModel(project, response.model);
       })
@@ -332,24 +271,10 @@ const appStore = {
 
   ////////// SETTERS //////////
 
-  // We should normally not use this one,
-  // as everything is managed from phrase operations (see just above) :
-  /*
-  setProjectTrainingSet(project, trainingSet) {
-    const tc = this.projectDataMap.get(project);
-    tc.data.setTrainingSet(trainingSet);
-    xmmDbMapper.persistTrainingSet(project, tc.data.getTrainingSet());
-
-    this._emit('set-project-training-set', project, trainingSet);
-
-    this.trainProject(project);
-  },
-  */
-
   setProjectTrainingConfig(project, config) {
-    const tc = this.projectDataMap.get(project);
-    tc.algo.setConfig(config);
-    config = tc.algo.getConfig();
+    const trainingConfig = this.projectDataMap.get(project);
+    trainingConfig.algo.setConfig(config);
+    config = trainingConfig.algo.getConfig();
     xmmDbMapper.persistConfig(project, config);
 
     this._emit('set-project-training-config', project, config);
@@ -362,22 +287,6 @@ const appStore = {
 
     this._emit('set-project-model', project, model);
   },
-
-  // xmm data
-  // We should normally not use this one anymore,
-  // but setProjectTrainingConfig instead
-  /*
-  setProjectTrainingData(project, trainingData) {
-    const tc = this.projectDataMap.get(project);
-    tc.algo.setConfig(trainingData.config);
-    tc.data.setTrainingSet(trainingData.trainingSet);
-
-    xmmDbMapper.persistConfig(project, trainingData.config);
-    xmmDbMapper.persistTrainingSet(project, trainingData.trainingSet);
-
-    this._emit('set-project-training-data', project, trainingData);
-  },
-  */
 
   ////////// GETTERS //////////
 
@@ -400,8 +309,6 @@ const appStore = {
     return { config, trainingSet };
   },
 
-  /////////////////////////////
-  // generic getters
   getProjectByUuid(uuid) {
     let _project = null;
 
@@ -415,7 +322,8 @@ const appStore = {
 
   getProjectByName(projectName) {
     let _project = null;
-      this.projects.forEach(project => {
+
+    this.projects.forEach(project => {
       if (project.name === projectName)
         _project = project;
     });
@@ -427,25 +335,10 @@ const appStore = {
     return this.uuidClientMap.get(uuid);
   },
 
-  getProjectDesigner(project) {
-    const users = this.projectUsersMap.get(project);
-    return users.designer;
-  },
-
-  getProjectPlayers(project) {
-    const users = this.projectUsersMap.get(project);
-    return users.players;
-  },
-
   getProjectClients(project) {
     return this.projectClientsMap.get(project);
   },
 };
 
-appStore.init();
-
 export default appStore;
-
-// filter by project
-// associate a designer and its players
 

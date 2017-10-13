@@ -104,10 +104,13 @@ class DesignerExperience extends Experience {
   _onProjectFetchAllRequest(client) {
     return () => {
       const project = client.project;
+
       const model = appStore.getProjectModel(project);
       this.send(client, 'model:update', model);
+
       const trainingConfig = appStore.getProjectTrainingConfig(project);
       this.send(client, 'training-config:update', trainingConfig);
+
       const config = project.config;
       this.send(client, 'config:update', config);
     }
@@ -145,15 +148,14 @@ class DesignerExperience extends Experience {
 
       switch (args.cmd) {
         case 'add':
-          // RapidMix example object
-          appStore.addExampleToProject(project, args.data);
+          const rapidMixExample = args.data;
+          appStore.addExampleToProject(project, rapidMixExample);
           break;
         case 'clear':
-          // label string
-          appStore.removeExamplesFromProject(project, args.data);
+          const label = args.data;
+          appStore.removeExamplesFromProject(project, label);
           break;
         case 'clearall':
-          // no 2nd arg
           appStore.removeAllExamplesFromProject(project);
           break;
         default: // never happens

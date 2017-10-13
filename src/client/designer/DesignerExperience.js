@@ -206,9 +206,9 @@ class DesignerExperience extends soundworks.Experience {
         this.view.addRenderer(this.fullColorRenderer);
         this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
         this.view.setSectionsVisibility({
-          configuration: false,
+          configuration: true,
           basicControls: true,
-          advancedControls: false,
+          advancedControls: true,
           canvas: true,
         });
         this.view.removeRenderer(this.fullColorRenderer);
@@ -334,6 +334,7 @@ class DesignerExperience extends soundworks.Experience {
     this.view.startRecording();
 
     playSound(this.audioBufferManager.data.clicks['startRec']);
+
     this.previewAudioEngine.addSound(this.likeliest);
     this.previewAudioEngine.fadeToNewSound(this.likeliest);
     this.audioEngine.fadeToNewSound(null);
