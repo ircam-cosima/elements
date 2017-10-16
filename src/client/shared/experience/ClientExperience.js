@@ -23,7 +23,7 @@ function playSound(buffer) {
   src.start(audioContext.currentTime);
 }
 
-class DesignerExperience extends soundworks.Experience {
+class ClientExperience extends soundworks.Experience {
   constructor(config, viewVisibilityOptions) {
     super();
 
@@ -55,7 +55,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.rawSocket = this.require('raw-socket');
 
-    this._onRecord = this._onRecord.bind(this);
+    this._recordCommand = this._recordCommand.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
     this._onClearModel = this._onClearModel.bind(this);
 
@@ -107,7 +107,7 @@ class DesignerExperience extends soundworks.Experience {
     );
 
     this.view.switchProjectCallback = () => this.projectManager.show();
-    this.view.recordCallback = this._onRecord;
+    this.view.recordCallback = (cmd) => this._triggerCommand('record', cmd);
     this.view.clearLabelCallback = this._onClearLabel;
     this.view.clearModelCallback = this._onClearModel;
     this.view.clearModelCallback = this._onClearModel;
@@ -340,30 +340,35 @@ class DesignerExperience extends soundworks.Experience {
 
   _triggerCommand(cmd, ...args) {
     switch (cmd) {
-        // insert your command here
-    }
-  }
+      case 'record':
+        switch (args[0]) {
+          case 'idle':
+            this._idleRecordingRequest();
+            break;
+          case 'arm':
+            this._armRecordingRequest();
+            break;
+          case 'start':
+            this._startRecordingRequest();
+            break;
+          case 'stop':
+            this._stopRecordingRequest();
+            break;
+          case 'confirm':
+            this._confirmRecordingRequest();
+            break;
+          case 'cancel':
+            this._cancelRecordingRequest();
+            break;
+          default:
+            throw new Error(`Unkown arguments '${args}' for command '${cmd}'`);
+        }
 
-  _onRecord(cmd) {
-    switch (cmd) {
-      case 'idle':
-        this._idleRecordingRequest();
         break;
-      case 'arm':
-        this._armRecordingRequest();
-        break;
-      case 'start':
-        this._startRecordingRequest();
-        break;
-      case 'stop':
-        this._stopRecordingRequest();
-        break;
-      case 'confirm':
-        this._confirmRecordingRequest();
-        break;
-      case 'cancel':
-        this._cancelRecordingRequest();
-        break;
+
+      default:
+        throw new Error(`Unkown command '${cmd}'`);
+
     }
   }
 
@@ -538,4 +543,4 @@ class DesignerExperience extends soundworks.Experience {
   }
 };
 
-export default DesignerExperience;
+export default ClientExperience;

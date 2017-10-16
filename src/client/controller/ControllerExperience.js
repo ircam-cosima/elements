@@ -32,13 +32,13 @@ class ControllerExperience extends soundworks.Experience {
 
     this.view = new ControllerView();
 
-    this.view.setDeleteProjectCallback(this._deleteProjectRequest);
-    this.view.setDisconnectDesignerCallback(this._disconnectDesignerRequest);
-    this.view.setUpdateProjectParamCallback(this._updateProjectParamRequest);
-    this.view.setUpdateProjectConfigCallback(this._updateProjectConfigRequest);
-    this.view.setUpdateClientParamCallback(this._updateClientParamRequest);
-    this.view.setUpdateClientExclusiveParamCallback(this._updateClientExclusiveParamRequest);
-    this.view.setTriggerClientCommandCallback(this._triggerClientCommand);
+    this.view.deleteProjectCallback = this._deleteProjectRequest;
+    this.view.disconnectDesignerCallback = this._disconnectDesignerRequest;
+    this.view.updateProjectParamCallback = this._updateProjectParamRequest;
+    this.view.updateProjectConfigCallback = this._updateProjectConfigRequest;
+    this.view.updateClientParamCallback = this._updateClientParamRequest;
+    this.view.updateClientExclusiveParamCallback = this._updateClientExclusiveParamRequest;
+    this.view.triggerClientCommandCallback = this._triggerClientCommand;
 
     this.receive('project:list', this._setProjectList);
     this.receive('project:overview', this._updateProjectOverview);

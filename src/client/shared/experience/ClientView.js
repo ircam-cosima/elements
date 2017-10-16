@@ -150,7 +150,7 @@ const viewTemplate = `
  *   * update clear button text
  *   * active / inactive mute button
  */
-class DesignerView extends CanvasView {
+class ClientView extends CanvasView {
   constructor(content, events, options) {
     super(viewTemplate, content, events, options);
 
@@ -421,4 +421,4 @@ class DesignerView extends CanvasView {
   }
 };
 
-export default DesignerView;
+export default ClientView;
