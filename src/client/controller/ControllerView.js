@@ -162,21 +162,22 @@ class ControllerView extends soundworks.View {
       id: 'controller',
     });
 
-    this._deleteProjectCallback = null;
-    this._disconnectDesignerCallback = null;
-    this._updateProjectParamCallback = null;
-    this._updateProjectConfigCallback = null;
-    this._updateClientParamCallback = null;
-    this._updateClientExclusiveParamCallback = null;
+    this.deleteProjectCallback = null;
+    this.disconnectDesignerCallback = null;
+    this.updateProjectParamCallback = null;
+    this.updateProjectConfigCallback = null;
+    this.updateClientParamCallback = null;
+    this.updateClientExclusiveParamCallback = null;
+    this.triggerClientCommandCallback = null;
 
     this.installEvents({
       'click .delete-project': (e) => {
         const uuid = e.target.dataset.target;
-        this._deleteProjectCallback(uuid);
+        this.deleteProjectCallback(uuid);
       },
       'click .disconnect-designer': (e) => {
         const uuid = e.target.dataset.target;
-        this._disconnectDesignerCallback(uuid);
+        this.disconnectDesignerCallback(uuid);
       },
       'change #project-select': (e) => {
         const value = e.target.value;
@@ -187,13 +188,13 @@ class ControllerView extends soundworks.View {
         const $btn = e.target.closest('.mute');
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
-        this._updateProjectParamCallback(uuid, 'mute', !active);
+        this.updateProjectParamCallback(uuid, 'mute', !active);
       },
       'click .project .project-param.intensity': (e) => {
         const $btn = e.target.closest('.intensity');
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
-        this._updateProjectParamCallback(uuid, 'intensity', !active);
+        this.updateProjectParamCallback(uuid, 'intensity', !active);
       },
       // project config
       // depending on the parameter, may trigger a new model training
@@ -227,7 +228,7 @@ class ControllerView extends soundworks.View {
             break;
         }
 
-        this._updateProjectConfigCallback(uuid, param, value);
+        this.updateProjectConfigCallback(uuid, param, value);
       },
       'click .project .project-configuration.ml-preset': (e) => {
         const $input = e.target;
@@ -235,7 +236,7 @@ class ControllerView extends soundworks.View {
         const value = $input.value;
         const preset = mlPresets[value].preset;
         for(let param in preset) {
-          this._updateProjectConfigCallback(uuid, param, preset[param]);
+          this.updateProjectConfigCallback(uuid, param, preset[param]);
         }
       },
       // client params
@@ -243,20 +244,20 @@ class ControllerView extends soundworks.View {
         const $btn = e.target.closest('.mute');
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
-        this._updateClientParamCallback(uuid, 'mute', !active);
+        this.updateClientParamCallback(uuid, 'mute', !active);
       },
       'click .project .client .intensity': (e) => {
         const $btn = e.target.closest('.intensity');
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
-        this._updateClientParamCallback(uuid, 'intensity', !active);
+        this.updateClientParamCallback(uuid, 'intensity', !active);
       },
       // client exclusive params
       'click .project .client .stream-sensors': (e) => {
         const $btn = e.target.closest('.stream-sensors');
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
-        this._updateClientExclusiveParamCallback(uuid, 'streamSensors', !active);
+        this.updateClientExclusiveParamCallback(uuid, 'streamSensors', !active);
       },
       // triggers
       'click .project .client .toggle-record': (e) => {
@@ -271,7 +272,7 @@ class ControllerView extends soundworks.View {
 
         console.log(cmd);
 
-        this._triggerClientCommandCallback(uuid, cmd);
+        this.triggerClientCommandCallback(uuid, cmd);
       }
     });
 
@@ -348,34 +349,6 @@ class ControllerView extends soundworks.View {
     const content = this.projectTemplate(Object.assign({}, project, { mlPresets }));
 
     $container.innerHTML = content;
-  }
-
-  setDeleteProjectCallback(callback) {
-    this._deleteProjectCallback = callback;
-  }
-
-  setDisconnectDesignerCallback(callback) {
-    this._disconnectDesignerCallback = callback;
-  }
-
-  setUpdateProjectParamCallback(callback) {
-    this._updateProjectParamCallback = callback;
-  }
-
-  setUpdateClientParamCallback(callback) {
-    this._updateClientParamCallback = callback;
-  }
-
-  setUpdateProjectConfigCallback(callback) {
-    this._updateProjectConfigCallback = callback;
-  }
-
-  setUpdateClientExclusiveParamCallback(callback) {
-    this._updateClientExclusiveParamCallback = callback;
-  }
-
-  setTriggerClientCommandCallback(callback) {
-    this._triggerClientCommandCallback = callback;
   }
 }
 
