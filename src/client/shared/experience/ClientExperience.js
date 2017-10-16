@@ -369,7 +369,10 @@ class ClientExperience extends soundworks.Experience {
           default:
             throw new Error(`Unkown arguments '${args}' for command '${cmd}'`);
         }
+        break;
 
+      case 'setLabel':
+        this.view.setCurrentLabel(args[0]);
         break;
 
       default:

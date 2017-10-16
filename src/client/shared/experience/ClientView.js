@@ -386,6 +386,10 @@ class ClientView extends CanvasView {
     return this.$labelSelect.value;
   }
 
+  setCurrentLabel(value) {
+    this.$labelSelect.value = value;
+  }
+
   armRecording() {
     this.model.recBtnState = 'armed'; // "armed" state
     this.render('#rec-btn');

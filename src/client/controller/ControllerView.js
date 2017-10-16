@@ -1,6 +1,7 @@
 import * as soundworks from 'soundworks/client';
 import template from 'lodash.template';
 import { presets as mlPresets } from '../../shared/config/ml-presets';
+import { labels as audioLabels } from '../../shared/config/audio';
 
 const projectTemplate = `
   <div class="project-header">
@@ -134,7 +135,18 @@ const projectTemplate = `
            } %>
       </div>
 
+      <div class="label-container">
+        <label class="select-container">Label:
+          <select class="label-select" data-target="<%= client.uuid %>">
+          <% for (var label in audioLabels) { %>
+            <option value="<%= label %>"><%= label %></option>
+          <% } %>
+          </select>
+        </label>
+      </div>
+
       <div class="disconnect-container">
+ <% console.log(client) %>
         <% if (client.params.recordState === 'idle') { %>
         <button class="btn warning disconnect-designer" data-target="<%= client.uuid %>">Disconnect</button>
         <% } %>
@@ -278,7 +290,13 @@ class ControllerView extends soundworks.View {
         const uuid = $input.dataset.target;
         const args = $input.dataset.param;
         this.triggerClientCommandCallback(uuid, 'record', args);
-      }
+      },
+      'change .project .client .label-select': (e) => {
+        const $input = e.target;
+        const value = $input.value;
+        const uuid = $input.dataset.target;
+        this.triggerClientCommandCallback(uuid, 'setLabel', value);
+      },
     });
 
     this.projectUuidContainerMap = new Map();
@@ -334,7 +352,7 @@ class ControllerView extends soundworks.View {
     $container.classList.add('project');
     $container.style.display = 'none';
 
-    const content = this.projectTemplate(Object.assign({}, project, { mlPresets }));
+    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels }));
     $container.innerHTML = content;
 
     this.$projects.appendChild($container);
@@ -351,7 +369,7 @@ class ControllerView extends soundworks.View {
 
   updateProject(project) {
     const $container = this.projectUuidContainerMap.get(project.uuid);
-    const content = this.projectTemplate(Object.assign({}, project, { mlPresets }));
+    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels }));
 
     $container.innerHTML = content;
   }
