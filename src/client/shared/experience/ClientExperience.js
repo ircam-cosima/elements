@@ -123,9 +123,7 @@ class DesignerExperience extends soundworks.Experience {
     this.audioEngine = new AudioEngine(buffers);
     this.previewAudioEngine = new AudioEngine(buffers);
 
-    // preprocessing
-    this.processedSensors = new imlMotion.ProcessedSensors();
-
+    // data flow control
     this.eventIn = new lfo.source.EventIn({
       frameRate: 0,
       frameSize: 8,
@@ -133,34 +131,40 @@ class DesignerExperience extends soundworks.Experience {
     });
 
     this.decoderOnOff = new lfo.operator.OnOff({ state: 'on' });
-
     this.decoderBridge = new lfo.sink.Bridge({
-      processFrame: frame => this._feedDecoder(frame.data),
+      processFrame: frame => {
+        const data = frame.data;
+
+        if (this._checkDataIntegrity(data))
+          this._feedDecoder(data);
+      },
     });
 
     this.recorderOnOff = new lfo.operator.OnOff({ state: 'off' });
-
     this.recorderBridge = new lfo.sink.Bridge({
-      processFrame: frame => this._feedRecorder(frame.data),
-    });
+      processFrame: frame => {
+        const data = frame.data;
 
-    this.processedSensors.addListener(data => {
-      for (let i = 0; i < data.length; i++) {
-        if (!Number.isFinite(data[i]) && data[i] !== null) {
-          this.send('error:input-data', data);
-          return;
-        }
-      }
-
-      this.eventIn.process(null, data);
-      this._feedIntensity(data[0]); // audio gain control
-      this._feedEnhancedIntensity(data[1]); // thresholded recording control
+        if (this._checkDataIntegrity(data))
+          this._feedRecorder(data);
+      },
     });
 
     this.eventIn.connect(this.decoderOnOff);
     this.decoderOnOff.connect(this.decoderBridge);
+
     this.eventIn.connect(this.recorderOnOff);
     this.recorderOnOff.connect(this.recorderBridge);
+
+    // preprocessing
+    this.processedSensors = new imlMotion.ProcessedSensors();
+    this.processedSensors.addListener(data => {
+      if (this._checkDataIntegrity((data) => {
+        this.eventIn.process(null, data);
+        this._feedIntensity(data[0]); // audio gain control
+        this._feedEnhancedIntensity(data[1]); // thresholded recording control
+      });
+    });
 
     // recording
     this.exampleRecorder = new imlMotion.Example();
@@ -451,26 +455,10 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _feedRecorder(data) {
-    // check if some problem occured in preprocessing
-    for (let i = 0; i < data.length; i++) {
-      if (Number.isNaN(data[i])) {
-        this.send('error:input-data', data);
-        return;
-      }
-    }
-
     this.exampleRecorder.addElement(data);
   }
 
   _feedDecoder(data) {
-    // check if some problem occured in preprocessing
-    for (let i = 0; i < data.length; i++) {
-      if (Number.isNaN(data[i])) {
-        this.send('error:input-data', data);
-        return;
-      }
-    }
-
     const results = this.xmmDecoder.run(data);
     const likelihoods = results ? results.likelihoods : [];
     const likeliest = results ? results.likeliestIndex : -1;
@@ -499,16 +487,26 @@ class DesignerExperience extends soundworks.Experience {
       const intensity = value * 100 * this.sensitivity;
       this.audioEngine.setGainFromIntensity(intensity);
       this.previewAudioEngine.setGainFromIntensity(intensity);
-      // this.granularAudioEngine.setIntensity(intensity);
     } else {
       this.audioEngine.setGainFromIntensity(1);
       this.previewAudioEngine.setGainFromIntensity(1);
-      // this.granularAudioEngine.setIntensity(1);
     }
   }
 
   _feedEnhancedIntensity(value) {
     this.autoTrigger.push(value * 100);
+  }
+
+  _onClearLabel(label) {
+    this.view.confirm('clear-label', label).then(() => {
+      this.send('example', { cmd: 'clear', data: label });
+    }).catch(() => {});
+  }
+
+  _onClearModel() {
+    this.view.confirm('clear-all').then(() => {
+      this.send('example', { cmd: 'clearall', data: null });
+    }).catch(() => {});
   }
 
   _streamSensors(data) {
@@ -525,16 +523,15 @@ class DesignerExperience extends soundworks.Experience {
     this.rawSocket.send('sensors', this.aggregatedOutput);
   }
 
-  _onClearLabel(label) {
-    this.view.confirm('clear-label', label).then(() => {
-      this.send('example', { cmd: 'clear', data: label });
-    }).catch(() => {});
-  }
+  _checkDataIntegrity(data) {
+    for (let i = 0; i < data.length; i++) {
+      if (!Number.isFinite(data[i]) && data[i] !== null) {
+        this.send('logFaultySensorData', data);
+        return false;
+      }
+    }
 
-  _onClearModel() {
-    this.view.confirm('clear-all').then(() => {
-      this.send('example', { cmd: 'clearall', data: null });
-    }).catch(() => {});
+    return true;
   }
 };
 

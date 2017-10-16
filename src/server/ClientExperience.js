@@ -81,7 +81,7 @@ class ClientExperience extends Experience {
 
     this.receive(client, 'example', this._onExampleOperation(client));
 
-    this.receive(client, 'error:input-data', this._onBadInputData(client));
+    this.receive(client, 'logFaultySensorData', this._logFaultySensorData(client));
 
     this.rawSocket.receive(client, 'sensors', data => {
       this.comm.emit('sensors', data);
@@ -154,10 +154,8 @@ class ClientExperience extends Experience {
     }
   }
 
-  _onBadInputData(client) {
-    return data => {
-      logger.append('Input data bad format', data, client);
-    }
+  _logFaultySensorData(client) {
+    return data => logger.append('[Faulty sensor data]', data, client);
   }
 }
 
