@@ -117,15 +117,28 @@ const projectTemplate = `
         <div class="toggle-btn"><div></div></div> Stream sensors
       </div>
 
-      <% if (true || client.type === 'designer') { %>
-        <% if (!client.params.recording) { %>
-        <button class="btn toggle-record record" data-target="<%= client.uuid %>">Rec</button>
-        <% } else { %>
-        <button class="btn toggle-record stop fast-blink" data-target="<%= client.uuid %>">Stop</button>
-        <% } %>
+      <div class="record-container">
+        Record state: <%= client.params.recordState %>
+        <% switch (client.params.recordState) {
+             case 'idle':
+             case 'armed': %>
+        <button class="btn record start" data-param="start" data-target="<%= client.uuid %>">Record</button>
+        <%     break;
+             case 'recording': %>
+        <button class="btn record stop" data-param="stop" data-target="<%= client.uuid %>">Stop</button>
+        <%     break;
+             case 'pending': %>
+        <button class="btn record confirm" data-param="confirm" data-target="<%= client.uuid %>">Confirm</button>
+        <button class="btn record cancel" data-param="cancel" data-target="<%= client.uuid %>">Cancel</button>
+        <%     break;
+           } %>
+      </div>
 
-      <button class="btn warning disconnect-designer" data-target="<%= client.uuid %>">Disconnect</button>
-      <% } %>
+      <div class="disconnect-container">
+        <% if (client.params.recordState === 'idle') { %>
+        <button class="btn warning disconnect-designer" data-target="<%= client.uuid %>">Disconnect</button>
+        <% } %>
+      </div>
     </li>
   <% }); %>
   </ul>
@@ -260,19 +273,11 @@ class ControllerView extends soundworks.View {
         this.updateClientExclusiveParamCallback(uuid, 'streamSensors', !active);
       },
       // triggers
-      'click .project .client .toggle-record': (e) => {
-        const $btn = e.target;
-        const uuid = $btn.dataset.target;
-        let cmd = null;
-
-        if ($btn.classList.contains('record'))
-          cmd = 'startRecording';
-        else if ($btn.classList.contains('stop'))
-          cmd = 'stopRecording';
-
-        console.log(cmd);
-
-        this.triggerClientCommandCallback(uuid, cmd);
+      'click .project .client .record': (e) => {
+        const $input = e.target;
+        const uuid = $input.dataset.target;
+        const args = $input.dataset.param;
+        this.triggerClientCommandCallback(uuid, 'record', args);
       }
     });
 

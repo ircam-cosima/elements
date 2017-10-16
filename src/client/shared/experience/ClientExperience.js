@@ -55,7 +55,6 @@ class ClientExperience extends soundworks.Experience {
 
     this.rawSocket = this.require('raw-socket');
 
-    this._recordCommand = this._recordCommand.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
     this._onClearModel = this._onClearModel.bind(this);
 
