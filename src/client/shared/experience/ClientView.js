@@ -162,6 +162,7 @@ class ClientView extends CanvasView {
     this.updateTrainingConfigCallback = null;
     this.updateProjectConfigCallback = null;
     this.switchProjectCallback = null;
+    this.dialog = null;
 
     const viewEvents = {
       'touchstart #switch-project': (e) => {
@@ -277,7 +278,7 @@ class ClientView extends CanvasView {
     this.$clearLabel.textContent = `clear ${this.getCurrentLabel()} recordings`;
   }
 
-  confirm(type, ...args) {
+  confirmDialog(type, ...args) {
     let msg;
 
     switch (type) {
@@ -302,9 +303,19 @@ class ClientView extends CanvasView {
       dialog.render();
       dialog.show();
       dialog.appendTo(this.$el);
+
+      if (this.dialog !== null)
+        this.dialog.remove();
+
+      this.dialog = dialog;
     });
 
     return promise;
+  }
+
+  removeDialog() {
+    this.dialog.remove();
+    this.dialog = null;
   }
 
   showNotification(msg) {

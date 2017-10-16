@@ -15,7 +15,6 @@ const template = `
  * @param {Object} model - object containing the text to display
  * @param {Promise} promise - promise to resolve or reject according to the
  *  user choice
- *
  */
 class ModalDialog extends View {
   constructor(model, resolve, reject) {
@@ -29,17 +28,18 @@ class ModalDialog extends View {
     this.installEvents({
       'touchstart #ok': (e) => {
         e.preventDefault();
-
-        resolve();
-        this.remove();
+        resolve('confirm');
       },
       'touchstart #cancel': (e) => {
         e.preventDefault();
-
-        reject('operation canceled');
-        this.remove();
+        resolve('cancel');
       },
     });
+  }
+
+  remove() {
+    this.resolve('ignore');
+    super.remove();
   }
 }
 

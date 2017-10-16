@@ -431,11 +431,12 @@ class ClientExperience extends soundworks.Experience {
     playSound(this.audioBufferManager.data.uiSounds['stopRecord']);
     this.previewAudioEngine.removeSound(this.view.getCurrentLabel());
 
-    this.view.confirm('send')
-      .then(() => {
-        this._confirmRecordingRequest();
-      }, () => { // if cancelled (reject)
-        this._cancelRecordingRequest();
+    this.view.confirmDialog('send')
+      .then((value) => {
+        if (value === 'confirm')
+          this._confirmRecordingRequest();
+        else if (value === 'cancel')
+          this._cancelRecordingRequest();
       })
       .catch((err) => {
         if (err instanceof Error)
@@ -448,6 +449,7 @@ class ClientExperience extends soundworks.Experience {
   }
 
   _cancelRecording() {
+    this.view.removeDialog();
     this._idleRecordingRequest();
   }
 
@@ -456,6 +458,8 @@ class ClientExperience extends soundworks.Experience {
   }
 
   _confirmRecording() {
+    this.view.removeDialog();
+
     this.exampleRecorder.setLabel(this.view.getCurrentLabel());
     this.send('example', { cmd: 'add', data: this.exampleRecorder.getExample() });
     this._idleRecordingRequest();
@@ -505,14 +509,20 @@ class ClientExperience extends soundworks.Experience {
   }
 
   _onClearLabel(label) {
-    this.view.confirm('clear-label', label).then(() => {
-      this.send('example', { cmd: 'clear', data: label });
+    this.view.confirmDialog('clear-label', label).then((result) => {
+      if (result === 'confirm')
+        this.send('example', { cmd: 'clear', data: label });
+
+      this.view.removeDialog();
     }).catch(() => {});
   }
 
   _onClearModel() {
-    this.view.confirm('clear-all').then(() => {
-      this.send('example', { cmd: 'clearall', data: null });
+    this.view.confirmDialog('clear-all').then((result) => {
+      if (result === 'confirm')
+        this.send('example', { cmd: 'clearall', data: null });
+
+      this.view.removeDialog();
     }).catch(() => {});
   }
 
