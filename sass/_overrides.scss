@@ -524,6 +524,7 @@ $elmHeight: 36px;
     box-sizing: border-box;
     cursor: pointer;
     transition: background-color 100ms;
+    display: inline-block;
 
     &.danger {
       color: #fff;
