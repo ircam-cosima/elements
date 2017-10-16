@@ -2,7 +2,8 @@ import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/common';
 import * as imlMotion from 'iml-motion';
 
-import { labels, ui } from '../../../shared/config/audio';
+import { labels } from '../../../shared/config/audio';
+import { sounds, colors } from '../../../shared/config/ui';
 import { presets } from '../../../shared/config/ml-presets';
 
 import ClientView from './ClientView';
@@ -46,7 +47,7 @@ class ClientExperience extends soundworks.Experience {
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: config.assetsDomain,
-      files: { labels, ui }
+      files: { labels, sounds }
     });
 
     this.motionInput = this.require('motion-input', {
@@ -158,11 +159,11 @@ class ClientExperience extends soundworks.Experience {
     // preprocessing
     this.processedSensors = new imlMotion.ProcessedSensors();
     this.processedSensors.addListener(data => {
-      if (this._checkDataIntegrity((data) => {
+      if (this._checkDataIntegrity(data)) {
         this.eventIn.process(null, data);
         this._feedIntensity(data[0]); // audio gain control
         this._feedEnhancedIntensity(data[1]); // thresholded recording control
-      });
+      }
     });
 
     // recording
