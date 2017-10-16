@@ -1,7 +1,7 @@
 import { Experience } from 'soundworks/server';
 import appStore from './shared/appStore';
 import logger from './shared/errorLogger';
-import * as imlMotion from 'iml-motion/common';
+import * as mano from 'mano-js/common';
 // import xmm from 'xmm-node';
 
 const cwd = process.cwd();
@@ -15,6 +15,7 @@ class ClientExperience extends Experience {
     this.comm = comm;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
+    this.checkin = this.require('checkin');
     this.projectManager = this.require('project-manager');
     this.sharedParams = this.require('shared-params');
 

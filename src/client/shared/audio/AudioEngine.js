@@ -39,11 +39,12 @@ class MvAvrg {
 //========================= the audio engine class : =========================//
 
 class AudioEngine {
-  constructor(buffers) {
+  constructor(buffers, clientIndex) {
     this._fadeInTime = 0.5;
     this._fadeOutTime = 0.5;
 
     this.buffers = buffers;
+    this.clientIndex = clientIndex;
     this.labels = [];
     this.audioContext = audioContext;
 
@@ -118,8 +119,11 @@ class AudioEngine {
   _startLabel(label) {
     if (this.fades[label]) return;
 
+    const buffers = this.buffers[label];
+    const index = this.clientIndex % buffers.length;
+    const buffer = buffers[index];
     const src = audioContext.createBufferSource();
-    src.buffer = this.buffers[label];
+    src.buffer = buffer;
 
     const fade = audioContext.createGain();
 
@@ -149,6 +153,7 @@ class AudioEngine {
 
   fadeToNewSound(label) {
     const now = audioContext.currentTime;
+
     for (let i = 0; i < this.labels.length; i++) {
       const l = this.labels[i];
       const currentValue = this.fades[l].gain.value;

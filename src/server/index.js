@@ -2,8 +2,7 @@ import 'source-map-support/register'; // enable sourcemaps in node
 import { EventEmitter } from 'events';
 import path from 'path';
 import * as soundworks from 'soundworks/server';
-
-import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'iml-motion/common';
+import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'mano-js/common';
 import xmm from 'xmm-node';
 import bodyParser from 'body-parser';
 

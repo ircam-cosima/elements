@@ -2,7 +2,7 @@ import * as soundworks from 'soundworks/server';
 import appStore from './shared/appStore';
 import chalk from 'chalk';
 import xmm from 'xmm-node';
-import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'iml-motion/common';
+import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'mano-js/common';
 
 // xmm instances for the controller
 const gx = new xmm('gmm');

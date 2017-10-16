@@ -1,4 +1,4 @@
-import * as imlMotion from 'iml-motion/common';
+import * as mano from 'mano-js/common';
 import projectDbMapper from './projectDbMapper';
 import xmmDbMapper from './xmmDbMapper';
 import uuidv4 from 'uuid/v4';
@@ -78,8 +78,8 @@ const appStore = {
 
   _getNewTrainingClasses() {
     return {
-      data: new imlMotion.TrainingData(),
-      algo: new imlMotion.XmmProcessor({
+      data: new mano.TrainingData(),
+      algo: new mano.XmmProcessor({
         // we assume the api simulation will run on the localhost (see server/index.js)
         url: `http://localhost:${config.port}${config.trainUrl}`
       }),

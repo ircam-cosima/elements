@@ -1,9 +1,9 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/common';
-import * as imlMotion from 'iml-motion';
+import * as mano from 'mano-js';
 
 import { labels } from '../../../shared/config/audio';
-import { sounds, colors } from '../../../shared/config/ui';
+import { sounds as uiSounds, colors } from '../../../shared/config/ui';
 import { presets } from '../../../shared/config/ml-presets';
 
 import ClientView from './ClientView';
@@ -42,12 +42,13 @@ class ClientExperience extends soundworks.Experience {
     this.streamSensors = false;
 
     this.platform = this.require('platform', { features: ['web-audio'] });
+    this.checkin = this.require('checkin');
     this.projectManager = this.require('project-manager');
     this.sharedParams = this.require('shared-params');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: config.assetsDomain,
-      files: { labels, sounds }
+      files: { labels, uiSounds },
     });
 
     this.motionInput = this.require('motion-input', {
@@ -120,8 +121,9 @@ class ClientExperience extends soundworks.Experience {
     this.fullColorRenderer = new FullColorRenderer(this.view);
 
     const buffers = this.audioBufferManager.data.labels;
-    this.audioEngine = new AudioEngine(buffers);
-    this.previewAudioEngine = new AudioEngine(buffers);
+
+    this.audioEngine = new AudioEngine(buffers, client.index);
+    this.previewAudioEngine = new AudioEngine(buffers, client.index);
 
     // data flow control
     this.eventIn = new lfo.source.EventIn({
@@ -157,7 +159,7 @@ class ClientExperience extends soundworks.Experience {
     this.recorderOnOff.connect(this.recorderBridge);
 
     // preprocessing
-    this.processedSensors = new imlMotion.ProcessedSensors();
+    this.processedSensors = new mano.ProcessedSensors();
     this.processedSensors.addListener(data => {
       if (this._checkDataIntegrity(data)) {
         this.eventIn.process(null, data);
@@ -167,10 +169,10 @@ class ClientExperience extends soundworks.Experience {
     });
 
     // recording
-    this.exampleRecorder = new imlMotion.Example();
+    this.exampleRecorder = new mano.Example();
 
     // decoding
-    this.xmmDecoder = new imlMotion.XmmProcessor({ url: this.config.trainUrl });
+    this.xmmDecoder = new mano.XmmProcessor({ url: this.config.trainUrl });
     this.xmmDecoder.setConfig({ likelihoodWindow: 20 });
 
     const defaultProjectConfig = this.config.defaultProjectConfig;
@@ -407,7 +409,7 @@ class ClientExperience extends soundworks.Experience {
     this.exampleRecorder.clear();
     this.view.startRecording();
 
-    playSound(this.audioBufferManager.data.ui['startRec']);
+    playSound(this.audioBufferManager.data.uiSounds['startRecord']);
 
     this.previewAudioEngine.addSound(this.likeliest);
     this.previewAudioEngine.fadeToNewSound(this.likeliest);
@@ -426,7 +428,7 @@ class ClientExperience extends soundworks.Experience {
     this.view.stopRecording();
     this.autoTrigger.setState('off');
 
-    playSound(this.audioBufferManager.data.ui['stopRec']);
+    playSound(this.audioBufferManager.data.uiSounds['stopRecord']);
     this.previewAudioEngine.removeSound(this.view.getCurrentLabel());
 
     this.view.confirm('send')

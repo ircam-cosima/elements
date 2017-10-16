@@ -1,6 +1,6 @@
 export const sounds = {
-  startRec: 'sounds/ui/tik.mp3',
-  stopRec: 'sounds/ui/tik.mp3',
+  startRecord: 'sounds/ui/tik.mp3',
+  stopRecord: 'sounds/ui/tik.mp3',
 };
 
 // from : http://clrs.cc/a11y/ backgrounds
