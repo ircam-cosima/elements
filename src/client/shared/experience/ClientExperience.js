@@ -25,11 +25,11 @@ function playSound(buffer) {
 }
 
 class ClientExperience extends soundworks.Experience {
-  constructor(config, viewVisibilityOptions) {
+  constructor(config, viewOptions) {
     super();
 
     this.config = config;
-    this.viewVisibilityOptions = viewVisibilityOptions;
+    this.viewVisibilityOptions = viewOptions;
 
     this.labels = Object.keys(labels);
     this.likeliest = undefined;
@@ -43,7 +43,9 @@ class ClientExperience extends soundworks.Experience {
 
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.checkin = this.require('checkin');
-    this.projectManager = this.require('project-manager');
+    this.projectManager = this.require('project-manager', {
+      allowProjectCreation: viewOptions.allowProjectCreation,
+    });
     this.sharedParams = this.require('shared-params');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {

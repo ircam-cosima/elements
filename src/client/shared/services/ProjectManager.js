@@ -19,6 +19,7 @@ class ProjectManager extends Service {
 
     const defaults = {
       viewPriority: 8,
+      allowProjectCreation: true,
     };
 
     this.configure(defaults);
@@ -46,6 +47,7 @@ class ProjectManager extends Service {
 
     this.view.model.logged = false;
     this.view.model.name = null;
+    this.view.model.allowProjectCreation = this.options.allowProjectCreation;
 
     this.show();
   }

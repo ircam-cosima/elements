@@ -30,13 +30,15 @@ const serviceViews = {
   // ------------------------------------------------
   // ProjectManager
   // ------------------------------------------------
-  'service:project-manager': class ProjectManagerView extends View {
+  'service:project-manager': class ProjectManagerView extends SegmentedView {
     constructor() {
       super();
 
       // chooser
       this.template = `
-        <div class="section-top flex-center">
+        <div class="section-top flex-center"></div>
+
+        <div class="section-center align-center">
           <div>
             <p>Select project</p>
             <p class="error">
@@ -53,9 +55,8 @@ const serviceViews = {
               </select>
             </div>
           </div>
-        </div>
 
-        <div class="section-center flex-center">
+          <% if (allowProjectCreation === true) { %>
           <div>
             <p>Enter / Create Project</p>
             <% if (error) { %>
@@ -66,6 +67,7 @@ const serviceViews = {
             <input type="text" id="name" placeholder="project name" value="" />
             <button class="btn" id="login">Send</button>
           </div>
+          <% } %>
         </div>
         <div class="section-bottom"></div>
       `;

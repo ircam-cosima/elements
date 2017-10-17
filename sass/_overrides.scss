@@ -22,6 +22,14 @@ $green: #40de56;
                                   supported by Chrome and Opera */
 }
 
+.align-center {
+  text-align: center;
+
+  * {
+    margin: 0 auto;
+  }
+}
+
 .btn {
   width: 100%;
   height: 36px;

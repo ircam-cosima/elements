@@ -24,6 +24,7 @@ function bootstrap() {
     basicControls: true,
     advancedControls: true,
     configuration: true,
+    allowProjectCreation: true,
   });
 
   soundworks.client.start();

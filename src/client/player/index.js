@@ -50,6 +50,7 @@ function bootstrap() {
     basicControls: true,
     advancedControls: false,
     configuration: false,
+    allowProjectCreation: false,
   });
 
   soundworks.client.start();
