@@ -203,6 +203,7 @@ const mainTemplate = `
         <button data-target="<%= label %>" data-param="start" class="btn normal trigger">Start</button>
         <button data-target="<%= label %>" data-param="stop" class="btn normal trigger">Stop</button>
       </li>
+    <% } %>
     </ul>
 
   </div>
@@ -419,7 +420,7 @@ class ControllerView extends soundworks.View {
     $container.classList.add('project');
     $container.style.display = 'none';
 
-    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels }));
+    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels, audioTriggers }));
     $container.innerHTML = content;
 
     this.$projects.appendChild($container);
@@ -436,7 +437,7 @@ class ControllerView extends soundworks.View {
 
   updateProject(project) {
     const $container = this.projectUuidContainerMap.get(project.uuid);
-    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels }));
+    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels, audioTriggers }));
 
     $container.innerHTML = content;
   }

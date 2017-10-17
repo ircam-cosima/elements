@@ -164,6 +164,8 @@ class ClientView extends CanvasView {
     this.switchProjectCallback = null;
     this.dialog = null;
 
+    this.currentLabels = [];
+
     const viewEvents = {
       'touchstart': (e) => {
         e.preventDefault();
@@ -390,7 +392,7 @@ class ClientView extends CanvasView {
     this.$labelSelect.value = value;
 
     // this.$labelSelect.value = label;
-    this.$clearLabel.textContent = `clear ${label} recordings`;
+    this.$clearLabel.textContent = `clear ${value} recordings`;
 
     if (this.currentLabels.indexOf(value) === -1)
       this.$clearLabel.setAttribute('disabled', true);

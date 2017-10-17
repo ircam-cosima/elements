@@ -2,7 +2,7 @@ import * as soundworks from 'soundworks/client';
 import ControllerView from './ControllerView';
 import * as lfo from 'waves-lfo/client';
 import * as controllers from 'basic-controllers';
-import { triggers, labels } from '../../shared/config/audio';
+import { triggers as audioTriggers, labels as audioLabels } from '../../shared/config/audio';
 
 class ControllerExperience extends soundworks.Experience {
   constructor() {
@@ -32,7 +32,9 @@ class ControllerExperience extends soundworks.Experience {
 
     document.documentElement.style.backgroundColor = 'white';
 
-    this.view = new ControllerView();
+    this.view = new ControllerView({
+      audioTriggers: audioTriggers,
+    });
 
     this.view.audioTriggerCallback = this._audioTriggerCallback;
     this.view.deleteProjectCallback = this._deleteProjectRequest;
