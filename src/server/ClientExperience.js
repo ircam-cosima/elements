@@ -54,7 +54,6 @@ class ClientExperience extends Experience {
 
     this.comm.addListener('command:trigger', (uuid, cmd, ...args) => {
       const client = appStore.getClientByUuid(uuid);
-      console.log(uuid + ' ' + client.type);
 
       if (client.type === 'designer')
         this.send(client, 'command:trigger', cmd, ...args);

@@ -387,6 +387,7 @@ class ClientExperience extends soundworks.Experience {
 
   _idleRecording() {
     this.autoTrigger.setState('off');
+    this.view.stopRecording();
   }
 
   _armRecordingRequest() {
@@ -395,6 +396,7 @@ class ClientExperience extends soundworks.Experience {
 
   _armRecording() {
     this.autoTrigger.setState('on');
+    this.view.armRecording();
   }
 
   _startRecordingRequest() {
