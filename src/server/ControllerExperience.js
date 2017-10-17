@@ -89,6 +89,8 @@ class ControllerExperience extends soundworks.Experience {
 
     this.receive(client, 'project:delete', this._onProjectDeleteRequest(client));
     this.receive(client, 'designer:disconnect', this._onDesignerDisconnectRequest(client));
+    this.receive(client, 'project:clearModel', this._clearModelRequest(client));
+    this.receive(client, 'project:clearLabel', this._clearLabelRequest(client));
     this.receive(client, 'param:project:update', this._onUpdateProjectParam(client));
     this.receive(client, 'config:project:update', this._onUpdateProjectConfig(client));
     this.receive(client, 'param:client:update', this._onUpdateClientParam(client));
@@ -185,6 +187,22 @@ class ControllerExperience extends soundworks.Experience {
       const designer = appStore.getClientByUuid(uuid);
       this.send(designer, 'force:disconnect');
     }
+  }
+
+  _clearModelRequest(client) {
+    return uuid => {
+      const project = appStore.getProjectByUuid(uuid);
+      appStore.removeAllExamplesFromProject(project);
+
+    };
+  }
+
+  _clearLabelRequest(client) {
+    return (uuid, label) => {
+      const project = appStore.getProjectByUuid(uuid);
+      appStore.removeExamplesFromProject(project, label);
+
+    };
   }
 
   _onUpdateProjectParam(client) {

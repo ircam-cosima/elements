@@ -157,7 +157,6 @@ class ClientView extends CanvasView {
     this.recordCallback = null;
     this.clearLabelCallback = null;
     this.clearModelCallback = null;
-    this.clearModelCallback = null;
     this.updateParamCallback = null;
     this.updateTrainingConfigCallback = null;
     this.updateProjectConfigCallback = null;

@@ -34,6 +34,8 @@ class ControllerExperience extends soundworks.Experience {
 
     this.view.deleteProjectCallback = this._deleteProjectRequest;
     this.view.disconnectDesignerCallback = this._disconnectDesignerRequest;
+    this.view.clearModelCallback = this._clearModelRequest.bind(this);
+    this.view.clearLabelCallback = this._clearLabelRequest.bind(this);
     this.view.updateProjectParamCallback = this._updateProjectParamRequest;
     this.view.updateProjectConfigCallback = this._updateProjectConfigRequest;
     this.view.updateClientParamCallback = this._updateClientParamRequest;
@@ -145,6 +147,13 @@ class ControllerExperience extends soundworks.Experience {
     this.send('designer:disconnect', uuid);
   }
 
+  _clearModelRequest(uuid) {
+    this.send('project:clearModel', uuid);
+  }
+
+  _clearLabelRequest(uuid, label) {
+    this.send('project:clearLabel', uuid, label);
+  }
   // parameters realtive to user interfaces
   _updateProjectParamRequest(uuid, paramName, value) {
     this.send('param:project:update', uuid, paramName, value);

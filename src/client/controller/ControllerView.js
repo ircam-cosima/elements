@@ -17,6 +17,23 @@ const projectTemplate = `
       </div>Intensity
     </div>
 
+    <div class="labels>Labels:
+      <div class="label-container">
+        <label class="delete-all-container">
+          <button class="btn clear-model" data-param="<%= name %>" data-target="<%= uuid %>">Clear all</button>
+        </label>
+
+        <label class="delete-container">
+          <% for (var label in audioLabels) { %>
+          <button class="clear-label" data-target="<%= uuid %>" data-param="<%= label %>">Clear <%= label %></button>
+          <% } %>
+
+        </label>
+      </div>
+
+
+    </div>
+
     <div class="select-container">Presets:
       <% for (var p in mlPresets) { %>
        <button class="btn project-configuration ml-preset" data-target="<%= uuid %>" value="<%= p %>">
@@ -189,6 +206,8 @@ class ControllerView extends soundworks.View {
 
     this.deleteProjectCallback = null;
     this.disconnectDesignerCallback = null;
+    this.clearModelCallback = null;
+    this.clearLabelCallback = null;
     this.updateProjectParamCallback = null;
     this.updateProjectConfigCallback = null;
     this.updateClientParamCallback = null;
@@ -220,6 +239,22 @@ class ControllerView extends soundworks.View {
         const active = $btn.classList.contains('active');
         const uuid = $btn.dataset.target;
         this.updateProjectParamCallback(uuid, 'intensity', !active);
+      },
+      'click .project .clear-model': (e) => {
+        const $btn = e.target;
+        const uuid = $btn.dataset.target;
+        const name = $btn.dataset.param;
+        if(window.confirm(`Do you really want to delete all recordings of the project ${name}?`) ) {
+          this.clearModelCallback(uuid);
+        }
+      },
+      'click .project .clear-label': (e) => {
+        const $btn = e.target;
+        const uuid = $btn.dataset.target;
+        const label = $btn.dataset.param;
+        if(window.confirm(`Do you really want to delete ${label} recordings?`) ) {
+          this.clearLabelCallback(uuid, label);
+        }
       },
       // project config
       // depending on the parameter, may trigger a new model training
