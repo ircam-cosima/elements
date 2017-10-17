@@ -54,7 +54,6 @@ class GranularAudioEngineBase extends audio.GranularEngine {
 
   setIntensity(value) {
     this.intensity = value;
-    console.log(this.intensity);
   }
 
     // probability of buffer for next grain directly from likelihoods

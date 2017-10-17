@@ -138,8 +138,12 @@ const projectTemplate = `
       <div class="record-container">
         Record state: <%= client.params.recordState %>
         <% switch (client.params.recordState) {
-             case 'idle':
+             case 'idle': %>
+        <button class="btn record arm" data-param="arm" data-target="<%= client.uuid %>">Arm</button>
+        <button class="btn record start" data-param="start" data-target="<%= client.uuid %>">Record</button>
+        <%     break;
              case 'armed': %>
+        <button class="btn record cancel" data-param="idle" data-target="<%= client.uuid %>">Cancel</button>
         <button class="btn record start" data-param="start" data-target="<%= client.uuid %>">Record</button>
         <%     break;
              case 'recording': %>
@@ -163,8 +167,7 @@ const projectTemplate = `
       </div>
 
       <div class="disconnect-container">
- <% console.log(client) %>
-        <% if (client.params.recordState === 'idle') { %>
+         <% if (client.params.recordState === 'idle') { %>
         <button class="btn warning disconnect-designer" data-target="<%= client.uuid %>">Disconnect</button>
         <% } %>
       </div>
