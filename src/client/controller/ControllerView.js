@@ -114,7 +114,7 @@ const projectTemplate = `
       </div> <!-- Recording -->
     </div> <!-- show / hide wrapper -->
 
-    <% if (!hasDesigner) { %>
+    <% if (clients.length === 0) { %>
     <button class="btn danger delete-project" data-target="<%= uuid %>">Delete</button>
     <% } %>
   </div> <!-- Project Header -->
@@ -136,22 +136,22 @@ const projectTemplate = `
       </div>
 
       <div class="record-container">
-        Record state: <%= client.params.recordState %>
+        Record state: <span class="current-state"><%= client.params.recordState %></span>
         <% switch (client.params.recordState) {
              case 'idle': %>
-        <button class="btn record arm" data-param="arm" data-target="<%= client.uuid %>">Arm</button>
-        <button class="btn record start" data-param="start" data-target="<%= client.uuid %>">Record</button>
+        <button class="btn record normal arm" data-param="arm" data-target="<%= client.uuid %>">Arm</button>
+        <button class="btn record normal start" data-param="start" data-target="<%= client.uuid %>">Record</button>
         <%     break;
              case 'armed': %>
-        <button class="btn record cancel" data-param="idle" data-target="<%= client.uuid %>">Cancel</button>
-        <button class="btn record start" data-param="start" data-target="<%= client.uuid %>">Record</button>
+        <button class="btn record normal cancel" data-param="idle" data-target="<%= client.uuid %>">Cancel</button>
+        <button class="btn record normal start" data-param="start" data-target="<%= client.uuid %>">Record</button>
         <%     break;
              case 'recording': %>
-        <button class="btn record stop" data-param="stop" data-target="<%= client.uuid %>">Stop</button>
+        <button class="btn record normal stop" data-param="stop" data-target="<%= client.uuid %>">Stop</button>
         <%     break;
              case 'pending': %>
-        <button class="btn record confirm" data-param="confirm" data-target="<%= client.uuid %>">Confirm</button>
-        <button class="btn record cancel" data-param="cancel" data-target="<%= client.uuid %>">Cancel</button>
+        <button class="btn record normal confirm" data-param="confirm" data-target="<%= client.uuid %>">Confirm</button>
+        <button class="btn record normal cancel" data-param="cancel" data-target="<%= client.uuid %>">Cancel</button>
         <%     break;
            } %>
       </div>

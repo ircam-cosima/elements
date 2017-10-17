@@ -85,7 +85,7 @@
 
   .select-container {
     font-size: 0.8rem;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 
     select {
       right: 4px;
@@ -218,7 +218,6 @@
       .client {
         border-bottom: 1px solid #cdcdcd;
         position: relative;
-        height: 44px;
         line-height: 36px;
 
         p {
@@ -233,29 +232,46 @@
         right: 4px;
       }
 
-      .btn.toggle-record {
-        display: inline-block;
-        color: #fff;
-        background-color: lighten(#d9534f, 10%);
-        border-color: #d43f3a;
-        border-radius: 20px;
-        width: 70px;
-        padding: 0 12px;
-        position: relative;
-        top: 4px;
+      // .btn.toggle-record {
+      //   display: inline-block;
+      //   color: #fff;
+      //   background-color: lighten(#d9534f, 10%);
+      //   border-color: #d43f3a;
+      //   border-radius: 20px;
+      //   width: 70px;
+      //   padding: 0 12px;
+      //   position: relative;
+      //   top: 4px;
 
-        &:hover {
-          background-color: darken(#d9534f, 5%);
+      //   &:hover {
+      //     background-color: darken(#d9534f, 5%);
+      //   }
+
+      //   &.stop {
+      //     background-color: darken(#d9534f, 5%);
+      //   }
+      // }
+
+      .record-container {
+        font-size: 0.9rem;
+        margin: 8px 0;
+
+        .current-state {
+          font-size: 0.9rem;
+          display: inline-block;
+          width: 194px;
+          text-transform: uppercase;
+          text-align: center;
+          color: steelblue;
         }
 
-        &.stop {
-          background-color: darken(#d9534f, 5%);
+        .btn {
+          font-size: 0.9rem;
         }
-      }
 
-      .record-feedback {
-        display: inline-block;
-        background-color: #d9534f;
+        .current-state {
+
+        }
       }
     }
   }
