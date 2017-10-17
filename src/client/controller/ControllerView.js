@@ -17,102 +17,102 @@ const projectTemplate = `
       </div>Intensity
     </div>
 
-    <div class="labels>Labels:
-      <div class="label-container">
-        <label class="delete-all-container">
-          <button class="btn clear-model" data-param="<%= name %>" data-target="<%= uuid %>">Clear all</button>
-        </label>
+    <button class="show-hide-wrapper-control btn normal">advanced options</button>
+    <div class="show-hide-wrapper hidden">
+      <div class="labels"><h3>Labels:</h3>
+        <div class="label-container">
+          <label class="delete-all-container">
+            <button class="clear-model btn danger small" data-param="<%= name %>" data-target="<%= uuid %>">Clear all</button>
+          </label>
 
-        <label class="delete-container">
-          <% for (var label in audioLabels) { %>
-          <button class="clear-label" data-target="<%= uuid %>" data-param="<%= label %>">Clear <%= label %></button>
-          <% } %>
-
-        </label>
+          <label class="delete-container">
+            <% for (var label in audioLabels) { %>
+            <button class="clear-label btn warning small" data-target="<%= uuid %>" data-param="<%= label %>">Clear <%= label %></button>
+            <% } %>
+          </label>
+        </div>
       </div>
 
+      <div class="select-container"><h3>Presets:</h3>
+        <% for (var p in mlPresets) { %>
+         <button class="project-configuration ml-preset btn normal" data-target="<%= uuid %>" value="<%= p %>">
+            <%= mlPresets[p].name %>
+          </button>
+        <% } %>
+      </div><!-- Presets -->
 
-    </div>
+      <div><h3>Global:</h3>
 
-    <div class="select-container">Presets:
-      <% for (var p in mlPresets) { %>
-       <button class="btn project-configuration ml-preset" data-target="<%= uuid %>" value="<%= p %>">
-          <%= mlPresets[p].name %>
-        </button>
-      <% } %>
-    </div><!-- Presets -->
+        <div class="select-container">Model type
+          <select class="project-configuration" data-target="<%= uuid %>" data-param="modelType" >
+            <% ['gmm', 'hhmm'].forEach(function(opt) { %>
+            <option value="<%= opt %>" <%= modelType === opt ? 'selected' : '' %> ><%= opt %></option>
+            <% }); %>
+          </select>
+        </div>
 
-    <div>Global:
+        <div class="select-container">Gaussians
+          <select class="project-configuration" data-target="<%= uuid %>" data-param="gaussians" >
+            <% for (var i = 1; i <= 10; i++) { %>
+            <option value="<%= i %>" <%= gaussians === i ? 'selected' : '' %> ><%= i %> </option>
+            <% } %>
+          </select>
+        </div>
 
-      <div class="select-container">Model type
-        <select class="project-configuration" data-target="<%= uuid %>" data-param="modelType" >
-          <% ['gmm', 'hhmm'].forEach(function(opt) { %>
-          <option value="<%= opt %>" <%= modelType === opt ? 'selected' : '' %> ><%= opt %></option>
-          <% }); %>
-        </select>
-      </div>
+        <div class="select-container">Covariance
+          <select class="project-configuration" data-target="<%= uuid %>" data-param="covarianceMode" >
+            <% ['full', 'diagonal'].forEach(function(opt) { %>
+            <option value="<%= opt %>" <%= covarianceMode === opt ? 'selected' : '' %> ><%= opt %></option>
+            <% }); %>
+          </select>
+        </div>
 
-      <div class="select-container">Gaussians
-        <select class="project-configuration" data-target="<%= uuid %>" data-param="gaussians" >
-          <% for (var i = 1; i <= 10; i++) { %>
-          <option value="<%= i %>" <%= gaussians === i ? 'selected' : '' %> ><%= i %> </option>
-          <% } %>
-        </select>
-      </div>
+        <div class="number-box">Absolute regularization
+          <input type="number" value="<%= absoluteRegularization %>" data-target="<%= uuid %>" data-param="absoluteRegularization" class="project-configuration" />
+        </div>
 
-      <div class="select-container">Covariance
-        <select class="project-configuration" data-target="<%= uuid %>" data-param="covarianceMode" >
-          <% ['full', 'diagonal'].forEach(function(opt) { %>
-          <option value="<%= opt %>" <%= covarianceMode === opt ? 'selected' : '' %> ><%= opt %></option>
-          <% }); %>
-        </select>
-      </div>
+        <div class="number-box">Relative regularization
+          <input type="number" value="<%= relativeRegularization %>" data-target="<%= uuid %>" data-param="relativeRegularization" class="project-configuration" />
+        </div>
 
-      <div class="number-box">Absolute regularization
-        <input type="number" value="<%= absoluteRegularization %>" data-target="<%= uuid %>" data-param="absoluteRegularization" class="project-configuration" />
-      </div>
+      </div> <!-- Global -->
 
-      <div class="number-box">Relative regularization
-        <input type="number" value="<%= relativeRegularization %>" data-target="<%= uuid %>" data-param="relativeRegularization" class="project-configuration" />
-      </div>
+      <div class="hhmm-configuration"><h3>HHMM:</h3>
 
-    </div> <!-- Global -->
+        <div class="select-container">States
+          <select class="project-configuration" data-target="<%= uuid %>" data-param="states" >
+            <% for (var i = 1; i <= 20; i++) { %>
+            <option value="<%= i %>" <%= states === i ? 'selected' : '' %> ><%= i %></option>
+            <% } %>
+          </select>
+        </div>
 
-    <div class="hhmm-configuration">HHMM:
+        <div class="select-container">Transition
+          <select class="project-configuration" data-target="<%= uuid %>" data-param="transitionMode" >
+            <% ['ergodic', 'leftright'].forEach(function(opt) { %>
+            <option value="<%= opt %>" <%= transitionMode === opt ? 'selected' : '' %> ><%= opt %></option>
+            <% }); %>
+          </select>
+        </div>
 
-      <div class="select-container">States
-        <select class="project-configuration" data-target="<%= uuid %>" data-param="states" >
-          <% for (var i = 1; i <= 20; i++) { %>
-          <option value="<%= i %>" <%= states === i ? 'selected' : '' %> ><%= i %></option>
-          <% } %>
-        </select>
-      </div>
+      </div> <!-- HHMM -->
 
-      <div class="select-container">Transition
-        <select class="project-configuration" data-target="<%= uuid %>" data-param="transitionMode" >
-          <% ['ergodic', 'leftright'].forEach(function(opt) { %>
-          <option value="<%= opt %>" <%= transitionMode === opt ? 'selected' : '' %> ><%= opt %></option>
-          <% }); %>
-        </select>
-      </div>
+      <div><h3>Recording:</h3>
 
-    </div> <!-- HHMM -->
+        <div class="number-box">High Threshold
+          <input type="number" value="<%= config.highThreshold %>" data-target="<%= uuid %>" data-param="highThreshold" class="project-configuration" />
+        </div>
 
-    <div>Recording:
+        <div class="number-box">Low Threshold
+          <input type="number" value="<%= config.lowThreshold %>" data-target="<%= uuid %>" data-param="lowThreshold" class="project-configuration" />
+        </div>
 
-      <div class="number-box">High Threshold
-        <input type="number" value="<%= config.highThreshold %>" data-target="<%= uuid %>" data-param="highThreshold" class="project-configuration" />
-      </div>
+        <div class="number-box">Off Delay
+          <input type="number" value="<%= config.offDelay %>" data-target="<%= uuid %>" data-param="offDelay" class="project-configuration" />
+        </div>
 
-      <div class="number-box">Low Threshold
-        <input type="number" value="<%= config.lowThreshold %>" data-target="<%= uuid %>" data-param="lowThreshold" class="project-configuration" />
-      </div>
-
-      <div class="number-box">Off Delay
-        <input type="number" value="<%= config.offDelay %>" data-target="<%= uuid %>" data-param="offDelay" class="project-configuration" />
-      </div>
-
-    </div> <!-- Recording -->
+      </div> <!-- Recording -->
+    </div> <!-- show / hide wrapper -->
 
     <% if (!hasDesigner) { %>
     <button class="btn danger delete-project" data-target="<%= uuid %>">Delete</button>
@@ -163,7 +163,6 @@ const projectTemplate = `
       </div>
 
       <div class="disconnect-container">
- <% console.log(client) %>
         <% if (client.params.recordState === 'idle') { %>
         <button class="btn warning disconnect-designer" data-target="<%= client.uuid %>">Disconnect</button>
         <% } %>
@@ -332,6 +331,21 @@ class ControllerView extends soundworks.View {
         const uuid = $input.dataset.target;
         this.triggerClientCommandCallback(uuid, 'setLabel', value);
       },
+
+      // interface
+      'click .show-hide-wrapper-control': (e) => {
+        e.preventDefault();
+        const $target = e.target;
+        const $projectHeader = $target.closest('.project-header');
+        const $container = $projectHeader.querySelector('.show-hide-wrapper');
+
+        console.log($target, $container);
+
+        if ($container.classList.contains('hidden'))
+          $container.classList.remove('hidden');
+        else
+          $container.classList.add('hidden');
+      }
     });
 
     this.projectUuidContainerMap = new Map();

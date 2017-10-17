@@ -28,3 +28,7 @@
  * Entry point for application specific styling and overriding.
  */
 @import 'overrides';
+
+@import 'designer';
+@import 'player';
+@import 'controller';
