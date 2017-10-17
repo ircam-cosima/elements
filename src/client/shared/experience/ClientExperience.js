@@ -295,6 +295,10 @@ class ClientExperience extends soundworks.Experience {
 
     this.recordState = params.recordState;
 
+    if (params.currentLabel !== this.view.getCurrentLabel()) {
+      this._setLabel(params.currentLabel);
+    }
+
     // stream sensors to admin
     if (params.streamSensors !== this.streamSensors) {
       if (params.streamSensors === true)
@@ -366,6 +370,7 @@ class ClientExperience extends soundworks.Experience {
     this.view.setCurrentLabels(currentLabels);
     this.view.showNotification('Model updated');
   }
+
 
   _triggerCommand(cmd, ...args) {
     switch (cmd) {
@@ -478,7 +483,9 @@ class ClientExperience extends soundworks.Experience {
 
   _stopRecording() {
     // enable recognition back, disable recording input flow
-    this.decoderOnOff.setState('on');
+    if (this.hasModel)
+      this.decoderOnOff.setState('on');
+
     this.recorderOnOff.setState('off');
 
     this.view.stopRecording();
@@ -520,6 +527,14 @@ class ClientExperience extends soundworks.Experience {
     this.exampleRecorder.setLabel(this.view.getCurrentLabel());
     this.send('example', { cmd: 'add', data: this.exampleRecorder.getExample() });
     this._idleRecordingRequest();
+  }
+
+  _setLabelRequest(label) {
+    this.send('param:update', 'currentLabel', label);
+  }
+
+  _setLabel(label) {
+    this.view.setCurrentLabel(label);
   }
 
   ////////// TRIGGERED SOUNDS
@@ -591,7 +606,9 @@ class ClientExperience extends soundworks.Experience {
   }
 
   _onCurrentLabelChange(label) {
+    console.log(label);
     this.previewAudioEngine.updateSounds([ label ]);
+
     if (!this.hasModel)
       this.previewAudioEngine.fadeToNewSound(label);
 

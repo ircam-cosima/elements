@@ -158,7 +158,7 @@ const projectTemplate = `
 
       <div class="label-container">
         <label class="select-container">Label:
-          <select class="label-select" data-target="<%= client.uuid %>">
+          <select class="label-select" data-target="<%= client.uuid %>" value="<%= client.currentLabel %>">
           <% for (var label in audioLabels) { %>
             <option value="<%= label %>"><%= label %></option>
           <% } %>

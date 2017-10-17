@@ -42,6 +42,7 @@ class ControllerExperience extends soundworks.Experience {
 
     const broadcast = (channel, project) => {
       const serializedProject = this._serializeProject(project);
+      console.log(serializedProject);
       this.broadcast('controller', null, channel, serializedProject);
     };
 
@@ -166,6 +167,8 @@ class ControllerExperience extends soundworks.Experience {
         params: client.params,
       };
 
+      console.log(c);
+      console.log('--------------------------------');
       serialized.clients.push(c);
     });
     //

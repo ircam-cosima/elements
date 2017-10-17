@@ -64,16 +64,11 @@ class ClientExperience extends Experience {
 
     const project = client.project;
 
-    // already called by projectManager
-    // this.send(client, 'init');
-
     this.send(client, 'params:update', client.params);
     this.send(client, 'config:update', project.config);
 
     this.receive(client, 'updateProjectConfigRequest', this._updateProjectConfigRequest(client));
     this.receive(client, 'project:fetch-all-request', this._onProjectFetchAllRequest(client));
-    // this.receive(client, 'model:update-request', this._modelUpdateRequest(client));
-
 
     this.receive(client, 'param:update', this._onParamUpdate(client));
     this.receive(client, 'training-config:update', this._onTrainingConfigUpdate(client));
@@ -115,6 +110,7 @@ class ClientExperience extends Experience {
 
   _onParamUpdate(client) {
     return (name, value) => {
+      console.log(name, value);
       appStore.setClientParam(client, name, value);
     }
   }

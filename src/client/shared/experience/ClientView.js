@@ -155,7 +155,7 @@ class ClientView extends CanvasView {
     super(viewTemplate, model, events, options);
 
     this.recordCallback = null;
-    this.currentLabelChangedCallback = null;
+    this.setCurrentLabelCallback = null;
     this.clearLabelCallback = null;
     this.clearModelCallback = null;
     this.updateParamCallback = null;
@@ -218,12 +218,8 @@ class ClientView extends CanvasView {
       },
       'change #label-select': () => {
         const label = this.$labelSelect.value;
-        this.$clearLabel.textContent = `clear ${label} recordings`;
-
-        if (this.currentLabels.indexOf(label) === -1)
-          this.$clearLabel.setAttribute('disabled', true);
-        else
-          this.$clearLabel.removeAttribute('disabled');
+        // this._setLabel(label);
+        this.setCurrentLabelCallback(label);
       },
       'touchstart #clear-label': (e) => {
         e.preventDefault();
@@ -392,15 +388,24 @@ class ClientView extends CanvasView {
 
   setCurrentLabel(value) {
     this.$labelSelect.value = value;
+
+    // this.$labelSelect.value = label;
+    this.$clearLabel.textContent = `clear ${label} recordings`;
+
+    if (this.currentLabels.indexOf(value) === -1)
+      this.$clearLabel.setAttribute('disabled', true);
+    else
+      this.$clearLabel.removeAttribute('disabled');
+    // this._setLabel(value);
   }
 
   advanceLabel() {
     const sel = this.$labelSelect;
-    const length = this.$labelSelect.options.length;
+    const length = sel.options.length;
+    const newIndex = (sel.selectedIndex + 1) % length;
 
-    sel.selectedIndex = (sel.selectedIndex + 1) % length;
-
-    this.currentLabelChangedCallback(sel.value);
+    // this._setLabel(sel.options[newIndex].value);
+    this.currentLabelChangedCallback(sel.options[newIndex].value);
   }
 
   armRecording() {
