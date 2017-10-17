@@ -63,7 +63,6 @@ class ClientExperience extends soundworks.Experience {
 
     this.rawSocket = this.require('raw-socket');
 
-    this._onCurrentLabelChange = this._onCurrentLabelChange.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
     this._onClearModel = this._onClearModel.bind(this);
 
@@ -117,7 +116,6 @@ class ClientExperience extends soundworks.Experience {
 
     this.view.switchProjectCallback = () => this.projectManager.show();
     this.view.recordCallback = (cmd) => this._triggerCommand('record', cmd);
-    this.view.currentLabelChangedCallback = this._onCurrentLabelChange;
     this.view.clearLabelCallback = this._onClearLabel;
     this.view.clearModelCallback = this._onClearModel;
     this.view.updateParamCallback = this._updateParamRequest;
@@ -295,8 +293,14 @@ class ClientExperience extends soundworks.Experience {
 
     this.recordState = params.recordState;
 
-    if (params.currentLabel !== this.view.getCurrentLabel()) {
-      this._setLabel(params.currentLabel);
+    if (params.currentLabel) {
+      const label = params.currentLabel;
+      this.view.setCurrentLabel(label);
+
+      this.previewAudioEngine.updateSounds([ label ]);
+
+      if (!this.hasModel)
+        this.previewAudioEngine.fadeToNewSound(label);
     }
 
     // stream sensors to admin
@@ -399,10 +403,6 @@ class ClientExperience extends soundworks.Experience {
         }
         break;
 
-      case 'setLabel':
-        this.view.setCurrentLabel(args[0]);
-        break;
-
       case 'trigger':
         switch (args[0]) {
           case 'play':
@@ -413,19 +413,6 @@ class ClientExperience extends soundworks.Experience {
             break;
           case 'stopall':
             this._stopAllSounds();
-            break;
-          default:
-            throw new Error(`Unkown arguments '${args}' for command '${cmd}'`);
-        }
-        break;
-
-      case 'label':
-        switch (args[0]) {
-          case 'set':
-            this.view.setCurrentLabel(args[0]);
-            break;
-          case 'next':
-            this.view.advanceLabel();
             break;
           default:
             throw new Error(`Unkown arguments '${args}' for command '${cmd}'`);
@@ -529,14 +516,6 @@ class ClientExperience extends soundworks.Experience {
     this._idleRecordingRequest();
   }
 
-  _setLabelRequest(label) {
-    this.send('param:update', 'currentLabel', label);
-  }
-
-  _setLabel(label) {
-    this.view.setCurrentLabel(label);
-  }
-
   ////////// TRIGGERED SOUNDS
 
   _playTrigger(label) {
@@ -603,15 +582,6 @@ class ClientExperience extends soundworks.Experience {
 
   _feedEnhancedIntensity(value) {
     this.autoTrigger.push(value * 100);
-  }
-
-  _onCurrentLabelChange(label) {
-    console.log(label);
-    this.previewAudioEngine.updateSounds([ label ]);
-
-    if (!this.hasModel)
-      this.previewAudioEngine.fadeToNewSound(label);
-
   }
 
   _onClearLabel(label) {

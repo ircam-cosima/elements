@@ -114,7 +114,6 @@ class ClientExperience extends Experience {
 
   _onParamUpdate(client) {
     return (name, value) => {
-      console.log(name, value);
       appStore.setClientParam(client, name, value);
     }
   }

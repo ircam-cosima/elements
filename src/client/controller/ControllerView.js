@@ -158,9 +158,9 @@ const projectTemplate = `
 
       <div class="label-container">
         <label class="select-container">Label:
-          <select class="label-select" data-target="<%= client.uuid %>" value="<%= client.currentLabel %>">
+          <select class="label-select" data-target="<%= client.uuid %>">
           <% for (var label in audioLabels) { %>
-            <option value="<%= label %>"><%= label %></option>
+            <option value="<%= label %>" <%= client.params.currentLabel === label ? 'selected' : '' %>><%= label %></option>
           <% } %>
           </select>
         </label>
@@ -213,7 +213,9 @@ const mainTemplate = `
 
 class ControllerView extends soundworks.View {
   constructor() {
-    super(mainTemplate, {}, {}, {
+    super(mainTemplate, {
+      audioTriggers
+    }, {}, {
       id: 'controller',
     });
 
@@ -231,7 +233,7 @@ class ControllerView extends soundworks.View {
     this.installEvents({
       'click #triggers .trigger': (e) => {
         const $input = e.target;
-        const action = $intput.dataset.param;
+        const action = $input.dataset.param;
         const label = $input.dataset.target;
         this.audioTriggerCallback(action, label);
       },
@@ -350,7 +352,7 @@ class ControllerView extends soundworks.View {
         const $input = e.target;
         const value = $input.value;
         const uuid = $input.dataset.target;
-        this.triggerClientCommandCallback(uuid, 'setLabel', value);
+        this.updateClientParamCallback(uuid, 'currentLabel', value);
       },
 
       // interface
@@ -420,7 +422,7 @@ class ControllerView extends soundworks.View {
     $container.classList.add('project');
     $container.style.display = 'none';
 
-    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels, audioTriggers }));
+    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels }));
     $container.innerHTML = content;
 
     this.$projects.appendChild($container);
@@ -437,7 +439,7 @@ class ControllerView extends soundworks.View {
 
   updateProject(project) {
     const $container = this.projectUuidContainerMap.get(project.uuid);
-    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels, audioTriggers }));
+    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels }));
 
     $container.innerHTML = content;
   }

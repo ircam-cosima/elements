@@ -155,7 +155,6 @@ class ClientView extends CanvasView {
     super(viewTemplate, model, events, options);
 
     this.recordCallback = null;
-    this.setCurrentLabelCallback = null;
     this.clearLabelCallback = null;
     this.clearModelCallback = null;
     this.updateParamCallback = null;
@@ -163,8 +162,6 @@ class ClientView extends CanvasView {
     this.updateProjectConfigCallback = null;
     this.switchProjectCallback = null;
     this.dialog = null;
-
-    this.currentLabels = [];
 
     const viewEvents = {
       'touchstart': (e) => {
@@ -220,8 +217,8 @@ class ClientView extends CanvasView {
       },
       'change #label-select': () => {
         const label = this.$labelSelect.value;
-        // this._setLabel(label);
-        this.setCurrentLabelCallback(label);
+
+        this.updateParamCallback('currentLabel', label);
       },
       'touchstart #clear-label': (e) => {
         e.preventDefault();
@@ -398,16 +395,15 @@ class ClientView extends CanvasView {
       this.$clearLabel.setAttribute('disabled', true);
     else
       this.$clearLabel.removeAttribute('disabled');
-    // this._setLabel(value);
   }
 
   advanceLabel() {
-    const sel = this.$labelSelect;
-    const length = sel.options.length;
-    const newIndex = (sel.selectedIndex + 1) % length;
+    const $select = this.$labelSelect;
+    const length = $select.options.length;
+    const newIndex = ($select.selectedIndex + 1) % length;
+    const value = $select.options[newIndex].value;
 
-    // this._setLabel(sel.options[newIndex].value);
-    this.currentLabelChangedCallback(sel.options[newIndex].value);
+    this.updateParamCallback('currentLabel', value);
   }
 
   armRecording() {
