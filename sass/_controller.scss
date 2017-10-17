@@ -131,34 +131,34 @@
   }
 
   #main-controls {
-    display: none;
-    // border: 1px solid #cdcdcd;
-    // border-radius: 2px;
-    // box-sizing: border-box;
-    // padding: 12px;
-    // margin-top: 12px;
+    border: 1px solid #cdcdcd;
+    border-radius: 2px;
+    box-sizing: border-box;
+    padding: 12px;
+    margin-top: 12px;
 
-    // select {
-    //   width: 240px;
-    //   margin-left: 12px;
-    // }
+    select {
+      width: 240px;
+      margin-left: 12px;
+    }
 
-    // #select-project-container {
-    //   padding: 0 8px;
-    //   // border-bottom: 1px solid #cdcdcd;
-    //   // margin-bottom: 12px;
-    //   display: block;
-    // }
+    #select-project-container {
+      padding: 0 8px;
+      // border-bottom: 1px solid #cdcdcd;
+      // margin-bottom: 12px;
+      display: block;
+    }
 
-    // #visualization {
-    //   width: 602px;
-    //   margin-top: 12px;
+    #visualization {
+      display: none;
+      width: 602px;
+      margin-top: 12px;
 
-    //   .basic-controllers .label {
-    //     font-style: normal;
-    //     font-size: 12px;
-    //   }
-    // }
+      .basic-controllers .label {
+        font-style: normal;
+        font-size: 12px;
+      }
+    }
   }
 
   .project {
