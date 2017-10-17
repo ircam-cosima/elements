@@ -3,6 +3,8 @@ import appStore from './shared/appStore';
 import logger from './shared/errorLogger';
 import * as mano from 'mano-js/common';
 
+import { triggers as audioTriggers } from '../shared/config/audio';
+
 const cwd = process.cwd();
 
 // server-side 'designer' experience.
@@ -67,6 +69,8 @@ class ClientExperience extends Experience {
     this.send(client, 'params:update', client.params);
     this.send(client, 'config:update', project.config);
 
+    this.receive(client, 'audio:trigger', this._audioTrigger(client));
+
     this.receive(client, 'updateProjectConfigRequest', this._updateProjectConfigRequest(client));
     this.receive(client, 'project:fetch-all-request', this._onProjectFetchAllRequest(client));
 
@@ -113,6 +117,18 @@ class ClientExperience extends Experience {
       console.log(name, value);
       appStore.setClientParam(client, name, value);
     }
+  }
+
+  _audioTrigger(client) {
+    return (action, label) => {
+      const config = audioTriggers[label];
+      const targets = config.targets;
+
+      targets.forEach( (target) => {
+        this.broadcast(target, null, 'audio:trigger', action, label);
+      });
+
+    };
   }
 
   _updateProjectConfigRequest(client) {

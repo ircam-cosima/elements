@@ -1,7 +1,7 @@
 import * as soundworks from 'soundworks/client';
 import template from 'lodash.template';
 import { presets as mlPresets } from '../../shared/config/ml-presets';
-import { labels as audioLabels } from '../../shared/config/audio';
+import { labels as audioLabels, triggers as audioTriggers } from '../../shared/config/audio';
 
 const projectTemplate = `
   <div class="project-header">
@@ -196,6 +196,15 @@ const mainTemplate = `
       <div id="sensors-controls"></div>
       <canvas id="sensors"></sensors>
     </div>
+
+    <ul id="triggers">
+    <% for (var label in audioTriggers) { %>
+      <li><%= label %>:
+        <button data-target="<%= label %>" data-param="start" class="btn normal trigger">Start</button>
+        <button data-target="<%= label %>" data-param="stop" class="btn normal trigger">Stop</button>
+      </li>
+    </ul>
+
   </div>
 
   <div id="projects"></div>
@@ -207,6 +216,7 @@ class ControllerView extends soundworks.View {
       id: 'controller',
     });
 
+    this.audioTriggerCallback = null;
     this.deleteProjectCallback = null;
     this.disconnectDesignerCallback = null;
     this.clearModelCallback = null;
@@ -218,6 +228,12 @@ class ControllerView extends soundworks.View {
     this.triggerClientCommandCallback = null;
 
     this.installEvents({
+      'click #triggers .trigger': (e) => {
+        const $input = e.target;
+        const action = $intput.dataset.param;
+        const label = $input.dataset.target;
+        this.audioTriggerCallback(action, label);
+      },
       'click .delete-project': (e) => {
         const uuid = e.target.dataset.target;
         this.deleteProjectCallback(uuid);
@@ -342,8 +358,6 @@ class ControllerView extends soundworks.View {
         const $target = e.target;
         const $projectHeader = $target.closest('.project-header');
         const $container = $projectHeader.querySelector('.show-hide-wrapper');
-
-        console.log($target, $container);
 
         if ($container.classList.contains('hidden'))
           $container.classList.remove('hidden');

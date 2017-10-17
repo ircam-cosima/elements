@@ -10,6 +10,8 @@ class ControllerExperience extends soundworks.Experience {
 
     this.rawSocket = this.require('raw-socket');
 
+    this._audioTriggerCallback = this._audioTriggerCallback.bind(this);
+
     this._deleteProjectRequest = this._deleteProjectRequest.bind(this);
     this._disconnectDesignerRequest = this._disconnectDesignerRequest.bind(this);
 
@@ -32,6 +34,7 @@ class ControllerExperience extends soundworks.Experience {
 
     this.view = new ControllerView();
 
+    this.view.audioTriggerCallback = this._audioTriggerCallback;
     this.view.deleteProjectCallback = this._deleteProjectRequest;
     this.view.disconnectDesignerCallback = this._disconnectDesignerRequest;
     this.view.clearModelCallback = this._clearModelRequest.bind(this);
@@ -137,6 +140,10 @@ class ControllerExperience extends soundworks.Experience {
         callback: value => this.bpfDisplay.params.set('radius', value),
       });
     });
+  }
+
+  _audioTriggerCallback(action, label) {
+    this.send('audio:trigger', action, label);
   }
 
   _deleteProjectRequest(uuid) {
