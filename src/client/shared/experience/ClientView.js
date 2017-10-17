@@ -155,6 +155,7 @@ class ClientView extends CanvasView {
     super(viewTemplate, model, events, options);
 
     this.recordCallback = null;
+    this.currentLabelChangedCallback = null;
     this.clearLabelCallback = null;
     this.clearModelCallback = null;
     this.updateParamCallback = null;
@@ -164,6 +165,10 @@ class ClientView extends CanvasView {
     this.dialog = null;
 
     const viewEvents = {
+      'touchstart': (e) => {
+        e.preventDefault();
+        this.advanceLabel();
+      },
       'touchstart #switch-project': (e) => {
         e.preventDefault();
         this.switchProjectCallback();
@@ -387,6 +392,15 @@ class ClientView extends CanvasView {
 
   setCurrentLabel(value) {
     this.$labelSelect.value = value;
+  }
+
+  advanceLabel() {
+    const sel = this.$labelSelect;
+    const length = this.$labelSelect.options.length;
+
+    sel.selectedIndex = (sel.selectedIndex + 1) % length;
+
+    this.currentLabelChangedCallback(sel.value);
   }
 
   armRecording() {

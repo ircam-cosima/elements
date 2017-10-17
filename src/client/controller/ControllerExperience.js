@@ -2,6 +2,7 @@ import * as soundworks from 'soundworks/client';
 import ControllerView from './ControllerView';
 import * as lfo from 'waves-lfo/client';
 import * as controllers from 'basic-controllers';
+import { triggers, labels } from '../../shared/config/audio';
 
 class ControllerExperience extends soundworks.Experience {
   constructor() {
@@ -16,7 +17,6 @@ class ControllerExperience extends soundworks.Experience {
     this._createProject = this._createProject.bind(this);
     this._deleteProject = this._deleteProject.bind(this);
     this._updateProject = this._updateProject.bind(this);
-    // this._select
     this._updateProjectOverview = this._updateProjectOverview.bind(this);
     this._updateProjectParamRequest = this._updateProjectParamRequest.bind(this);
     this._updateProjectConfigRequest = this._updateProjectConfigRequest.bind(this);
