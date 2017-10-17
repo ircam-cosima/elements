@@ -47,9 +47,7 @@ function bootstrap() {
   // create client side (player) experience and start the client
   const experience = new ClientExperience(config, {
     canvas: true,
-    basicControls: true,
-    advancedControls: false,
-    configuration: false,
+    hideAll: true,
     allowProjectCreation: false,
   });
 

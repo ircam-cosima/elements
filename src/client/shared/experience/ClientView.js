@@ -9,7 +9,7 @@ const viewTemplate = `
     <canvas class=background noselect"></canvas>
   </div>
 
-  <div class="content foreground">
+  <div class="content foreground <%= hideAll ? 'hidden' : '' %>">
 
     <div id="configuration-wrapper" class="section-wrapper">
     <div id="nav"></div>
@@ -151,8 +151,8 @@ const viewTemplate = `
  *   * active / inactive mute button
  */
 class ClientView extends CanvasView {
-  constructor(content, events, options) {
-    super(viewTemplate, content, events, options);
+  constructor(model, events, options) {
+    super(viewTemplate, model, events, options);
 
     this.recordCallback = null;
     this.clearLabelCallback = null;
@@ -427,10 +427,12 @@ class ClientView extends CanvasView {
           break;
       }
 
-      if (flags[key] && !section.classList.contains('show'))
-        section.classList.add('show');
-      else if (section.classList.contains('show'))
-        section.classList.remove('show');
+      if (section !== null) {
+        if (flags[key] && !section.classList.contains('show'))
+          section.classList.add('show');
+        else if (section.classList.contains('show'))
+          section.classList.remove('show');
+      }
     }
   }
 };

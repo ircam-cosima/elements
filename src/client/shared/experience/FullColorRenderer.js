@@ -1,11 +1,10 @@
 import { Canvas2dRenderer } from 'soundworks/client';
 
 class FullColorRenderer extends Canvas2dRenderer {
-  constructor(view) {
+  constructor(color) {
     super();
 
-    this.view = view;
-    this.color = '#000000';
+    this.color = color;
   }
 
   onResize(width, height, orientation) {

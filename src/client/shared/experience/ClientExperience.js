@@ -3,7 +3,7 @@ import * as lfo from 'waves-lfo/common';
 import * as mano from 'mano-js';
 
 import { labels } from '../../../shared/config/audio';
-import { sounds as uiSounds, colors } from '../../../shared/config/ui';
+import { sounds as uiSounds, colors as uiColors } from '../../../shared/config/ui';
 import { presets } from '../../../shared/config/ml-presets';
 
 import ClientView from './ClientView';
@@ -29,7 +29,7 @@ class ClientExperience extends soundworks.Experience {
     super();
 
     this.config = config;
-    this.viewVisibilityOptions = viewOptions;
+    this.viewOptions = viewOptions;
 
     this.labels = Object.keys(labels);
     this.likeliest = undefined;
@@ -102,6 +102,7 @@ class ClientExperience extends soundworks.Experience {
         assetsDomain: this.config.assetsDomain,
         recBtnState: 'idle', // in ['idle', 'armed', 'recording']
         presets: presets,
+        hideAll: this.viewOptions.hideAll
       }, {}, {
         id: client.type,
         preservePixelRatio: false,
@@ -120,7 +121,9 @@ class ClientExperience extends soundworks.Experience {
 
     // rendering
     this.likelihoodsRenderer = new LikelihoodsRenderer(this.view);
-    this.fullColorRenderer = new FullColorRenderer(this.view);
+
+    const clientColor = uiColors[client.index % uiColors.length];
+    this.fullColorRenderer = new FullColorRenderer(clientColor);
 
     const buffers = this.audioBufferManager.data.labels;
 
@@ -219,9 +222,12 @@ class ClientExperience extends soundworks.Experience {
     Promise.all([this.show(), this.eventIn.init(), this.processedSensors.init()])
       .then(() => {
         this.view.addRenderer(this.fullColorRenderer);
-        this.view.addRenderer(this.likelihoodsRenderer);
+
+        if (!this.viewOptions.hideAll)
+          this.view.addRenderer(this.likelihoodsRenderer);
+
         this.view.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
-        this.view.setSectionsVisibility(this.viewVisibilityOptions);
+        this.view.setSectionsVisibility(this.viewOptions);
 
         this.processedSensors.start();
         this.eventIn.start();
