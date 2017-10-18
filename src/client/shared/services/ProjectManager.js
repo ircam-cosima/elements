@@ -18,7 +18,7 @@ class ProjectManager extends Service {
     super(SERVICE_ID, true);
 
     const defaults = {
-      viewPriority: 8,
+      viewPriority: 3,
       allowProjectCreation: true,
     };
 
