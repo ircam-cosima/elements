@@ -28,6 +28,9 @@ try {
   process.exit(1);
 }
 
+if(process.env && process.env.PORT) {
+  config.port = process.env.PORT;
+}
 // configure express environment ('production' enables cache systems)
 process.env.NODE_ENV = config.env;
 // initialize application with configuration options
