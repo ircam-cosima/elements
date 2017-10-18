@@ -37,3 +37,6 @@ npm-debug.log
 Thumbs.db
 *.log
 package-lock.json
+
+# Work in progress sounds
+/public/sounds/tmp
