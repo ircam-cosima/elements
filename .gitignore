@@ -37,3 +37,5 @@ npm-debug.log
 Thumbs.db
 *.log
 package-lock.json
+
+_src

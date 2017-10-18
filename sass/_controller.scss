@@ -236,18 +236,27 @@
     }
 
     .clients {
-      padding-bottom: 12px;
-      padding-left: 20px;
+      padding: 0 0 12px 0;
       list-style-type: disc;
 
       .client {
         border-bottom: 1px solid #cdcdcd;
         position: relative;
         line-height: 36px;
+        list-style-type: none;
+        padding-left: 34px;
 
         p {
           width: 100px;
           display: inline-block;
+        }
+
+        .color {
+          width: 26px;
+          height: 38px;
+          position: absolute;
+          top: 0;
+          left: 0;
         }
       }
 

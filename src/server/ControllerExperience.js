@@ -133,6 +133,7 @@ class ControllerExperience extends soundworks.Experience {
         type: 'designer',
         uuid: client.uuid,
         params: client.params,
+        index: client.index,
       };
 
       serialized.clients.push(c);
