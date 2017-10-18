@@ -93,7 +93,8 @@ class ClientExperience extends soundworks.Experience {
   start() {
     super.start();
 
-    this.triggerEngine = new TriggerEngine(this.audioBufferManager.data.triggers);
+    const { triggers, uiSounds } = this.audioBufferManager.data;
+    this.triggerEngine = new TriggerEngine(triggers, uiSounds);
 
     this.receive('audio:trigger', (action, label) => {
       switch (action) {

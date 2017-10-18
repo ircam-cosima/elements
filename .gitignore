@@ -38,4 +38,7 @@ Thumbs.db
 *.log
 package-lock.json
 
+# Work in progress sounds
+/public/sounds/tmp
+
 _src
