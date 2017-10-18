@@ -4,7 +4,8 @@ import { triggers } from '../../shared/config/audio';
 
 import AmbienceView from './AmbienceView';
 
-const audioContext = soundworks.audioContext;
+import TriggerEngine from '../shared/audio/TriggerEngine';
+
 const client = soundworks.client;
 
 class AmbienceExperience extends soundworks.Experience {
@@ -19,16 +20,25 @@ class AmbienceExperience extends soundworks.Experience {
       files: triggers,
     });
 
-    for(let label in triggers ) {
-      console.log(label);
-    }
-
-    this.bufferSources = {};
-
   }
 
   start() {
     super.start();
+
+    this.triggerEngine = new TriggerEngine(this.audioBufferManager.data);
+
+    this.receive('audio:trigger', (action, label) => {
+      switch (action) {
+        case 'start':
+          this.triggerEngine.start(label);
+          break;
+        case 'stop':
+          this.triggerEngine.stop(label);
+          break;
+        default:
+          break;
+      }
+    });
 
     this.view = new AmbienceView({
         title: 'Ambience',
@@ -37,27 +47,6 @@ class AmbienceExperience extends soundworks.Experience {
       });
 
     this.show();
-  }
-
-  play(label) {
-
-    const src = audioContext.createBufferSource();
-    src.connect(audioContext.destination);
-    const trigger = this.audioBufferManager.data[label];
-
-    src.buffer = trigger.paths[0];
-    src.loop = trigger.loop;
-
-    src.start(audioContext.currentTime);
-
-    this.bufferSources[label] = src;
-  }
-
-  stop(label) {
-    const src = this.bufferSources[label];
-    if(src) {
-      src.stop(0);
-    }
   }
 
 }

@@ -3,6 +3,7 @@ import appStore from './shared/appStore';
 import chalk from 'chalk';
 import xmm from 'xmm-node';
 import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'mano-js/common';
+import { triggers as audioTriggers } from '../shared/config/audio';
 
 // xmm instances for the controller
 const gx = new xmm('gmm');
@@ -82,6 +83,7 @@ class ControllerExperience extends soundworks.Experience {
     this.send(client, 'project:list', serializedProjectList);
     this.send(client, 'project:overview', projectsOverview);
 
+    this.receive(client, 'audio:trigger', this._audioTrigger(client));
     this.receive(client, 'project:delete', this._onProjectDeleteRequest(client));
     this.receive(client, 'designer:disconnect', this._onDesignerDisconnectRequest(client));
     this.receive(client, 'project:clearModel', this._clearModelRequest(client));
@@ -139,6 +141,22 @@ class ControllerExperience extends soundworks.Experience {
     return serialized;
   }
 
+
+  _audioTrigger(client) {
+    return (action, label) => {
+      if(label) {
+        const config = audioTriggers[label];
+        const targets = config.targets;
+
+        targets.forEach( (target) => {
+          this.broadcast(target, null, 'audio:trigger', action, label);
+        });
+      } else {
+        this.broadcast(null, null, 'audio:trigger', action, label);
+      }
+
+    };
+  }
   _onProjectDeleteRequest(client) {
     return uuid => {
       const project = appStore.getProjectByUuid(uuid);

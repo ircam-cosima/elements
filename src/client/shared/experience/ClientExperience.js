@@ -13,6 +13,7 @@ import FullColorRenderer from './FullColorRenderer';
 
 import AudioEngine from '../audio/AudioEngine';
 import GranularAudioEngine from '../audio/GranularAudioEngine';
+import TriggerEngine from '../audio/TriggerEngine';
 
 const audioContext = soundworks.audioContext;
 const client = soundworks.client;
@@ -91,6 +92,21 @@ class ClientExperience extends soundworks.Experience {
 
   start() {
     super.start();
+
+    this.triggerEngine = new TriggerEngine(this.audioBufferManager.data.triggers);
+
+    this.receive('audio:trigger', (action, label) => {
+      switch (action) {
+        case 'start':
+          this.triggerEngine.start(label);
+          break;
+        case 'stop':
+          this.triggerEngine.stop(label);
+          break;
+        default:
+          break;
+      }
+    });
 
     this.receive('init', this._init);
     this.receive('params:update', this._updateParams);

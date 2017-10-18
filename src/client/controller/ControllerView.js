@@ -198,10 +198,18 @@ const mainTemplate = `
     </div>
 
     <ul id="triggers">
-    <% for (var label in audioTriggers) { %>
+    <button data-target="" data-param="stop" class="btn normal trigger warning">Stop all</button>
+
+    <% for (var label in audioTriggers) {
+         var loop = audioTriggers[label].loop;
+         var targets = audioTriggers[label].targets; %>
       <li><%= label %>:
-        <button data-target="<%= label %>" data-param="start" class="btn normal trigger">Start</button>
-        <button data-target="<%= label %>" data-param="stop" class="btn normal trigger">Stop</button>
+        <button data-target="<%= label %>" data-param="start" class="btn normal trigger <%= loop ? 'loop' : ''%>">Start</button>
+        <button data-target="<%= label %>" data-param="stop" class="btn normal trigger <%= loop ? 'loop' : ''%>">Stop</button>
+    <% targets.forEach( function(target) { %>
+        >&nbsp;<%= target %>
+    <% }) %>
+    <%= loop ? ' (loop)' : '' %>
       </li>
     <% } %>
     </ul>
