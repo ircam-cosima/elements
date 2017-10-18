@@ -144,18 +144,22 @@ class ControllerExperience extends soundworks.Experience {
 
 
   _audioTrigger(client) {
-    return (action, label) => {
-      if(label) {
-        const config = audioTriggers[label];
-        const targets = config.targets;
-
-        targets.forEach( (target) => {
-          this.broadcast(target, null, 'audio:trigger', action, label);
-        });
+    return (action, label, uuid = null) => {
+      if (uuid !== null) {
+        const client = appStore.getClientByUuid(uuid);
+        this.send(client, 'audio:trigger', action, label);
       } else {
-        this.broadcast(null, null, 'audio:trigger', action, label);
-      }
+        if (label) {
+          const config = audioTriggers[label];
+          const targets = config.targets;
 
+          targets.forEach( (target) => {
+            this.broadcast(target, null, 'audio:trigger', action, label);
+          });
+        } else {
+          this.broadcast(null, null, 'audio:trigger', action, label);
+        }
+      }
     };
   }
   _onProjectDeleteRequest(client) {

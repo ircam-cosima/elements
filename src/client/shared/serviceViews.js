@@ -46,13 +46,10 @@ const serviceViews = {
               Sorry, an error occured
             <% } %>
             </p>
-            <div>
-              <select id="project-select">
-                <option value="">Choose a project</option>
-                <% projects.forEach(function(project) { %>
-                <option value="<%= project.name %>"><%= project.name %></option>
-                <% }); %>
-              </select>
+            <div id="project-select">
+              <% projects.forEach(function(project) { %>
+              <button class="btn" data-name="<%= project.name %>"><%= project.name %></button>
+              <% }); %>
             </div>
           </div>
 
@@ -81,11 +78,10 @@ const serviceViews = {
       this._loginCallback = noop;
 
       this.installEvents({
-        'change #project-select': () => {
-          const name = this.$select.value;
-
-          if (name !== '')
-            this._loginCallback(name);
+        'click #project-select .btn': (e) => {
+          const $btn = e.target;
+          const name = $btn.dataset.name;
+          this._loginCallback(name);
         },
         'click #login': () => {
           const name = this.$el.querySelector('#name').value;
@@ -96,130 +92,12 @@ const serviceViews = {
       });
     }
 
-    onRender() {
-      super.onRender();
-
-      this.$select = this.$el.querySelector('#project-select');
-    }
-
     setProjectList(projects) {
       this.model.projects = projects;
     }
 
     setSelectCallback(callback) {
       this._selectCallback = callback;
-    }
-
-    setLoginCallback(callback) {
-      this._loginCallback = callback;
-    }
-  },
-
-  // ------------------------------------------------
-  // ProjectChooser
-  // ------------------------------------------------
-  'service:project-chooser': class ProjectChooserView extends SegmentedView {
-    constructor() {
-      super();
-
-      this.template = `
-        <div class="section-top flex-middle">
-          <p>Select project</p>
-        </div>
-        <div class="section-center flex-center">
-          <p class="error">
-          <% if (error === true) { %>
-            Sorry, an error occured
-          <% } %>
-          </p>
-          <div>
-            <select id="project-select">
-              <option value="">Choose a project</option>
-              <% projects.forEach(function(project) { %>
-              <option value="<%= project.uuid %>"><%= project.name %></option>
-              <% }); %>
-            </select>
-          </div>
-        </div>
-        <div class="section-bottom"></div>
-      `;
-
-      this.model = {
-        projects: [],
-        error: false,
-      };
-
-      this._selectCallback = noop;
-
-      this.installEvents({
-        'change #project-select': () => {
-          const uuid = this.$select.value;
-
-          if (uuid !== '')
-            this._selectCallback(uuid);
-        }
-      });
-    }
-
-    onRender() {
-      super.onRender();
-
-      this.$select = this.$el.querySelector('#project-select');
-    }
-
-    setProjectList(projects) {
-      this.model.projects = projects;
-    }
-
-    setSelectCallback(callback) {
-      this._selectCallback = callback;
-    }
-  },
-
-  // ------------------------------------------------
-  // Login
-  // ------------------------------------------------
-  'service:project-admin': class LoginView extends SegmentedView {
-    constructor() {
-      super();
-
-      this.template = `
-        <div class="section-top flex-middle">
-          <p>Enter Project</p>
-        </div>
-        <div class="section-center flex-center">
-          <div>
-            <% if (error) { %>
-            <p class="error">
-              Sorry project "<%= name %>" is already in use
-            </p>
-            <% } %>
-            <input type="text" id="name" placeholder="project name" value="" />
-            <button class="btn" id="login">Send</button>
-          </div>
-        </div>
-        <div class="section-bottom"></div>
-      `;
-
-      this.model = {
-        error: false,
-        name: null,
-      };
-
-      this._loginCallback = noop;
-
-      this.installEvents({
-        'click #login': () => {
-          const name = this.$el.querySelector('#name').value;
-
-          if (name !== '')
-            this._loginCallback(name);
-        },
-      });
-    }
-
-    onRender() {
-      super.onRender();
     }
 
     setLoginCallback(callback) {

@@ -124,7 +124,7 @@ const projectTemplate = `
   <ul class="clients">
   <% clients.forEach(function(client) { %>
     <li class="client <%= client.type %>" id="<%= client.uuid %>">
-      <div class="color" style="background-color:<%= uiColors[client.index % uiColors.length]%>"></div>
+      <div class="color trigger-ping" style="background-color:<%= uiColors[client.index % uiColors.length]%>" data-uuid="<%= client.uuid %>"></div>
       <p><%= client.type %></p>
 
       <div class="toggle-container mute <%= client.params.mute ? 'active' : '' %>" data-target="<%= client.uuid %>" class="client-configuration">
@@ -248,6 +248,11 @@ class ControllerView extends soundworks.View {
         const action = $input.dataset.param;
         const label = $input.dataset.target;
         this.audioTriggerCallback(action, label);
+      },
+      'click .trigger-ping': (e) => {
+        const $input = e.target;
+        const uuid = $input.dataset.uuid;
+        this.audioTriggerCallback('start', 'ping', uuid);
       },
       'click .delete-project': (e) => {
         const uuid = e.target.dataset.target;

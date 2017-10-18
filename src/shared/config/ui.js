@@ -1,25 +1,26 @@
 export const sounds = {
   startRecord: 'sounds/ui/tik.mp3',
   stopRecord: 'sounds/ui/tik.mp3',
+  ping: 'sounds/ui/noise-100ms.mp3',
 };
 
 // from : http://clrs.cc/a11y/ backgrounds
 
 export const colors = [
+  '#39CCCC', // "teal" blue
   '#F012BE', // fuschia
   '#FFDC00', // yellow
-  '#B10DC9', // purple
-  '#FF851B', // orange
-  '#85144B', // "maroon"
-  '#FF4136', // red
-  '#7FDBFF', // "aqua"
-  '#0074D9', // blue
-  '#001F3F', // navy
-  '#39CCCC', // "teal"
   '#01FF70', // "lime" green
-  '#3D9970', // "olive" green
-  '#2ECC40', // "green" green
+  '#001F3F', // navy
+  '#FF851B', // orange
   '#DDDDDD', // silver
-  '#AAAAAA', // grey
+  '#FF4136', // red
+  '#3D9970', // "olive" green
+  '#85144B', // bordeaux
+  '#555555', // grey
+  '#2ECC20', // "green" green
   '#111111', // black
+  '#2F1BFF', // "aqua"
+  '#6F470E', // marron
+  '#B10DE9', // purple
 ];
