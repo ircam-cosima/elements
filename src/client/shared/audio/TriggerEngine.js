@@ -3,20 +3,31 @@ import * as soundworks from 'soundworks/client';
 const audioContext = soundworks.audioContext;
 
 class TriggerEngine {
-  constructor(triggers) {
+  constructor(triggers, uiSounds) {
     this.triggers = triggers;
+    this.uiSounds = uiSounds;
     this.bufferSources = {};
   }
 
   start(label) {
     this.stop(label); // do not overlay
 
-    const trigger = this.triggers[label];
+    let buffer = null;
+    let loop = null;
+
+    if (this.uiSounds[label]) {
+      buffer = this.uiSounds[label];
+      loop = false;
+    } else {
+      const trigger = this.triggers[label];
+      buffer = trigger.paths[0];
+      loop = trigger.loop;
+    }
 
     const src = audioContext.createBufferSource();
     src.connect(audioContext.destination);
-    src.buffer = trigger.paths[0]; // may choose
-    src.loop = trigger.loop;
+    src.buffer = buffer; // may choose
+    src.loop = loop;
     src.start(audioContext.currentTime);
 
     this.bufferSources[label] = src;

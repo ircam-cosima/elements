@@ -144,8 +144,8 @@ class ControllerExperience extends soundworks.Experience {
     });
   }
 
-  _audioTriggerCallback(action, label) {
-    this.send('audio:trigger', action, label);
+  _audioTriggerCallback(action, label, uuid) {
+    this.send('audio:trigger', action, label, uuid);
   }
 
   _deleteProjectRequest(uuid) {
