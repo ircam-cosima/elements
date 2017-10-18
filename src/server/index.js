@@ -1,23 +1,10 @@
 import 'source-map-support/register'; // enable sourcemaps in node
-import { EventEmitter } from 'events';
 import path from 'path';
 import * as soundworks from 'soundworks/server';
-import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'mano-js/common';
-import xmm from 'xmm-node';
-import bodyParser from 'body-parser';
-
-import ControllerExperience from './ControllerExperience';
-import ClientExperience from './ClientExperience';
-import AmbienceExperience from './AmbienceExperience';
-
-// services
-import ProjectManager from './shared/services/ProjectManager';
-import ClientRegister from './shared/services/ClientRegister';
-import appStore from './shared/appStore';
+import PlayerExperience from './PlayerExperience';
 
 const configName = process.env.ENV || 'default';
 const configPath = path.join(__dirname, 'config', configName);
-const server = soundworks.server;
 let config = null;
 
 // rely on node `require` for synchronicity
@@ -28,20 +15,16 @@ try {
   process.exit(1);
 }
 
-// configure express environment ('production' enables cache systems)
+// configure express environment ('production' enables express cache for static files)
 process.env.NODE_ENV = config.env;
 // initialize application with configuration options
-server.init(config);
-appStore.init();
+soundworks.server.init(config);
 
 // define the configuration object to be passed to the `.ejs` template
-server.setClientConfigDefinition((clientType, config, httpRequest) => {
+soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) => {
   return {
     clientType: clientType,
     env: config.env,
-    port: config.port,
-    trainUrl: config.trainUrl,
-    defaultProjectConfig: config.defaultProjectConfig,
     appName: config.appName,
     websockets: config.websockets,
     version: config.version,
@@ -50,50 +33,14 @@ server.setClientConfigDefinition((clientType, config, httpRequest) => {
   };
 });
 
-const sharedParams = soundworks.server.require('shared-params');
-sharedParams.addNumber('sensitivity', 'Sensitivity', 0, 2, 0.01, 1);
-sharedParams.addNumber('intensityFeedback', 'Intensity feedback', 0, 0.99, 0.01, 0.8);
-sharedParams.addNumber('intensityGain', 'Intensity gain', 0, 1, 0.01, 0.1);
-sharedParams.addNumber('intensityPower', 'Intensity power', 0.01, 1, 0.01, 0.25);
-sharedParams.addNumber('intensityLowClip', 'Intensity low clip', 0, 0.99, 0.01, 0.15);
-sharedParams.addNumber('bandpassGain', 'Bandpass gain', 0, 2, 0.01, 1);
+// create the experience
+// activities must be mapped to client types:
+// - the `'player'` clients (who take part in the scenario by connecting to the
+//   server through the root url) need to communicate with the `checkin` (see
+// `src/server/playerExperience.js`) and the server side `playerExperience`.
+// - we could also map activities to additional client types (thus defining a
+//   route (url) of the following form: `/${clientType}`)
+const experience = new PlayerExperience('player');
 
-const comm = new EventEmitter();
-
-const controller = new ControllerExperience('controller', comm, config.osc);
-const client = new ClientExperience(['player', 'designer'], config, comm);
-const ambience = new AmbienceExperience(['ambience'], config, comm);
-
-const parameters = new soundworks.ControllerExperience('parameters', { auth: true });
-
-server.start();
-
-// -------------------------------------------------------
-// REST API SIMULATION
-// -------------------------------------------------------
-
-server.router.use(bodyParser.json({ limit: '50mb' }));
-server.router.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-
-const gx = new xmm('gmm');
-const hx = new xmm('hhmm');
-
-server.router.post('/train', (req, res, next) => {
-  const body = req.body;
-  const config = body.configuration;
-  const algo = config.target.name.split(':')[1];
-  const trainingSet = rapidMixToXmmTrainingSet(body.trainingSet);
-  let x = (algo === 'hhmm') ? hx : gx;
-
-  x.setConfig(config.payload);
-  x.setTrainingSet(trainingSet);
-  x.train((err, model) => {
-    if (err)
-      console.error(err.stack);
-
-    const rapidModel = xmmToRapidMixModel(model);
-    res.setHeader('Content-Type', 'application/json');
-    // simulate RapidMix API JSON format
-    res.end(JSON.stringify({ model: rapidModel }));
-  });
-});
+// start application
+soundworks.server.start();

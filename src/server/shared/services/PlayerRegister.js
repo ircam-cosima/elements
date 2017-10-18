@@ -1,9 +1,9 @@
 import { Service, serviceManager } from 'soundworks/server';
 import appStore from '../appStore';
 
-const SERVICE_ID = 'service:client-register';
+const SERVICE_ID = 'service:player-register';
 
-class ClientRegister extends Service {
+class PlayerRegister extends Service {
   constructor() {
     super(SERVICE_ID);
   }
@@ -16,15 +16,15 @@ class ClientRegister extends Service {
   /** @private */
   connect(client) {
     super.connect(client);
-    appStore.registerClient(client);
+    appStore.registerPlayer(client);
   }
 
   disconnect(client) {
-    appStore.unregisterClient(client);
+    appStore.unregisterPlayer(client);
     super.disconnect(client);
   }
 }
 
-serviceManager.register(SERVICE_ID, ClientRegister);
+serviceManager.register(SERVICE_ID, PlayerRegister);
 
-export default ClientRegister;
+export default PlayerRegister;

@@ -10,47 +10,50 @@
 
 ### Entities
 
-clientModel {
-  audio: {
-    mute: Boolean,
-    intensity: Boolean,
-    // preview: Boolean,
-  }
-  record: {
-    state: Enum('idle', 'armed', 'recording', 'pending', 'cancelled', 'confirmed'),
-    label: String, // current audio file + ml label
-  }
-  sensors: {
-    stream: Boolean,
-  }
-  <!-- ui: {
-    // to be defined
-  } -->
-}
-
-client <soudnworks.Client> {
-  model: clientModel,
-}
-
-projectModel {
+Player {
   uuid: String
-  name: String,
-  clientDefaults: {
-    // override and default of `clientModel`
-  },
-  audio: Object<String, Array>  // audio files of the project
-  machineLearning: {
-    config: RapidMix JSON Config
-    trainingSet: RapidMix JSON TrainingSet
-    model: RapidMix JSON Model
-  },
-  sensorPreprocesssing: {
-    <!-- tbd -->
-
-  },
+  client: soundworks.client,
+  params: {
+    audio: {
+      mute: Boolean,
+      intensity: Boolean,
+      // preview: Boolean,
+    }
+    record: {
+      state: Enum('idle', 'armed', 'recording', 'pending', 'cancelled', 'confirmed'),
+      label: String, // current audio file + ml label
+    }
+    sensors: {
+      stream: Boolean,
+    }
+    <!-- ui: {
+      // to be defined
+    } -->
+  }
 }
 
-project
+Project {
+  name: String,
+  uuid: String,
+  params: {
+    clientDefaults: {
+      // override and default of `clientParams`
+    },
+    audio: Object<String, Array>  // audio files of the project
+    machineLearning: {
+      config: RapidMix JSON Config
+      trainingSet: RapidMix JSON TrainingSet
+      model: RapidMix JSON Model
+    },
+    sensorPreprocesssing: {
+      <!-- tbd -->
+
+    },
+  },
+
+  trainingData: mano.TrainingData
+  processor: mano.XmmProcessor
+}
 
 ## Player Modules
 
