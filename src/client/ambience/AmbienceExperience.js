@@ -1,6 +1,7 @@
 import * as soundworks from 'soundworks/client';
 
 import { triggers } from '../../shared/config/audio';
+import { sounds as uiSounds } from '../../shared/config/ui';
 
 import AmbienceView from './AmbienceView';
 
@@ -15,9 +16,11 @@ class AmbienceExperience extends soundworks.Experience {
     this.config = config;
     this.viewOptions = viewOptions;
 
+    this.platform = this.require('platform', { features: ['web-audio'] });
+
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: config.assetsDomain,
-      files: triggers,
+      files: { triggers, uiSounds },
     });
 
   }
@@ -25,7 +28,8 @@ class AmbienceExperience extends soundworks.Experience {
   start() {
     super.start();
 
-    this.triggerEngine = new TriggerEngine(this.audioBufferManager.data);
+    const { triggers, uiSounds } = this.audioBufferManager.data;
+    this.triggerEngine = new TriggerEngine(triggers, uiSounds);
 
     this.receive('audio:trigger', (action, label) => {
       switch (action) {
