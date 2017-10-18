@@ -99,7 +99,10 @@ class ClientExperience extends soundworks.Experience {
     this.receive('audio:trigger', (action, label) => {
       switch (action) {
         case 'start':
-          this.triggerEngine.start(label, client.index);
+          this.triggerEngine.start(
+            label,
+            Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
+          );
           break;
         case 'stop':
           this.triggerEngine.stop(label);
