@@ -2,6 +2,7 @@ import * as soundworks from 'soundworks/client';
 import template from 'lodash.template';
 import { presets as mlPresets } from '../../shared/config/ml-presets';
 import { labels as audioLabels, triggers as audioTriggers } from '../../shared/config/audio';
+import { colors as uiColors } from '../../shared/config/ui';
 
 const projectTemplate = `
   <div class="project-header">
@@ -123,6 +124,7 @@ const projectTemplate = `
   <ul class="clients">
   <% clients.forEach(function(client) { %>
     <li class="client <%= client.type %>" id="<%= client.uuid %>">
+      <div class="color" style="background-color:<%= uiColors[client.index % uiColors.length]%>"></div>
       <p><%= client.type %></p>
 
       <div class="toggle-container mute <%= client.params.mute ? 'active' : '' %>" data-target="<%= client.uuid %>" class="client-configuration">
@@ -432,7 +434,7 @@ class ControllerView extends soundworks.View {
     $container.classList.add('project');
     $container.style.display = 'none';
 
-    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels }));
+    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels, uiColors }));
     $container.innerHTML = content;
 
     this.$projects.appendChild($container);
@@ -449,7 +451,7 @@ class ControllerView extends soundworks.View {
 
   updateProject(project) {
     const $container = this.projectUuidContainerMap.get(project.uuid);
-    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels }));
+    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels, uiColors }));
 
     $container.innerHTML = content;
   }
