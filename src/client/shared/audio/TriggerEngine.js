@@ -9,7 +9,7 @@ class TriggerEngine {
     this.bufferSources = {};
   }
 
-  start(label) {
+  start(label, index=0) {
     this.stop(label); // do not overlay
 
     let buffer = null;
@@ -20,7 +20,7 @@ class TriggerEngine {
       loop = false;
     } else {
       const trigger = this.triggers[label];
-      buffer = trigger.paths[0];
+      buffer = trigger.paths[index % trigger.paths.length];
       loop = trigger.loop;
     }
 
