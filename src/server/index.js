@@ -8,6 +8,8 @@ import bodyParser from 'body-parser';
 
 import ControllerExperience from './ControllerExperience';
 import ClientExperience from './ClientExperience';
+import AmbienceExperience from './AmbienceExperience';
+
 // services
 import ProjectManager from './shared/services/ProjectManager';
 import ClientRegister from './shared/services/ClientRegister';
@@ -60,6 +62,7 @@ const comm = new EventEmitter();
 
 const controller = new ControllerExperience('controller', comm, config.osc);
 const client = new ClientExperience(['player', 'designer'], config, comm);
+const ambience = new AmbienceExperience(['ambience'], config, comm);
 
 const parameters = new soundworks.ControllerExperience('parameters', { auth: true });
 

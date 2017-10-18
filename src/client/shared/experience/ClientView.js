@@ -164,6 +164,10 @@ class ClientView extends CanvasView {
     this.dialog = null;
 
     const viewEvents = {
+      'touchstart': (e) => {
+        e.preventDefault();
+        this.advanceLabel();
+      },
       'touchstart #switch-project': (e) => {
         e.preventDefault();
         this.switchProjectCallback();
@@ -213,12 +217,8 @@ class ClientView extends CanvasView {
       },
       'change #label-select': () => {
         const label = this.$labelSelect.value;
-        this.$clearLabel.textContent = `clear ${label} recordings`;
 
-        if (this.currentLabels.indexOf(label) === -1)
-          this.$clearLabel.setAttribute('disabled', true);
-        else
-          this.$clearLabel.removeAttribute('disabled');
+        this.updateParamCallback('currentLabel', label);
       },
       'touchstart #clear-label': (e) => {
         e.preventDefault();
@@ -387,6 +387,23 @@ class ClientView extends CanvasView {
 
   setCurrentLabel(value) {
     this.$labelSelect.value = value;
+
+    // this.$labelSelect.value = label;
+    this.$clearLabel.textContent = `clear ${value} recordings`;
+
+    if (this.currentLabels.indexOf(value) === -1)
+      this.$clearLabel.setAttribute('disabled', true);
+    else
+      this.$clearLabel.removeAttribute('disabled');
+  }
+
+  advanceLabel() {
+    const $select = this.$labelSelect;
+    const length = $select.options.length;
+    const newIndex = ($select.selectedIndex + 1) % length;
+    const value = $select.options[newIndex].value;
+
+    this.updateParamCallback('currentLabel', value);
   }
 
   armRecording() {

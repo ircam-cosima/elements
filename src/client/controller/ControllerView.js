@@ -1,7 +1,7 @@
 import * as soundworks from 'soundworks/client';
 import template from 'lodash.template';
 import { presets as mlPresets } from '../../shared/config/ml-presets';
-import { labels as audioLabels } from '../../shared/config/audio';
+import { labels as audioLabels, triggers as audioTriggers } from '../../shared/config/audio';
 
 const projectTemplate = `
   <div class="project-header">
@@ -160,7 +160,7 @@ const projectTemplate = `
         <label class="select-container">Label:
           <select class="label-select" data-target="<%= client.uuid %>">
           <% for (var label in audioLabels) { %>
-            <option value="<%= label %>"><%= label %></option>
+            <option value="<%= label %>" <%= client.params.currentLabel === label ? 'selected' : '' %>><%= label %></option>
           <% } %>
           </select>
         </label>
@@ -196,6 +196,26 @@ const mainTemplate = `
       <div id="sensors-controls"></div>
       <canvas id="sensors"></sensors>
     </div>
+
+    <ul id="triggers">
+    <button data-target="" data-param="stop" class="btn trigger danger">Stop all</button>
+
+    <% for (var label in audioTriggers) {
+         var loop = audioTriggers[label].loop;
+         var targets = audioTriggers[label].targets; %>
+      <li class="trigger-sound"><span class="trigger-label"><%= label %></span>
+        <button data-target="<%= label %>" data-param="start" class="btn normal trigger <%= loop ? 'loop' : ''%>">Start</button>
+        <button data-target="<%= label %>" data-param="stop" class="btn normal trigger <%= loop ? 'loop' : ''%>">Stop</button>
+        <span class="target-clients">
+        <% targets.forEach( function(target) { %>
+          >&nbsp;<%= target %>
+        <% }) %>
+        <%= loop ? ' (loop)' : '' %>
+        </span>
+      </li>
+    <% } %>
+    </ul>
+
   </div>
 
   <div id="projects"></div>
@@ -203,10 +223,13 @@ const mainTemplate = `
 
 class ControllerView extends soundworks.View {
   constructor() {
-    super(mainTemplate, {}, {}, {
+    super(mainTemplate, {
+      audioTriggers
+    }, {}, {
       id: 'controller',
     });
 
+    this.audioTriggerCallback = null;
     this.deleteProjectCallback = null;
     this.disconnectDesignerCallback = null;
     this.clearModelCallback = null;
@@ -218,6 +241,12 @@ class ControllerView extends soundworks.View {
     this.triggerClientCommandCallback = null;
 
     this.installEvents({
+      'click #triggers .trigger': (e) => {
+        const $input = e.target;
+        const action = $input.dataset.param;
+        const label = $input.dataset.target;
+        this.audioTriggerCallback(action, label);
+      },
       'click .delete-project': (e) => {
         const uuid = e.target.dataset.target;
         this.deleteProjectCallback(uuid);
@@ -333,7 +362,7 @@ class ControllerView extends soundworks.View {
         const $input = e.target;
         const value = $input.value;
         const uuid = $input.dataset.target;
-        this.triggerClientCommandCallback(uuid, 'setLabel', value);
+        this.updateClientParamCallback(uuid, 'currentLabel', value);
       },
 
       // interface
@@ -342,8 +371,6 @@ class ControllerView extends soundworks.View {
         const $target = e.target;
         const $projectHeader = $target.closest('.project-header');
         const $container = $projectHeader.querySelector('.show-hide-wrapper');
-
-        console.log($target, $container);
 
         if ($container.classList.contains('hidden'))
           $container.classList.remove('hidden');

@@ -3,6 +3,7 @@ import appStore from './shared/appStore';
 import chalk from 'chalk';
 import xmm from 'xmm-node';
 import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'mano-js/common';
+import { triggers as audioTriggers } from '../shared/config/audio';
 
 // xmm instances for the controller
 const gx = new xmm('gmm');
@@ -45,15 +46,10 @@ class ControllerExperience extends soundworks.Experience {
       this.broadcast('controller', null, channel, serializedProject);
     };
 
+    // appStore.addListener('set-client-param', )
     appStore.addListener('set-project-param', project => broadcast('project:update', project));
     appStore.addListener('set-project-config', project => broadcast('project:update', project));
     appStore.addListener('set-project-model', project => broadcast('project:update', project));
-
-    // appStore.addListener('add-designer-to-project', project => broadcast('project:update', project));
-    // appStore.addListener('add-player-to-project', project => broadcast('project:update', project));
-
-    // appStore.addListener('remove-designer-from-project', project => broadcast('project:update', project));
-    // appStore.addListener('remove-player-from-project', project => broadcast('project:update', project));
 
     appStore.addListener('add-client-to-project', project => broadcast('project:update', project));
     appStore.addListener('remove-client-from-project', project => broadcast('project:update', project));
@@ -87,6 +83,7 @@ class ControllerExperience extends soundworks.Experience {
     this.send(client, 'project:list', serializedProjectList);
     this.send(client, 'project:overview', projectsOverview);
 
+    this.receive(client, 'audio:trigger', this._audioTrigger(client));
     this.receive(client, 'project:delete', this._onProjectDeleteRequest(client));
     this.receive(client, 'designer:disconnect', this._onDesignerDisconnectRequest(client));
     this.receive(client, 'project:clearModel', this._clearModelRequest(client));
@@ -126,34 +123,6 @@ class ControllerExperience extends soundworks.Experience {
       regressionEstimator: (config !== null ? config.payload.regressionEstimator : 'full'),
     };
 
-    // handle designer
-    /*
-    const designer = appStore.getProjectDesigner(project);
-
-    if (designer !== null) {
-      const client = {
-        type: 'designer',
-        uuid: designer.uuid,
-        params: designer.params,
-      };
-
-      serialized.hasDesigner = true;
-      serialized.clients.push(client);
-    }
-
-    const players = appStore.getProjectPlayers(project);
-
-    players.forEach(player => {
-      const client = {
-        type: 'player',
-        uuid: player.uuid,
-        params: player.params,
-      };
-
-      serialized.clients.push(client);
-    });
-    */
-
     const clients = appStore.getProjectClients(project);
 
     if (clients.size > 0)
@@ -168,11 +137,26 @@ class ControllerExperience extends soundworks.Experience {
 
       serialized.clients.push(c);
     });
-    //
 
     return serialized;
   }
 
+
+  _audioTrigger(client) {
+    return (action, label) => {
+      if(label) {
+        const config = audioTriggers[label];
+        const targets = config.targets;
+
+        targets.forEach( (target) => {
+          this.broadcast(target, null, 'audio:trigger', action, label);
+        });
+      } else {
+        this.broadcast(null, null, 'audio:trigger', action, label);
+      }
+
+    };
+  }
   _onProjectDeleteRequest(client) {
     return uuid => {
       const project = appStore.getProjectByUuid(uuid);

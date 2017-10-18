@@ -1,4 +1,27 @@
-export default {
+export const triggers = {
+  detendstoi: {
+    targets: [ 'player' ],
+    paths: [ 'sounds/triggers/detendstoi.mp3' ],
+    loop: false,
+  },
+  faisuncercle: {
+    targets: [ 'player' ],
+    paths: [ 'sounds/triggers/faisuncercle.mp3' ],
+    loop: false,
+  },
+  faisuncarre: {
+    targets: [ 'player' ],
+    paths: [ 'sounds/triggers/faisuncarre.mp3' ],
+    loop: false,
+  },
+  clapotis: {
+    targets: [ 'ambience' ],
+    paths: [ 'sounds/triggers/clapotis.mp3' ],
+    loop: true,
+  },
+};
+
+export const labels = {
   silence: [
     'sounds/labels/silence.mp3',
   ],

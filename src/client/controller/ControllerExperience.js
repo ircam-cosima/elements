@@ -2,12 +2,15 @@ import * as soundworks from 'soundworks/client';
 import ControllerView from './ControllerView';
 import * as lfo from 'waves-lfo/client';
 import * as controllers from 'basic-controllers';
+import { triggers as audioTriggers, labels as audioLabels } from '../../shared/config/audio';
 
 class ControllerExperience extends soundworks.Experience {
   constructor() {
     super();
 
     this.rawSocket = this.require('raw-socket');
+
+    this._audioTriggerCallback = this._audioTriggerCallback.bind(this);
 
     this._deleteProjectRequest = this._deleteProjectRequest.bind(this);
     this._disconnectDesignerRequest = this._disconnectDesignerRequest.bind(this);
@@ -16,7 +19,6 @@ class ControllerExperience extends soundworks.Experience {
     this._createProject = this._createProject.bind(this);
     this._deleteProject = this._deleteProject.bind(this);
     this._updateProject = this._updateProject.bind(this);
-    // this._select
     this._updateProjectOverview = this._updateProjectOverview.bind(this);
     this._updateProjectParamRequest = this._updateProjectParamRequest.bind(this);
     this._updateProjectConfigRequest = this._updateProjectConfigRequest.bind(this);
@@ -30,8 +32,11 @@ class ControllerExperience extends soundworks.Experience {
 
     document.documentElement.style.backgroundColor = 'white';
 
-    this.view = new ControllerView();
+    this.view = new ControllerView({
+      audioTriggers: audioTriggers,
+    });
 
+    this.view.audioTriggerCallback = this._audioTriggerCallback;
     this.view.deleteProjectCallback = this._deleteProjectRequest;
     this.view.disconnectDesignerCallback = this._disconnectDesignerRequest;
     this.view.clearModelCallback = this._clearModelRequest.bind(this);
@@ -137,6 +142,10 @@ class ControllerExperience extends soundworks.Experience {
         callback: value => this.bpfDisplay.params.set('radius', value),
       });
     });
+  }
+
+  _audioTriggerCallback(action, label) {
+    this.send('audio:trigger', action, label);
   }
 
   _deleteProjectRequest(uuid) {

@@ -215,6 +215,7 @@ const appStore = {
       intensity: false,
       recordState: 'idle', // in ['idle', 'armed', 'recording', 'pending', 'cancelled', 'confirmed']
       streamSensors: false, // only one client can have this to `true`
+      currentLabel: '',
     };
   },
 

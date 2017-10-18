@@ -2,7 +2,7 @@ import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/common';
 import * as mano from 'mano-js';
 
-import { labels } from '../../../shared/config/audio';
+import { triggers, labels } from '../../../shared/config/audio';
 import { sounds as uiSounds, colors as uiColors } from '../../../shared/config/ui';
 import { presets } from '../../../shared/config/ml-presets';
 
@@ -13,15 +13,18 @@ import FullColorRenderer from './FullColorRenderer';
 
 import AudioEngine from '../audio/AudioEngine';
 import GranularAudioEngine from '../audio/GranularAudioEngine';
+import TriggerEngine from '../audio/TriggerEngine';
 
 const audioContext = soundworks.audioContext;
 const client = soundworks.client;
 
-function playSound(buffer) {
+function playSound(buffer, loop = false) {
   const src = audioContext.createBufferSource();
   src.connect(audioContext.destination);
   src.buffer = buffer;
+  src.loop = loop;
   src.start(audioContext.currentTime);
+  return src;
 }
 
 class ClientExperience extends soundworks.Experience {
@@ -31,11 +34,13 @@ class ClientExperience extends soundworks.Experience {
     this.config = config;
     this.viewOptions = viewOptions;
 
+    this.triggers = {};
     this.labels = Object.keys(labels);
     this.likeliest = undefined;
     this.likelihoods = [];
     this.aggregatedOutput = new Float32Array();
     this.sensitivity = 1;
+    this.hasModel = false;
 
     this.recordState = 'idle';
 
@@ -50,7 +55,7 @@ class ClientExperience extends soundworks.Experience {
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: config.assetsDomain,
-      files: { labels, uiSounds },
+      files: { triggers, labels, uiSounds },
     });
 
     this.motionInput = this.require('motion-input', {
@@ -88,6 +93,21 @@ class ClientExperience extends soundworks.Experience {
   start() {
     super.start();
 
+    this.triggerEngine = new TriggerEngine(this.audioBufferManager.data.triggers);
+
+    this.receive('audio:trigger', (action, label) => {
+      switch (action) {
+        case 'start':
+          this.triggerEngine.start(label);
+          break;
+        case 'stop':
+          this.triggerEngine.stop(label);
+          break;
+        default:
+          break;
+      }
+    });
+
     this.receive('init', this._init);
     this.receive('params:update', this._updateParams);
     this.receive('config:update', this._updateProjectConfig);
@@ -113,7 +133,6 @@ class ClientExperience extends soundworks.Experience {
     this.view.switchProjectCallback = () => this.projectManager.show();
     this.view.recordCallback = (cmd) => this._triggerCommand('record', cmd);
     this.view.clearLabelCallback = this._onClearLabel;
-    this.view.clearModelCallback = this._onClearModel;
     this.view.clearModelCallback = this._onClearModel;
     this.view.updateParamCallback = this._updateParamRequest;
     this.view.updateTrainingConfigCallback = this._updateTrainingConfigRequest;
@@ -247,6 +266,7 @@ class ClientExperience extends soundworks.Experience {
 
   _updateParams(params) {
     this.audioEngine.mute = params.mute;
+    this.previewAudioEngine.mute = params.mute;
     this.enableIntensity = params.intensity;
 
     switch (params.recordState) {
@@ -288,6 +308,16 @@ class ClientExperience extends soundworks.Experience {
     }
 
     this.recordState = params.recordState;
+
+    if (params.currentLabel) {
+      const label = params.currentLabel;
+      this.view.setCurrentLabel(label);
+
+      this.previewAudioEngine.updateSounds([ label ]);
+
+      if (!this.hasModel)
+        this.previewAudioEngine.fadeToNewSound(label);
+    }
 
     // stream sensors to admin
     if (params.streamSensors !== this.streamSensors) {
@@ -339,6 +369,15 @@ class ClientExperience extends soundworks.Experience {
   }
 
   _updateModel(model) {
+    if (model === null || model.payload.models.length === 0) {
+      this.hasModel = false;
+      this.decoderOnOff.setState('off');
+    } else {
+      this.hasModel = true;
+      this.previewAudioEngine.fadeToNewSound(null);
+      this.decoderOnOff.setState('on');
+    }
+
     this.xmmDecoder.setModel(model);
 
     const currentLabels = model
@@ -351,6 +390,7 @@ class ClientExperience extends soundworks.Experience {
     this.view.setCurrentLabels(currentLabels);
     this.view.showNotification('Model updated');
   }
+
 
   _triggerCommand(cmd, ...args) {
     switch (cmd) {
@@ -379,13 +419,24 @@ class ClientExperience extends soundworks.Experience {
         }
         break;
 
-      case 'setLabel':
-        this.view.setCurrentLabel(args[0]);
+      case 'trigger':
+        switch (args[0]) {
+          case 'play':
+            this._triggerSound(args[0]);
+            break;
+          case 'stop':
+            this._stopSound(args[0]);
+            break;
+          case 'stopall':
+            this._stopAllSounds();
+            break;
+          default:
+            throw new Error(`Unkown arguments '${args}' for command '${cmd}'`);
+        }
         break;
 
       default:
         throw new Error(`Unkown command '${cmd}'`);
-
     }
   }
 
@@ -424,7 +475,7 @@ class ClientExperience extends soundworks.Experience {
 
     playSound(this.audioBufferManager.data.uiSounds['startRecord']);
 
-    this.previewAudioEngine.addSound(this.likeliest);
+    this.previewAudioEngine.updateSounds([ this.likeliest ]);
     this.previewAudioEngine.fadeToNewSound(this.likeliest);
     this.audioEngine.fadeToNewSound(null);
   }
@@ -435,14 +486,17 @@ class ClientExperience extends soundworks.Experience {
 
   _stopRecording() {
     // enable recognition back, disable recording input flow
-    this.decoderOnOff.setState('on');
+    if (this.hasModel)
+      this.decoderOnOff.setState('on');
+
     this.recorderOnOff.setState('off');
 
     this.view.stopRecording();
     this.autoTrigger.setState('off');
 
     playSound(this.audioBufferManager.data.uiSounds['stopRecord']);
-    this.previewAudioEngine.removeSound(this.view.getCurrentLabel());
+    // this.previewAudioEngine.removeSound(this.view.getCurrentLabel());
+    this.previewAudioEngine.updateSounds([]);
 
     this.view.confirmDialog('send')
       .then((value) => {
@@ -477,6 +531,31 @@ class ClientExperience extends soundworks.Experience {
     this.send('example', { cmd: 'add', data: this.exampleRecorder.getExample() });
     this._idleRecordingRequest();
   }
+
+  ////////// TRIGGERED SOUNDS
+
+  _playTrigger(label) {
+    if (this.triggers[label])
+      this.triggers[label].stop();
+
+    const buffer = this.audioBufferManager.data.triggers[label];
+    const loop = triggers[label].loop;
+    this.triggers[label] = playSound(buffer, loop);
+  }
+
+  _stopTrigger(label) {
+    if (this.triggers[label])
+      this.triggers[label].stop();
+  }
+
+  _stopAllTriggers() {
+    for (let t in this.triggers)
+      t.stop();
+
+    this.triggers = {};
+  }
+
+  ////////// DATA FLOW MANAGEMENT
 
   _feedRecorder(data) {
     this.exampleRecorder.addElement(data);
@@ -541,8 +620,10 @@ class ClientExperience extends soundworks.Experience {
 
   _streamSensors(data) {
     // we need to check this as the likelihoods length could change anytime :
-    if (this.aggregatedOutput.length != data.length + this.likelihoods.length)
-      this.aggregatedOutput = new Float32Array(data.length + this.likelihoods.length);
+    const aggregatedLength = data.length + this.likelihoods.length;
+
+    if (this.aggregatedOutput.length != aggregatedLength)
+      this.aggregatedOutput = new Float32Array(aggregatedLength);
 
     for (let i = 0; i < data.length; i++)
       this.aggregatedOutput[i] = data[i];

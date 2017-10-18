@@ -1,5 +1,6 @@
 
 #designer, #player {
+  $navHeight: 50px;
   $configElmHeight: 25px;
   $btnBorderRadius: 15px;
   $backgroundColor: #000000;
@@ -163,7 +164,8 @@
 
     .wrapper {
       position: absolute;
-      top: 50px;
+      // top: 50px;
+      top: $navHeight;
       right: 10px;
       width: 200px;
       margin: 0;
