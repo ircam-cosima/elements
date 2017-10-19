@@ -101,7 +101,7 @@ class ClientExperience extends soundworks.Experience {
         case 'start':
           this.triggerEngine.start(
             label,
-            Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
+            Math.floor(Math.random() * 1e6)
           );
           break;
         case 'stop':
