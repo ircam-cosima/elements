@@ -11,8 +11,9 @@
 ### Entities
 
 Player {
-  uuid: String
-  client: soundworks.client,
+  uuid: soundworks.client.uuid
+  index: soundworks.client.index
+  client: soundworks.client
   params: {
     audio: {
       mute: Boolean,
@@ -40,7 +41,7 @@ Project {
       // override and default of `clientParams`
     },
     audio: Object<String, Array>  // audio files of the project
-    machineLearning: {
+    learning: {
       config: RapidMix JSON Config
       trainingSet: RapidMix JSON TrainingSet
       model: RapidMix JSON Model
@@ -64,6 +65,7 @@ common views
 modules
 
 ProjectControl
+  - create project
   - machine-learning config
   - preprocessing config
  

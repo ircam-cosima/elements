@@ -2,6 +2,9 @@
 import * as soundworks from 'soundworks/client';
 import PlayerExperience from './PlayerExperience';
 import serviceViews from '../shared/serviceViews';
+import projectManager from '../shared/services/ProjectManager';
+
+import ProjectChooserModule from './modules/project-chooser/ProjectChooserModule';
 
 function bootstrap() {
   // initialize the client with configuration received
@@ -17,8 +20,12 @@ function bootstrap() {
       instance.view = serviceViews.get(id, config);
   });
 
+  const modules = [
+    ProjectChooserModule,
+  ];
+
   // create client side (player) experience and start the client
-  const experience = new PlayerExperience(config.assetsDomain);
+  const experience = new PlayerExperience(config.assetsDomain, modules);
   soundworks.client.start();
 }
 

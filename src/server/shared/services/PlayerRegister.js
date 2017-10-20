@@ -13,7 +13,6 @@ class PlayerRegister extends Service {
     this.ready();
   }
 
-  /** @private */
   connect(client) {
     super.connect(client);
     appStore.registerPlayer(client);

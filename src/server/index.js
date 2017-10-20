@@ -1,7 +1,10 @@
 import 'source-map-support/register'; // enable sourcemaps in node
-import path from 'path';
 import * as soundworks from 'soundworks/server';
+import appStore from './shared/appStore';
+import path from 'path';
 import PlayerExperience from './PlayerExperience';
+import PlayerRegister from './shared/services/PlayerRegister';
+import { EventEmitter } from 'events';
 
 const configName = process.env.ENV || 'default';
 const configPath = path.join(__dirname, 'config', configName);
@@ -17,30 +20,66 @@ try {
 
 // configure express environment ('production' enables express cache for static files)
 process.env.NODE_ENV = config.env;
+
+if (process.env.PORT)
+  config.port = process.env.PORT;
+
+const server = soundworks.server;
 // initialize application with configuration options
-soundworks.server.init(config);
+appStore.init()
+  .then(() => {
+    server.init(config);
 
-// define the configuration object to be passed to the `.ejs` template
-soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) => {
-  return {
-    clientType: clientType,
-    env: config.env,
-    appName: config.appName,
-    websockets: config.websockets,
-    version: config.version,
-    defaultType: config.defaultClient,
-    assetsDomain: config.assetsDomain,
-  };
-});
+    // define the configuration object to be passed to the `.ejs` template
+    server.setClientConfigDefinition((clientType, config, httpRequest) => {
+      return {
+        clientType: clientType,
+        env: config.env,
+        appName: config.appName,
+        websockets: config.websockets,
+        version: config.version,
+        defaultType: config.defaultClient,
+        assetsDomain: config.assetsDomain,
+      };
+    });
 
-// create the experience
-// activities must be mapped to client types:
-// - the `'player'` clients (who take part in the scenario by connecting to the
-//   server through the root url) need to communicate with the `checkin` (see
-// `src/server/playerExperience.js`) and the server side `playerExperience`.
-// - we could also map activities to additional client types (thus defining a
-//   route (url) of the following form: `/${clientType}`)
-const experience = new PlayerExperience('player');
+    const comm = new EventEmitter();
 
-// start application
-soundworks.server.start();
+    const player = new PlayerExperience('player', config, comm);
+
+    // start application
+    server.start();
+  })
+  .catch(err => console.error(err.stack));
+
+
+// import projectDbMapper from './shared/utils/projectDbMapper';
+// import Project from './shared/entities/Project';
+
+// const project = Project.create('testProject');
+
+// project.setParam('clientDefaults.audio.intensity', true);
+
+// const data = Project.toData(project);
+// projectDbMapper.persist(data);
+
+// const project = {
+//   uuid: 'test-1',
+//   name: 'test-1',
+// };
+
+// // projectDbMapper
+// //   .getList()
+// //   .then(res => {
+// //     console.log('------------------------------');
+// //     console.log(res);
+// //   })
+// //   .catch(err => console.error(err.stack));
+
+// projectDbMapper
+//   .delete(project)
+//   .then(res => {
+//     console.log('------------------------------');
+//     console.log(res);
+//   })
+//   .catch(err => console.error(err.stack));
