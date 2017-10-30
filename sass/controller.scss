@@ -7,7 +7,7 @@
  * Defines some global layout variables (background-color, text-color, etc...)
  * Change values to change the general look of the application
  */
-@import 'configuration-player';
+@import 'configuration-controller';
 
 /**
  * Class helpers (.small, .big for font sizes, .btn, etc..)
@@ -29,5 +29,4 @@
  */
 @import 'overrides';
 
-@import 'designer';
-@import 'player';
+@import '_controller';

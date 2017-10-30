@@ -9,53 +9,57 @@ class ProjectChooserModule extends BaseModule {
     super(MODULE_ID, experience);
 
     this.allowedActions = [
-      'project-list',
-      'select-project',
+      'list-project-overview',
+      'add-player-to-project',
     ];
 
     appStore.addListener((channel, ...args) => {
       switch (channel) {
-        case 'add-player-to-project': // rename to select-project
+        case 'add-player-to-project': {
           const [player, project] = args;
-          const projectOverview = project.getOverview();
           const action = {
-            type: 'select-project',
-            payload: projectOverview,
+            type: 'add-player-to-project',
+            payload: {
+              player: player.serialize(),
+              project: project.serialize(),
+            },
           };
 
-          console.log(action);
           this.dispatch(action, player.client);
           break;
+        }
+
+        case 'create-project':
+        case 'delete-project': {
+          const action = {
+            type: 'list-project-overview',
+            payload: appStore.projects.overview(),
+          }
+
+          const clients = this.subscriptions.get('list-project-overview');
+          this.dispatch(action, clients);
+          break;
+        }
       }
     });
   }
 
-  enter(client) {
-    super.enter(client);
-  }
-
-  exit(client) {
-    const player = appStore.players.get(client.uuid);
-    appStore.removePlayerFromProject(player, player.project);
-
-    super.exit(client);
-  }
-
   request(action, client) {
     switch (action.type) {
-      case 'project-list':
-        const projectList = appStore.projects.getOverview();
-        action.payload = projectList;
-
+      case 'list-project-overview': {
+        action.payload = appStore.projects.overview();
         this.dispatch(action, client);
         break;
-      case 'select-project':
+      }
+
+      case 'add-player-to-project': {
         const player = appStore.players.get(client.uuid);
         const project = appStore.projects.get(action.payload.projectUuid);
 
         appStore.removePlayerFromProject(player, player.project);
         appStore.addPlayerToProject(player, project);
         break;
+      }
     }
   }
 }

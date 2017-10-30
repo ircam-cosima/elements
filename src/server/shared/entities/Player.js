@@ -21,6 +21,17 @@ class Player {
       }
     }
   }
+
+  serialize() {
+    const serialized = {
+      uuid: this.uuid,
+      index: this.index,
+      params: this.params,
+      project: this.project !== null ? this.project.overview() : null,
+    };
+
+    return serialized;
+  }
 }
 
 export default Player;

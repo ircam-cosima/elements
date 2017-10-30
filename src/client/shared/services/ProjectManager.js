@@ -41,7 +41,7 @@ class ProjectManager extends Service {
 
     this.send('project-list:request');
 
-    this.receive('project-list', this._onReceiveProjectList);
+    this.receive('list-project', this._onReceiveProjectList);
     this.receive('project-ack', this._onProjectAck);
     this.receive('project-error', this._onProjectError);
 

@@ -18,9 +18,11 @@ class BaseModule {
 
   start() {
     this.experience.receive(`module:${this.id}:action`, this.dispatch);
+    this.allowedActions.forEach(actionType => this.subscribe(actionType));
   }
 
   stop() {
+    this.allowedActions.forEach(actionType => this.unsubscribe(actionType));
     this.experience.stopReceiving(`module:${this.id}:action`);
   }
 

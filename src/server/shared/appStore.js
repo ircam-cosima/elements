@@ -56,14 +56,14 @@ const appStore = {
   createProject(name) {
     const project = Project.create(name);
 
-    this.emit('updateProjectList', project);
+    this.emit('create-project', project);
   },
 
   deleteProject(project) {
     // remove from this.projects
     // delete related file
 
-    this.emit('updateProjectList');
+    this.emit('delete-project', project);
   },
 
   /**
@@ -83,18 +83,17 @@ const appStore = {
    */
   unregisterPlayer(client) {
     const player = this.players.get(client.uuid);
+    const project = player.project;
+
+    this.removePlayerFromProject(player, project);
     this.players.remove(player);
   },
 
   /** Used by the `ProjectManager` service */
   addPlayerToProject(player, project) {
-    // apply project `clientDefault` to `player.params`
-    // @note - will probably need more check
-    merge(player.param, project.params.clientDefaults);
+    merge(player.params, project.params.clientDefaults);
 
     project.addPlayer(player);
-
-    console.log('here');
     this.emit('add-player-to-project', player, project);
   },
 
@@ -107,6 +106,43 @@ const appStore = {
   },
 
   // ...
+  updatePlayerParam(player, name, value) {
+    const path = name.split('.');
+    const depth = path.length;
+    let ref = player.params;
+
+    for (let i = 0; i < depth; i++) {
+      if (path[i] in ref) {
+        if (i < depth - 1) {
+          ref = ref[path[i]];
+        } else {
+
+          // handle record state machine
+          if (name === 'record.state') {
+            const currentState = ref.state;
+
+            if (currentState === 'idle' && value === 'arm')
+              ref.state = 'armed';
+            else if (currentState === 'arm' && value === 'record')
+              ref.state = 'recording';
+            else if (currentState === 'recording' && value === 'stop')
+              ref.state = 'pending';
+            else if (currentState === 'pending' && (value === 'confirm' || value === 'cancel'))
+              ref.state = value;
+            else if ((currentState === 'confirm' || currentState === 'cancel') && value === 'idle')
+              ref.state = 'idle';
+
+          } else {
+            ref[path[i]] = value;
+          }
+        }
+      } else {
+        throw new Error(`Invalid param name "${name}"`);
+      }
+    }
+
+    this.emit('update-player-param', player);
+  },
 };
 
 export default appStore;

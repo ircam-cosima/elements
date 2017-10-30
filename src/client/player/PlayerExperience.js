@@ -1,9 +1,18 @@
 import * as soundworks from 'soundworks/client';
+// for testing purpose
+import WhiteNoiseSynth from '../shared/audio/WhiteNoiseSynth';
 
 const audioContext = soundworks.audioContext;
 
 const template = `
-  <h1 class="big">Elements</h1>
+  <canvas class="background"></canvas>
+  <div class="foreground">
+    <div class="main-content">
+
+      <div id="audio-control"></div>
+      <div id="recording-control"></div>
+    </div>
+  </div>
 `;
 
 // this experience plays a sound when it starts, and plays another sound when
@@ -14,7 +23,7 @@ class PlayerExperience extends soundworks.Experience {
 
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.checkin = this.require('checkin');
-    this.sharedParams = this.require('shared-params');
+    // this.sharedParams = this.require('shared-params');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: config.assetsDomain,
@@ -26,16 +35,20 @@ class PlayerExperience extends soundworks.Experience {
       descriptors: ['devicemotion']
     });
 
-    // should depends of the required roles
-    // this.rawSocket = this.require('raw-socket');
+    this.mute = audioContext.createGain();
+    this.mute.connect(audioContext.destination);
+    // mute by default, let the AudioControl module handle the rest
+    this.mute.gain.value = 0;
 
-    this.sendRequest = this.sendRequest.bind(this);
-    this.receiveExecute = this.receiveExecute.bind(this);
-    this.receiveTrigger = this.receiveTrigger.bind(this);
+    this.master = audioContext.createGain();
+    this.master.connect(this.mute);
+    this.master.gain.value = 1;
 
-    // install modules reuired from given role (defined through #hash or url)
+    /**
+     * Instanciate and install modules required by the role of the client.
+     * Role could be defined according to a hash in url.
+     */
     this.modules = new Set();
-
     // @todo - should be able to pass options to each modules
     modules.forEach(ctor => {
       const module = new ctor(this);
@@ -44,25 +57,17 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   start() {
-    super.start(); // don't forget this
+    super.start();
 
-    // initialize the view
-    this.view = new soundworks.View(template, {}, {}, { id: this.id });
-
-    this.receive('execute', () => {
-      // forward to modules
+    // initialize the view / allow for canvas rendering
+    this.view = new soundworks.CanvasView(template, {}, {}, {
+      id: 'player',
+      ratios: { '.main-content': 1 },
     });
 
-    this.receive('trigger', (channel, args) => {
-      switch (channel) {
-        case 'reload':
-          window.location.reload(true);
-          break;
-        default:
-          // forward to
-      }
-    });
-
+    const synth = new WhiteNoiseSynth();
+    synth.connect(this.getAudioOutput());
+    synth.start();
 
     this.modules.forEach(module => module.start());
 
@@ -75,16 +80,12 @@ class PlayerExperience extends soundworks.Experience {
     this.modules.forEach(module => module.stop());
   }
 
-  sendRequest(channel) {
-
+  getContainer(selector = '.main-content') {
+    return this.view.$el.querySelector(selector);
   }
 
-  receiveExecute() {
-
-  }
-
-  receiveTrigger() {
-
+  getAudioOutput() {
+    return this.master;
   }
 }
 

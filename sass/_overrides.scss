@@ -1,5 +1,4 @@
 // Entry point for application specific styles
-
 $green: #40de56;
 
 @include keyframes(fast-blink) {
@@ -50,97 +49,121 @@ body.white {
   100% { opacity: 0.7; }
 }
 
-#service-project-admin {
-  input[type=text], input[type=password] {
-    font-size: 1.4rem;
+
+/* $activeColor: #c0392b; //red */
+$activeColor: #27ae60; //green
+$darkenColor: darken($activeColor, 20%);
+/* $background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/13460/dark_wall.png'); */
+$background: #3498db;
+
+.checkbox {
+  height: 40px;
+  line-height: 40px;
+  display: block;
+  width: 200px;
+  position: relative;
+
+  span {
+    display: inline-block;
+    width: 100px;
+  }
+
+  input[type=checkbox] {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .checkbox-ui {
+    width: 30px;
     height: 30px;
-    text-align: center;
-    color: #343434;
-    width: 100%;
-    margin-bottom: 12px;
-  }
-
-  .section-center {
-    position: relative;
-  }
-
-  .error {
-    font-size: 1rem;
-    color: orange;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 2px solid $green;
     position: absolute;
-    top: -24px;
-    left: 0;
-    width: 100%;
-    text-align: center;
+    top: 5px;
+    right: 0;
   }
 
-  .grey {
-    color: #bcbcbc;
-    font-size: 1rem;
+  .checkbox-ui:after {
     display: block;
-  }
-}
-
-#service-project-chooser {
-  .error {
-    font-size: 1rem;
-    color: orange;
+    content: "";
+    width: 22px;
+    height: 22px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    background-color: $green;
     position: absolute;
-    top: -24px;
-    left: 0;
-    width: 100%;
-    text-align: center;
+    top: 2px;
+    right: 2px;
   }
 
-  .section-center {
-    position: relative;
+  input[type=checkbox] + .checkbox-ui:after {
+    opacity: 0;
   }
 
-  select {
-    width: 80%;
-    font-size: 1.2rem;
-    line-height: 2rem;
-    height: 2rem;
+  input[type=checkbox]:checked + .checkbox-ui:after {
+    opacity: 1;
   }
 }
 
-#service-project-manager {
-  input[type=text], input[type=password] {
-    font-size: 1.4rem;
-    height: 30px;
-    text-align: center;
-    color: #343434;
-    width: 100%;
-    margin-bottom: 12px;
-  }
+select {
+  width: 200px;
+  height: 30px;
+}
 
-  select {
-    width: 80%;
-    font-size: 1.2rem;
-    line-height: 2rem;
-    height: 2rem;
-  }
+/* .roundedOne */
+.roundedOne {
+  width: 28px;
+  height: 28px;
+  position: relative;
+  margin: 20px auto;
+  background: #fcfff4;
+  background: linear-gradient(top, #fcfff4 0%, #dfe5d7 40%, #b3bead 100%);
+  border-radius: 50px;
+  box-shadow: inset 0px 1px 1px white, 0px 1px 3px rgba(0,0,0,0.5);
 
-  .section-center {
-    position: relative;
-  }
-
-  .error {
-    font-size: 1rem;
-    color: orange;
+  label {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
     position: absolute;
-    top: -24px;
-    left: 0;
-    width: 100%;
-    text-align: center;
+    left: 4px;
+    top: 4px;
+    background: linear-gradient(top, #222 0%, #45484d 100%);
+    border-radius: 50px;
+    box-shadow: inset 0px 1px 1px rgba(0,0,0,0.5), 0px 1px 0px rgba(255,255,255,1);
+
+    &:after {
+      content: '';
+      width: 16px;
+      height: 16px;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      background: $activeColor;
+      background: linear-gradient(top, $activeColor 0%, $darkenColor 100%);
+      opacity: 0;
+      border-radius: 50px;
+      box-shadow: inset 0px 1px 1px white, 0px 1px 3px rgba(0,0,0,0.5);
+    }
+    &:hover::after {
+      opacity: 0.3;
+    }
   }
 
-  .grey {
-    color: #bcbcbc;
-    font-size: 1rem;
-    display: block;
+  input[type=checkbox] {
+    visibility: hidden;
+
+    &:checked + label:after {
+      opacity: 1;
+    }
   }
 }
+/* end .roundedOne */
+
+
+
 
 //============================================================================//
 
@@ -148,139 +171,139 @@ body.white {
 //   height: 100%;
 // }
 
-$navHeight: 40px;
-$eltTopMargin: 0px;
-$eltBottomMargin: 5px;//10px;
-$elmHeight: 36px;
+// $navHeight: 40px;
+// $eltTopMargin: 0px;
+// $eltBottomMargin: 5px;//10px;
+// $elmHeight: 36px;
 
-.toggle-container {
-  height: 33px;
-  padding: 0 0 10px 50px;
-  line-height: 33px;
-  position: relative;
+// .toggle-container {
+//   height: 33px;
+//   padding: 0 0 10px 50px;
+//   line-height: 33px;
+//   position: relative;
 
-  .toggle-btn {
-    width: 31px;
-    height: 31px;
-    border-radius: 50%;
-    border: 2px solid $green;
-    position: absolute;
-    top: 0;
-    left: 0;
+//   .toggle-btn {
+//     width: 31px;
+//     height: 31px;
+//     border-radius: 50%;
+//     border: 2px solid $green;
+//     position: absolute;
+//     top: 0;
+//     left: 0;
 
-    div {
-      width: 25px;
-      height: 25px;
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      border-radius: 50%;
-      background-color: $green;
-      opacity: 0;
-      transition: opacity 50ms;
-    }
-  }
+//     div {
+//       width: 25px;
+//       height: 25px;
+//       position: absolute;
+//       top: 3px;
+//       left: 3px;
+//       border-radius: 50%;
+//       background-color: $green;
+//       opacity: 0;
+//       transition: opacity 50ms;
+//     }
+//   }
 
-  &.active .toggle-btn div {
-    opacity: 0.9;
-  }
-}
+//   &.active .toggle-btn div {
+//     opacity: 0.9;
+//   }
+// }
 
-.select-container {
-  height: $elmHeight;
-  line-height: $elmHeight;
-  position: relative;
-  margin-bottom: 12px;
-  display: block;
-  width: 100%;
+// .select-container {
+//   height: $elmHeight;
+//   line-height: $elmHeight;
+//   position: relative;
+//   margin-bottom: 12px;
+//   display: block;
+//   width: 100%;
 
-  select {
-    height: $elmHeight;
-    width: 65%;
-    position: absolute;
-    top: 0;
-    right: 0;
-    border-radius: 2px;
-  }
-}
+//   select {
+//     height: $elmHeight;
+//     width: 65%;
+//     position: absolute;
+//     top: 0;
+//     right: 0;
+//     border-radius: 2px;
+//   }
+// }
 
-.text-container {
-  height: $elmHeight;
-  line-height: $elmHeight;
-  position: relative;
-  margin-bottom: 12px;
-  display: block;
-  width: 100%;
+// .text-container {
+//   height: $elmHeight;
+//   line-height: $elmHeight;
+//   position: relative;
+//   margin-bottom: 12px;
+//   display: block;
+//   width: 100%;
 
-  input[type=text], input[type=number] {
-    height: $elmHeight;
-    width: 50%;
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 0 5px;
-  }
-}
+//   input[type=text], input[type=number] {
+//     height: $elmHeight;
+//     width: 50%;
+//     position: absolute;
+//     top: 0;
+//     right: 0;
+//     padding: 0 5px;
+//   }
+// }
 
-.modal-dialog, .notification {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 100;
+// .modal-dialog, .notification {
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   width: 100%;
+//   height: 100%;
+//   z-index: 100;
 
-  .background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000000;
-    opacity: 0.8,
-  }
+//   .background {
+//     position: absolute;
+//     top: 0;
+//     left: 0;
+//     width: 100%;
+//     height: 100%;
+//     background-color: #000000;
+//     opacity: 0.8,
+//   }
 
-  .wrapper {
-    position: absolute;
-    width: 86%;
-    top: 25%;
-    left: 7%;
-    background-color: #000000;
-    color: #ffffff;
-    padding: 10px;
-    box-sizing: border-box;
-    border-radius: 2px;
-    border: 1px solid #787878;
+//   .wrapper {
+//     position: absolute;
+//     width: 86%;
+//     top: 25%;
+//     left: 7%;
+//     background-color: #000000;
+//     color: #ffffff;
+//     padding: 10px;
+//     box-sizing: border-box;
+//     border-radius: 2px;
+//     border: 1px solid #787878;
 
-    p {
-      font-size: 1rem;
-      margin: 10px 0;
-    }
+//     p {
+//       font-size: 1rem;
+//       margin: 10px 0;
+//     }
 
-    .btn-wrapper {
-      position: relative;
-      height: $elmHeight;
-      margin: 30px 0 10px 0;
-    }
+//     .btn-wrapper {
+//       position: relative;
+//       height: $elmHeight;
+//       margin: 30px 0 10px 0;
+//     }
 
-    .btn {
-      width: 45%;
-      position: absolute;
-      top: 0;
-      height: $elmHeight;
-      margin: 0;
-      border-radius: 2px;
-      border: 1px solid #ffffff;
+//     .btn {
+//       width: 45%;
+//       position: absolute;
+//       top: 0;
+//       height: $elmHeight;
+//       margin: 0;
+//       border-radius: 2px;
+//       border: 1px solid #ffffff;
 
-      &#ok { right: 0; }
-      &#cancel { left: 0 }
-    }
-  }
-}
+//       &#ok { right: 0; }
+//       &#cancel { left: 0 }
+//     }
+//   }
+// }
 
-.notification .wrapper p {
-  text-align: center;
-}
+// .notification .wrapper p {
+//   text-align: center;
+// }
 
 
 

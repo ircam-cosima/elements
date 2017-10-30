@@ -1,28 +1,62 @@
+
 #player {
-  font-size: 1.4em;
-  padding: 10px;
-  box-sizing: border-box;
+  // font-size: 1.4rem;
 
-  #project-name {
-    position: relative;
-    height: 40px;
-    margin-bottom: 20px;
+  #audio-control {
+    position: absolute;
+    top: 50px;
+  }
 
-    p {
-      line-height: 40px;
-      font-weight: bold;
-      font-size: 1.2rem;
+  #recording-control {
+    position: absolute;
+    top: 150px;
+  }
+}
+
+.project-chooser {
+  &.expanded {
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: $backgroundColor;
+
+    & > div {
+      width: 100%;
+      height: 100%;
     }
+
+    select {
+      margin-top: 10px;
+      font-size: 1rem;
+      width: 80%;
+    }
+
+    p, select {
+      position: relative;
+      top: -80px;
+    }
+  }
+
+  &.reduced {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    right: 10px;
 
     .btn {
-      z-index: 1;
-      width: auto;
-      position: absolute;
-      top: 0;
-      right: 0;
-      margin-bottom: 0;
-      padding: 0 20px;
+      width: 140px;
     }
+  }
+}
 
+.audio-control {
+  padding: 0 20px;
+  box-sizing: border-box;
+
+  .checkbox {
+    width : 120px;
   }
 }

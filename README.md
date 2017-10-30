@@ -58,11 +58,13 @@ Project {
 
 ## Player Modules
 
-common views
-  - project name
-  - switch project
+CommonViews
+
 
 modules
+
+ProjectChooser
+  - switch project
 
 ProjectControl
   - create project
@@ -71,7 +73,7 @@ ProjectControl
  
 RecordingControl
   - record
-  - label
+  - label choice
   - clear (label, model)
 
 AudioControl
@@ -82,7 +84,7 @@ AudioControl
 GUIs
   - background-color renderer
   - likelihoods renderer
-  - 
+
 
 ## notes
 

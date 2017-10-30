@@ -26,6 +26,16 @@ class PlayerCollection {
     return Array.from(this.players);
   }
 
+  serialize() {
+    const serializedCollection = [];
+
+    this.players.forEach(player => {
+      const serializedPlayer = player.serialize();
+      serializedCollection.push(serializedPlayer);
+    });
+
+    return serializedCollection;
+  }
 }
 
 export default PlayerCollection;

@@ -12,7 +12,12 @@
       <% } %>
     </title>
 
+    <% if (data.clientType === 'controller') { %>
+    <link rel="stylesheet" href="<%= data.assetsDomain %>css/controller.css?<%= data.version %>">
+    <% } else { %>
     <link rel="stylesheet" href="<%= data.assetsDomain %>css/main.css?<%= data.version %>">
+    <% } %>
+
   </head>
 
   <body>

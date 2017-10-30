@@ -4,10 +4,15 @@ import uuidv4 from 'uuid/v4';
 // @todo - remove
 // import config from '../../config/default';
 import { labels as audioConfig } from '../../../shared/config/audio';
+import merge from 'lodash.merge';
 
 
 // const gx = new xmm('gmm');
 // const hx = new xmm('hhmm');
+
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
 
 
 class Project {
@@ -32,7 +37,10 @@ class Project {
         audio: {
           intensity: false,
           mute: false,
-        }
+        },
+        record: {
+          label: Object.keys(audioConfig)[0], // defaults to first audio label
+        },
       },
       audio: audioConfig,
       learning: {
@@ -44,7 +52,17 @@ class Project {
     }
   }
 
-  getOverview() {
+  serialize() {
+    const details = {
+      uuid: this.uuid,
+      params: this.params,
+      players: this.players.serialize(),
+    };
+
+    return details;
+  }
+
+  overview() {
     const overview = {
       uuid: this.uuid,
       name: this.params.name,
@@ -158,7 +176,7 @@ class Project {
     const project = new Project();
 
     project.uuid = data.uuid;
-    project.params = data.params;
+    project.params = merge(project.params, data.params);
 
     return project;
   }

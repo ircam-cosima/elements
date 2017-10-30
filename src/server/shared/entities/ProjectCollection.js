@@ -19,17 +19,36 @@ class ProjectCollection {
     return this.uuidProjectMap.get(uuid);
   }
 
-  getOverview() {
-    const projectsOverview = [];
+  /**
+   * Return an overview of the projects
+   * @return Array<Object<uuid, name>>
+   */
+  overview() {
+    const collectionOverview = [];
 
     this.projects.forEach(project => {
-      const overview = project.getOverview();
-      projectsOverview.push(overview);
+      const overview = project.overview();
+      collectionOverview.push(overview);
     });
 
-    return projectsOverview;
+    return collectionOverview;
   }
 
+  /**
+   * Returns all informations of all projects and related clients
+   */
+  serialize() {
+    const serializedCollection = [];
+
+    this.projects.forEach(project => {
+      const serializedProject = project.serialize();
+      serializedCollection.push(serializedProject);
+    });
+
+    return serializedCollection;
+  }
+
+  getParams() {}
 }
 
 export default ProjectCollection;
