@@ -2,10 +2,12 @@ import { View } from 'soundworks/client';
 
 const template = `
 <% if (state === 'reduced') { %>
+  <% console.log(project) %>
+<h1><%= project.params.name %></h1>
 <button class="btn expand">Switch project<button>
 <% } else if (state === 'expanded') { %>
-<div class="flex-middle">
-  <div>
+<div class="overlay">
+  <div class="overlay-container">
     <p>Select project</p>
     <p class="error">
     <% if (error === true) { %>
@@ -31,11 +33,7 @@ const template = `
 const model = {
   projectOverviewList: [],
   error: false,
-  name: null,
-  project: {
-    name: null,
-    uuid: null,
-  },
+  project: {},
   state: 'expanded', // 'expanded' || 'reduced'
   // prepare field for i18n
   text: {

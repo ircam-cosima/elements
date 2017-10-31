@@ -61,7 +61,6 @@ class ControllerExperience extends soundworks.Experience {
           const { projectsDetails, projectsOverview } = action.payload;
           projectsDetails.forEach(project => {
             this.view.model.projectsOverview = projectsOverview;
-            //
             this.view.addProject(project);
 
             project.players.forEach(player => {
@@ -72,12 +71,14 @@ class ControllerExperience extends soundworks.Experience {
       }
 
       case 'add-player-to-project': {
-        this.view.addPlayerToProject(action.payload);
+        const { player, project } = action.payload;
+        this.view.addPlayerToProject(player, project);
         break;
       }
 
       case 'remove-player-from-project': {
-        this.view.removePlayerFromProject(action.payload);
+        const { player, project } = action.payload;
+        this.view.removePlayerFromProject(player, project);
         break;
       }
 

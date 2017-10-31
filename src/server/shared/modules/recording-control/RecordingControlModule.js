@@ -10,6 +10,10 @@ class RecordingControlModule extends BaseModule {
     this.allowedActions = [
       'add-player-to-project',
       'update-player-param',
+      // ...
+      'add-example',
+      'clear-examples',
+      'clear-all-examples',
     ];
 
     appStore.addListener((channel, ...args) => {
@@ -42,7 +46,7 @@ class RecordingControlModule extends BaseModule {
 
   }
 
-  request(action) {
+  request(action, client) {
     const { type, payload } = action;
 
     switch (type) {
@@ -50,6 +54,12 @@ class RecordingControlModule extends BaseModule {
         const { uuid, name, value } = payload;
         const player = appStore.players.get(uuid);
         appStore.updatePlayerParam(player, name, value);
+        break;
+      }
+      case 'add-example': {
+        const { uuid, example } = payload;
+        const project = appStore.projects.get(uuid);
+        appStore.addExampleToProject(example, project);
         break;
       }
     }

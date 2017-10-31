@@ -6,6 +6,7 @@ import Project from './entities/Project';
 import ProjectCollection from './entities/ProjectCollection';
 import Player from './entities/Player';
 import PlayerCollection from './entities/PlayerCollection';
+import xmm from 'xmm-node';
 
 
 const appStore = {
@@ -27,11 +28,18 @@ const appStore = {
 
     this._listeners = new Set();
 
+
+    this.xmmInstances = {
+      'xmm:gmm': new xmm('gmm'),
+      'xmm:hhmm': new xmm('hhmm'),
+    };
+
     // load persisted projects in memory
     return projectDbMapper.getList().then(projectsData => {
       projectsData.forEach(projectData => {
         const project = Project.fromData(projectData);
         this.projects.add(project);
+        this._updateModel(project);
       });
 
       return Promise.resolve();
@@ -57,6 +65,8 @@ const appStore = {
     const project = Project.create(name);
 
     this.emit('create-project', project);
+
+    this._updateModel(project);
   },
 
   deleteProject(project) {
@@ -111,6 +121,7 @@ const appStore = {
     const depth = path.length;
     let ref = player.params;
 
+    // @todo - move to
     for (let i = 0; i < depth; i++) {
       if (path[i] in ref) {
         if (i < depth - 1) {
@@ -118,12 +129,14 @@ const appStore = {
         } else {
 
           // handle record state machine
+          // @todo - 'idle' should be accessible from everywhere as it should
+          // be the default on a project change / or add a 'reset' state ?
           if (name === 'record.state') {
             const currentState = ref.state;
 
             if (currentState === 'idle' && value === 'arm')
               ref.state = 'armed';
-            else if (currentState === 'arm' && value === 'record')
+            else if ((currentState === 'idle' || currentState === 'armed') && value === 'record')
               ref.state = 'recording';
             else if (currentState === 'recording' && value === 'stop')
               ref.state = 'pending';
@@ -135,6 +148,7 @@ const appStore = {
           } else {
             ref[path[i]] = value;
           }
+
         }
       } else {
         throw new Error(`Invalid param name "${name}"`);
@@ -142,6 +156,48 @@ const appStore = {
     }
 
     this.emit('update-player-param', player);
+  },
+
+  updateProjectParam(project, name, value) {
+    throw new Error('`updateProjectParam` not implemented');
+  },
+
+
+  addExampleToProject(example, project) {
+    project.trainingData.addExample(example);
+    this._updateModel(project);
+  },
+
+  clearLabelFromProject(label, project) {
+    project.trainingData.removeExamplesByLabel(label);
+    this._updateModel(project);
+  },
+
+  clearAllLabelsFromProject(project) {
+    project.trainingData.clear();
+    this._updateModel(project);
+  },
+
+  // update xmm model
+  _updateModel(project) {
+    const config = project.processor.getConfig()
+    const trainingSet = project.trainingData.getTrainingSet();
+    const xmmTrainingSet = mano.rapidMixToXmmTrainingSet(trainingSet);
+
+    const target = config.target.name;
+    const xmm = this.xmmInstances[target];
+
+    xmm.setConfig(config);
+    xmm.setTrainingSet(xmmTrainingSet);
+    xmm.train((err, model) => {
+      if (err)
+        console.log(err.stack);
+
+      const rapidMixModel = mano.xmmToRapidMixModel(model);
+      project.model = model;
+
+      this.emit('update-model', project, model);
+    });
   },
 };
 

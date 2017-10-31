@@ -23,7 +23,10 @@ class ControllerExperience extends Experience {
           const [player, project] = args;
           const action = {
             type: channel,
-            payload: player.serialize(),
+            payload: {
+              player: player.serialize(),
+              project: project.serialize(),
+            },
           };
 
           this.dispatch(action, this.clients);

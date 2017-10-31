@@ -30,6 +30,10 @@ class PlayerExperience extends Experience {
 
   start() {
     super.start();
+
+    // create sensor and decoding chain (is common to every player)
+
+    // synths
   }
 
   enter(client) {
@@ -44,6 +48,22 @@ class PlayerExperience extends Experience {
 
     appStore.unregisterPlayer(client);
     super.exit(client);
+  }
+
+  /**
+   * Sometime processedSensors seems to output invalid data, this should not
+   * happend but should not crashe the application neither,when this problem is
+   * fixed, we will be able to remove that check.
+   */
+  _checkDataIntegrity(data) {
+    for (let i = 0; i < data.length; i++) {
+      if (!Number.isFinite(data[i]) && data[i] !== null) {
+        this.send('logFaultySensorData', data);
+        return false;
+      }
+    }
+
+    return true;
   }
 }
 

@@ -1,14 +1,10 @@
 import * as mano from 'mano-js/common';
 import PlayerCollection from './PlayerCollection';
 import uuidv4 from 'uuid/v4';
-// @todo - remove
-// import config from '../../config/default';
-import { labels as audioConfig } from '../../../shared/config/audio';
 import merge from 'lodash.merge';
+// @todo - remove
+import { labels as audioConfig } from '../../../shared/config/audio';
 
-
-// const gx = new xmm('gmm');
-// const hx = new xmm('hhmm');
 
 function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
@@ -29,8 +25,11 @@ class Project {
     });
 
     /**
-     *
+     * xmm model is not part of the params as it will never be saved but always
+     * be recreated from persisted `config` and `trainingSet`
      */
+    this.model = null;
+
     this.params = {
       name: '',
       clientDefaults: {
@@ -46,7 +45,6 @@ class Project {
       learning: {
         config: null,
         trainingSet: null,
-        model: null,
       },
       sensorsPreprocessing: {},
     }
@@ -98,56 +96,6 @@ class Project {
   removePlayer(player) {
     this.players.remove(player);
     player.project = null;
-  }
-
-  /**
-   * @param {JSON} example - RapidMix JSON Example
-   */
-  addExample(example) {
-    this.trainingData.addExample(example);
-  }
-
-  clearExamples(label) {
-    this.trainingData.removeExamplesByLabel(label);
-  }
-
-  clearAllExamples() {
-    this.trainingData.clear();
-  }
-
-  /**
-   * @return {Promise} - Promise that resolves when the model is updated
-   */
-  train() {
-    //
-    // const trainingData = {
-    //   docType: 'rapid-mix:rest-api-request',
-    //   docVersion: '1.0.0',
-    //   configuration: this.processor.getConfig(),
-    //   trainingSet: trainingSet
-    // };
-
-    //   const body = req.body;
-    //   const config = body.configuration;
-    //   const algo = config.target.name.split(':')[1];
-    //   const trainingSet = rapidMixToXmmTrainingSet(body.trainingSet);
-    //   let x = (algo === 'hhmm') ? hx : gx;
-
-    //   x.setConfig(config.payload);
-    //   x.setTrainingSet(trainingSet);
-    //   x.train((err, model) => {
-    //     if (err)
-    //       console.error(err.stack);
-
-    //     const rapidModel = xmmToRapidMixModel(model);
-    //     res.setHeader('Content-Type', 'application/json');
-    //     // simulate RapidMix API JSON format
-    //     res.end(JSON.stringify({ model: rapidModel }));
-    //   });
-
-    return new Promise((resolve, reject) => {
-      throw new Error('training not implemented');
-    });
   }
 
   /**

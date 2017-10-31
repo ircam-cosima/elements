@@ -21,6 +21,7 @@ function createDOM(tmplFunction, data) {
 
 const model = {
   projectsOverview: [],
+  projects: [],
 };
 
 class ControllerView extends View {
@@ -44,18 +45,39 @@ class ControllerView extends View {
         this.request('add-player-to-project', { playerUuid, projectUuid });
       },
 
-      'click .player .player-param': e => {
+      // player params / checkboxes
+      'click .player input[type=checkbox].player-param': e => {
         e.preventDefault();
         const $input = e.target;
         const $player = $input.closest('.player');
         const uuid = $player.dataset.uuid;
         const name = $input.dataset.name;
-
-        // checkboxes
         const value = !($input.hasAttribute('checked'));
 
         this.request('update-player-param', { uuid, name, value });
-      }
+      },
+      // player params / selects
+      'change .player select.player-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $player = $input.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.value;
+
+        this.request('update-player-param', { uuid, name, value });
+      },
+      // player params / buttons
+      'click .player button.player-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $player = $input.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.value;
+
+        this.request('update-player-param', { uuid, name, value });
+      },
     });
   }
 
@@ -71,6 +93,8 @@ class ControllerView extends View {
   }
 
   addProject(project) {
+    this.model.projects.push(project);
+
     const data = { project: project, global: this.model };
     const $project = createDOM(this.projectTmpl, data);
     const $paramsContainer = $project.querySelector('.params');
@@ -81,8 +105,12 @@ class ControllerView extends View {
   }
 
   removeProject(project) {
-    const $project = this.querySelector(`#_${uuid}`);
+    const index = this.model.projects.indexOf(project);
 
+    if (index !== -1)
+      this.model.projects.splice(index, 1);
+
+    const $project = this.querySelector(`#_${uuid}`);
     $project.remove();
   }
 
@@ -94,7 +122,7 @@ class ControllerView extends View {
     $paramContainer.innerHTML = params;
   }
 
-  addPlayerToProject(player) {
+  addPlayerToProject(player, project) {
     const selector = `#_${player.project.uuid} > .players`;
     const $container = this.$projects.querySelector(selector);
     const data = { player: player, global: this.model };
@@ -103,7 +131,7 @@ class ControllerView extends View {
     $container.appendChild($player);
   }
 
-  removePlayerFromProject(player) {
+  removePlayerFromProject(player, project) {
     const selector = `#_${player.uuid}`;
     const $player = this.$el.querySelector(selector);
 

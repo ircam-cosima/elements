@@ -1,4 +1,5 @@
 import * as soundworks from 'soundworks/client';
+import * as mano from 'mano-js';
 // for testing purpose
 import WhiteNoiseSynth from '../shared/audio/WhiteNoiseSynth';
 
@@ -35,45 +36,52 @@ class PlayerExperience extends soundworks.Experience {
       descriptors: ['devicemotion']
     });
 
-    this.mute = audioContext.createGain();
-    this.mute.connect(audioContext.destination);
-    // mute by default, let the AudioControl module handle the rest
-    this.mute.gain.value = 0;
-
-    this.master = audioContext.createGain();
-    this.master.connect(this.mute);
-    this.master.gain.value = 1;
-
     /**
      * Instanciate and install modules required by the role of the client.
      * Role could be defined according to a hash in url.
      */
-    this.modules = new Set();
+    this.modules = new Map();
     // @todo - should be able to pass options to each modules
     modules.forEach(ctor => {
-      const module = new ctor(this);
-      this.modules.add(module);
+      const mod = new ctor(this);
+      this.modules.set(mod.id, mod);
     });
   }
 
   start() {
     super.start();
 
-    // initialize the view / allow for canvas rendering
+    // init view
     this.view = new soundworks.CanvasView(template, {}, {}, {
       id: 'player',
       ratios: { '.main-content': 1 },
     });
 
+    // init audio output chain
+    this.mute = audioContext.createGain();
+    this.mute.connect(audioContext.destination);
+    this.mute.gain.value = 0; // mute by default, see `AudioControlModule`
+
+    this.master = audioContext.createGain();
+    this.master.connect(this.mute);
+    this.master.gain.value = 1;
+
+    // test synth
     const synth = new WhiteNoiseSynth();
     synth.connect(this.getAudioOutput());
     synth.start();
 
-    this.modules.forEach(module => module.start());
+    // sensors chain and xmm decoder
+    this.processedSensors = new mano.ProcessedSensors();
+    // this.xmmDecoder = new mano.Processor({});
 
-    this.show().then(() => {
-      this.modules.forEach(module => module.show());
-    });
+    Promise.all([this.show(), this.processedSensors.init()])
+      .then(() => {
+        this.modules.forEach(module => module.start());
+        this.modules.forEach(module => module.show());
+
+        this.processedSensors.start();
+      });
   }
 
   stop() {

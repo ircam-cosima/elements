@@ -20,3 +20,14 @@
 - use both intensities
 - dynamic modules
 
+
+
+## NOTES - TBD
+
+### RecordingControlModule 
+
+- AutoTrigger - if record has been launched from the controller, auto 
+trigger is still in `off` state and thus cannot trigger the `stop` 
+callback, define if it is the desired behavior.
+
+- 
