@@ -46,6 +46,14 @@ class Project {
         config: null,
         trainingSet: null,
       },
+      recording: {
+        type: 'AutoTrigger',
+        options: {
+          highThreshold: 0.2,
+          lowThreshold: 0.05,
+          offDelay: 200,
+        },
+      },
       sensorsPreprocessing: {},
     }
   }
@@ -54,6 +62,7 @@ class Project {
     const details = {
       uuid: this.uuid,
       params: this.params,
+      model: this.model,
       players: this.players.serialize(),
     };
 
@@ -88,6 +97,11 @@ class Project {
     }
   }
 
+  updateLearningParams() {
+    this.params.learning.trainingSet = this.trainingData.getTrainingSet();
+    this.params.learning.config = this.processor.getConfig();
+  }
+
   addPlayer(player) {
     player.project = this;
     this.players.add(player);
@@ -109,8 +123,7 @@ class Project {
 
     project.uuid = uuidv4();
     project.params.name = name;
-    project.params.learning.trainingSet = project.trainingData.getTrainingSet();
-    project.params.learning.config = project.processor.getConfig();
+    project.updateLearningParams();
 
     return project;
   }
@@ -125,6 +138,11 @@ class Project {
 
     project.uuid = data.uuid;
     project.params = merge(project.params, data.params);
+
+    // update mano instances from JSON informations
+    const { trainingSet, config } = project.params.learning;
+    project.trainingData.setTrainingSet(trainingSet);
+    project.processor.setConfig(config);
 
     return project;
   }

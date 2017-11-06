@@ -7,27 +7,14 @@ import ProjectCollection from './entities/ProjectCollection';
 import Player from './entities/Player';
 import PlayerCollection from './entities/PlayerCollection';
 import xmm from 'xmm-node';
-
+import { translators as rapidMixTranslators } from 'rapid-mix-adapters';
 
 const appStore = {
   init() {
-    /**
-     * @type Set
-     */
     this.projects = new ProjectCollection();
-
-    /**
-     * @type Set
-     */
     this.players = new PlayerCollection();
 
-    /**
-     * @type Map
-     */
-    // this.clientProjectMap = new Map();
-
     this._listeners = new Set();
-
 
     this.xmmInstances = {
       'xmm:gmm': new xmm('gmm'),
@@ -72,14 +59,12 @@ const appStore = {
   deleteProject(project) {
     // remove from this.projects
     // delete related file
-
     this.emit('delete-project', project);
   },
 
   /**
-   * Required by the `ClientRegister` service
-   * This is the only place where the appStore should deal with the `client`.
-   * After that it should only know `player` entities.
+   * This is the only place where the appStore should deal with the `client`,
+   * after that it should only know `player` entities.
    */
   registerPlayer(client) {
     const player = new Player(client);
@@ -87,9 +72,8 @@ const appStore = {
   },
 
   /**
-   * Required by the `ClientRegister` service
-   * This is the only place where the appStore should deal with the `client`.
-   * After that it should only know `player` entities.
+   * This is the only place where the appStore should deal with the `client`,
+   * after that it should only know `player` entities.
    */
   unregisterPlayer(client) {
     const player = this.players.get(client.uuid);
@@ -162,27 +146,45 @@ const appStore = {
     throw new Error('`updateProjectParam` not implemented');
   },
 
-
   addExampleToProject(example, project) {
-    project.trainingData.addExample(example);
-    this._updateModel(project);
+    try {
+      project.trainingData.addExample(example);
+      project.updateLearningParams();
+
+      const projectData = Project.toData(project);
+      projectDbMapper.persist(projectData)
+        .then(() => this._updateModel(project))
+        .catch(err => console.error(err.stack));
+    } catch(err) {
+      console.error(`Cannot add invalid example to trainingData`);
+    }
   },
 
-  clearLabelFromProject(label, project) {
+  clearExamplesFromProject(label, project) {
     project.trainingData.removeExamplesByLabel(label);
-    this._updateModel(project);
+    project.updateLearningParams();
+
+    const projectData = Project.toData(project);
+    projectDbMapper.persist(projectData)
+      .then(() => this._updateModel(project))
+      .catch(err => console.error(err.stack));
   },
 
-  clearAllLabelsFromProject(project) {
+  clearAllExamplesFromProject(project) {
     project.trainingData.clear();
-    this._updateModel(project);
+    project.updateLearningParams();
+
+    const projectData = Project.toData(project);
+    projectDbMapper.persist(projectData)
+      .then(() => this._updateModel(project))
+      .catch(err => console.error(err.stack));
   },
 
   // update xmm model
   _updateModel(project) {
     const config = project.processor.getConfig()
     const trainingSet = project.trainingData.getTrainingSet();
-    const xmmTrainingSet = mano.rapidMixToXmmTrainingSet(trainingSet);
+    const xmmTrainingSet = rapidMixTranslators.rapidMixToXmmTrainingSet(trainingSet);
 
     const target = config.target.name;
     const xmm = this.xmmInstances[target];
@@ -193,10 +195,10 @@ const appStore = {
       if (err)
         console.log(err.stack);
 
-      const rapidMixModel = mano.xmmToRapidMixModel(model);
-      project.model = model;
+      const rapidMixModel = rapidMixTranslators.xmmToRapidMixModel(model);
+      project.model = rapidMixModel;
 
-      this.emit('update-model', project, model);
+      this.emit('update-model', project, rapidMixModel)
     });
   },
 };

@@ -14,8 +14,12 @@ class AudioControlModule extends BaseModule {
       viewContainer: '#audio-control',
     }, options)
 
-    this.allowedActions = [
+    this.subscriptions = [
       'add-player-to-project',
+      'update-player-param',
+    ];
+
+    this.allowedRequests = [
       'update-player-param',
     ];
 

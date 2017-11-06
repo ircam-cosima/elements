@@ -8,7 +8,12 @@ class ProjectChooserModule extends BaseModule {
   constructor(experience, options = {}) {
     super(MODULE_ID, experience);
 
-    this.allowedActions = [
+    this.subscriptions = [
+      'list-project-overview',
+      'add-player-to-project',
+    ];
+
+    this.allowedRequests = [
       'list-project-overview',
       'add-player-to-project',
     ];
@@ -38,7 +43,7 @@ class ProjectChooserModule extends BaseModule {
 
     this.view.render();
     this.view.show();
-    this.view.appendTo(this.experience.getContainer());
+    this.view.appendTo(this.experience.getContainer('#project-chooser'));
   }
 
   hide() {
@@ -56,7 +61,7 @@ class ProjectChooserModule extends BaseModule {
     this.request(initAction);
 
     // force default project
-    // @todo - make this an option
+    // @todo - handle this as an option of the module
     const enterProjectAction = {
       type: 'add-player-to-project',
       payload: {

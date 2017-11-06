@@ -1,11 +1,15 @@
 import { View } from 'soundworks/client';
 
 const template = `
-<% if (state === 'reduced') { %>
-  <% console.log(project) %>
+
+<% if (project) { %>
 <h1><%= project.params.name %></h1>
-<button class="btn expand">Switch project<button>
-<% } else if (state === 'expanded') { %>
+<% } %>
+
+<button class="btn expand">Switch project</button>
+
+<% if (state === 'expanded') { %>
+
 <div class="overlay">
   <div class="overlay-container">
     <p>Select project</p>
@@ -18,7 +22,7 @@ const template = `
       <select id="projects">
         <option value=""><%= text.chooseProject %></option>
         <% projectOverviewList.forEach(function(overview) { %>
-          <% const selected = project.uuid === overview.uuid ? ' selected' : '' %>
+          <% const selected = (project && project.uuid === overview.uuid) ? ' selected' : '' %>
           <option value="<%= overview.uuid %>"<%= selected %>>
             <%= overview.name %>
           </option>
@@ -27,13 +31,14 @@ const template = `
     </div>
   </div>
 </div>
+
 <% } %>
 `;
 
 const model = {
   projectOverviewList: [],
   error: false,
-  project: {},
+  project: null,
   state: 'expanded', // 'expanded' || 'reduced'
   // prepare field for i18n
   text: {

@@ -1,4 +1,5 @@
 
+const subscriptions = new Map();
 
 class BaseModule {
   constructor(id, experience) {
@@ -6,24 +7,26 @@ class BaseModule {
     this.experience = experience;
 
     /**
-     * List of the action type the module can handle.
-     * Each module must define and maintain its own list.
-     * The server-side module also maintains that list.
+     * List of the action type the module is listening to.
      * @type Array<String>
      */
-    this.allowedActions = [];
+    this.subscriptions = [];
+
+    /**
+     * List of the action type the module can request.
+     * @type Array<String>
+     */
+    this.allowedRequests = [];
 
     this.dispatch = this.dispatch.bind(this);
   }
 
   start() {
-    this.experience.receive(`module:${this.id}:action`, this.dispatch);
-    this.allowedActions.forEach(actionType => this.subscribe(actionType));
+    this.subscriptions.forEach(actionType => this.subscribe(actionType));
   }
 
   stop() {
-    this.allowedActions.forEach(actionType => this.unsubscribe(actionType));
-    this.experience.stopReceiving(`module:${this.id}:action`);
+    this.subscriptions.forEach(actionType => this.unsubscribe(actionType));
   }
 
   show() {
@@ -35,21 +38,21 @@ class BaseModule {
   }
 
   subscribe(actionType) {
-    if (this.allowedActions.indexOf(actionType) === -1)
+    if (this.subscriptions.indexOf(actionType) === -1)
       throw new Error(`Module ${this.id} cannot subscribe to action "${actionType}"`);
 
-    this.experience.send(`module:${this.id}:subscribe`, actionType);
+    this.experience.subscribe(this, actionType);
   }
 
   unsubscribe(actionType) {
-    this.experience.send(`module:${this.id}:unsubscribe`, actionType);
+    this.experience.unsubscribe(this, actionType);
   }
 
   request(action) {
-    if (this.allowedActions.indexOf(action.type) === -1)
+    if (this.allowedRequests.indexOf(action.type) === -1)
       throw new Error(`Module ${this.id} cannot request action "${action.type}"`);
 
-    this.experience.send(`module:${this.id}:request`, action);
+    this.experience.request(action);
   }
 
   dispatch(action) {

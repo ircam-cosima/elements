@@ -16,10 +16,14 @@ class RecordingControlModule extends BaseModule {
       viewContainer: '#recording-control',
     }, options);
 
-    this.allowedActions = [
+    this.subscriptions = [
       'add-player-to-project',
       'update-player-param',
-      // ...
+      'update-model',
+    ];
+
+    this.allowedRequests = [
+      'update-player-param',
       'add-example',
       'clear-examples',
       'clear-all-examples',
@@ -44,17 +48,8 @@ class RecordingControlModule extends BaseModule {
       }
     };
 
-    this.feedRecorder = this.feedRecorder.bind(this);
-    this.feedAutoTrigger = this.feedAutoTrigger.bind(this);
-  }
-
-  // mano and lfo sensor chain are ready at this point
-  start() {
-    super.start();
-
     this.autoTrigger = new AutoTrigger({
       startCallback: () => {
-        console.log('start callback');
         const action = {
           type: 'update-player-param',
           payload: {
@@ -67,7 +62,6 @@ class RecordingControlModule extends BaseModule {
         this.request(action);
       },
       stopCallback: () => {
-        console.log('stop callback');
         const action = {
           type: 'update-player-param',
           payload: {
@@ -82,12 +76,20 @@ class RecordingControlModule extends BaseModule {
     });
 
     this.exampleRecorder = new mano.Example();
+
+    this.feedRecorder = this.feedRecorder.bind(this);
+    this.feedAutoTrigger = this.feedAutoTrigger.bind(this);
   }
+
+  // mano and lfo sensor chain are ready at this point
+  // start() {
+  //   super.start();
+  // }
 
   show() {
     this.view.render();
     this.view.show();
-    this.view.appendTo(this.experience.getContainer('#recording-control'));
+    this.view.appendTo(this.experience.getContainer(this.options.viewContainer));
   }
 
   // hide() {}
@@ -96,108 +98,118 @@ class RecordingControlModule extends BaseModule {
     const { type, payload } = action;
     let recordParams;
 
-    switch (type) {
-      case 'add-player-to-project':
-        this.view.model.labels = Object.keys(payload.project.params.audio);
-        this.currentProject = payload.project;
+    if (type === 'update-model' || type === 'add-player-to-project') {
+      const model = type === 'update-model' ? payload : payload.project.model;
+      const trainedLabels = model.payload.models.map(mod => mod.label);
 
-        // set state to idle - reset any ongoing recording
-
-        recordParams = payload.player.params.record;
-        break;
-      case 'update-player-param':
-        recordParams = payload.params.record;
-        break;
+      this.view.model.trainedLabels = trainedLabels;
     }
 
-    this.recordLabel = recordParams.label;
+    if (type === 'add-player-to-project' || type === 'update-player-param') {
+      switch (type) {
+        case 'add-player-to-project':
+          this.view.model.labels = Object.keys(payload.project.params.audio);
+          this.currentProject = payload.project;
+          // @todo - reset any ongoing recording and should set state to `idle`
 
-    if (this.recordState !== recordParams.state) {
-      this.recordState = recordParams.state;
+          recordParams = payload.player.params.record;
+          break;
+        case 'update-player-param':
+          recordParams = payload.params.record;
+          break;
+      }
 
-      // const decodingModule = this.experience.modules.get('decoding');
+      this.recordLabel = recordParams.label;
+      this.view.model.recordState = recordParams.state;
+      this.view.model.recordLabel = recordParams.label;
 
       // recording state machine
-      switch (recordParams.state) {
-        case 'idle': {
-          // we should be able to go idle from any state (ex change project while recording)
-          this.experience.processedSensors.removeListener(this.feedRecorder);
-          // this.experience.processedSensors.addListener(decodingModule.feedDecoder);
-          // this.exampleRecorder.clear();
-          break;
-        }
-        case 'armed': {
-          this.autoTrigger.setState('on');
-          // this.experience.processedSensors.removeListener(decodingModule.feedDecoder);
-          this.experience.processedSensors.addListener(this.feedAutoTrigger);
-          break;
-        }
-        case 'recording': {
-          // @note - if record has been launched from controller, auto trigger
-          // is still in `off` and thus cannot trigger `stop`, define if it is
-          // a desirable behavior.
+      if (this.recordState !== recordParams.state) {
+        this.recordState = recordParams.state;
 
-          // pipe sensors into an example instance
-          this.experience.processedSensors.addListener(this.feedRecorder);
-          break;
-        }
-        case 'pending': {
-          // stop auto trigger
-          this.experience.processedSensors.removeListener(this.feedAutoTrigger);
-          this.experience.processedSensors.removeListener(this.feedRecorder);
-          this.autoTrigger.setState('off');
-          // wait...
-          break;
-        }
-        case 'confirm': {
-          // send the example
-          this.exampleRecorder.setLabel(this.recordLabel);
-          const example = this.exampleRecorder.getExample();
+        // const decodingModule = this.experience.modules.get('decoding');
 
-          const addExampleAction = {
-            type: 'add-example',
-            payload: {
-              uuid: this.currentProject.uuid,
-              example: example,
-            },
-          };
+        // recording state machine
+        switch (recordParams.state) {
+          case 'idle': {
+            // we should be able to go idle from any state (ex change project while recording)
+            this.experience.processedSensors.removeListener(this.feedRecorder);
+            // this.experience.processedSensors.addListener(decodingModule.feedDecoder);
+            // this.exampleRecorder.clear();
+            break;
+          }
+          case 'armed': {
+            this.autoTrigger.setState('on');
+            // this.experience.processedSensors.removeListener(decodingModule.feedDecoder);
+            this.experience.processedSensors.addListener(this.feedAutoTrigger);
+            break;
+          }
+          case 'recording': {
+            // @note - if record has been launched from controller, auto trigger
+            // is still in `off` and thus cannot trigger `stop`, define if it is
+            // a desirable behavior.
 
-          this.request(addExampleAction);
-          this.exampleRecorder.clear();
+            // pipe sensors into an example instance
+            this.experience.processedSensors.addListener(this.feedRecorder);
+            break;
+          }
+          case 'pending': {
+            // stop auto trigger
+            this.experience.processedSensors.removeListener(this.feedAutoTrigger);
+            this.experience.processedSensors.removeListener(this.feedRecorder);
+            this.autoTrigger.setState('off');
+            // wait...
+            break;
+          }
+          case 'confirm': {
+            // send the example
+            this.exampleRecorder.setLabel(this.recordLabel);
+            const example = this.exampleRecorder.getExample();
 
-          // go back to idle state
-          const idleAction = {
-            type: 'update-player-param',
-            payload: {
-              uuid: client.uuid,
-              name: 'record.state',
-              value: 'idle',
-            },
-          };
+            const addExampleAction = {
+              type: 'add-example',
+              payload: {
+                uuid: this.currentProject.uuid,
+                example: example,
+              },
+            };
 
-          this.request(idleAction);
-          break;
-        }
-        case 'cancel': {
-          this.exampleRecorder.clear();
-          // go back to idle state
-          const idleAction = {
-            type: 'update-player-param',
-            payload: {
-              uuid: client.uuid,
-              name: 'record.state',
-              value: 'idle',
-            },
-          };
+            this.request(addExampleAction);
+            this.exampleRecorder.clear();
 
-          this.request(idleAction);
-          break;
+            // go back to idle state
+            const idleAction = {
+              type: 'update-player-param',
+              payload: {
+                uuid: client.uuid,
+                name: 'record.state',
+                value: 'idle',
+              },
+            };
+
+            this.request(idleAction);
+            break;
+          }
+          case 'cancel': {
+            this.exampleRecorder.clear();
+            // go back to idle state
+            const idleAction = {
+              type: 'update-player-param',
+              payload: {
+                uuid: client.uuid,
+                name: 'record.state',
+                value: 'idle',
+              },
+            };
+
+            this.request(idleAction);
+            break;
+          }
         }
       }
+
     }
 
-    merge(this.view.model, recordParams);
-    // this.view.model.state = 'pending';
     this.view.render();
   }
 

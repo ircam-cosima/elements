@@ -1,42 +1,162 @@
+/* COMMON --------------------------------- */
 
 #player {
-  // font-size: 1.4rem;
-
-  #audio-control {
-    position: absolute;
-    top: 50px;
+  * {
+    font-size: 1rem;
   }
 
-  #recording-control {
-    position: absolute;
-    top: 150px;
-  }
+  .main-content {}
 }
 
-.project-chooser {
-  &.expanded {
+/* MODULES --------------------------------- */
+
+.module-container {
+  position: relative;
+  padding: 0 12px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+#project-chooser {
+  .expanded {
     .overlay {
       background-color: $backgroundColor;
     }
+
+    p {
+      font-size: 1.2rem;
+    }
+
+    select {
+      width: 80%;
+    }
   }
 
-  &.reduced {
-    display: inline-block;
-    position: absolute;
-    top: 10px;
-    right: 10px;
+  .reduced {
+    h1 {
+      height: 36px;
+      line-height: 36px;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+    }
 
     .btn {
       width: 140px;
+      position: absolute;
+      top: 0;
+      right: 12px;
+      margin-bottom: 0;
     }
   }
 }
 
-.audio-control {
-  padding: 0 20px;
-  box-sizing: border-box;
-
+#audio-control {
   .checkbox {
-    width : 120px;
+    width: 50%;
   }
 }
+
+#recording-control {
+  .label-choice {
+    position: relative;
+    height: 30px;
+    margin-bottom: 12px;
+
+    span {
+      display: inline-block;
+      height: 30px;
+      line-height: 30px;
+    }
+
+    select {
+      position: absolute;
+      right: 0;
+    }
+  }
+
+  .btn.clear {
+    margin-bottom: 12px;
+  }
+
+  .record-btn {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 20px auto 0;
+    display: block;
+    border: 1px solid #cdcdcd;
+    font-size: 1.4rem;
+    color: #ffffff;
+
+    &:focus {
+      outline: none;
+    }
+
+    &.idle {
+      background-color: #2dc937;
+    }
+
+    &.armed {
+      background-color: #db7b2b;
+    }
+
+    &.recording {
+      background-color: #cc3232;
+    }
+
+    &.pending {
+      background-color: #787878;
+    }
+  }
+}
+
+#model-sync {
+  margin: 0;
+}
+
+#project-params-control {
+  $headerHeight: 42px;
+  padding: 0;
+  height: $headerHeight;
+
+  .burger {
+    height: $headerHeight;
+    position: relative;
+    z-index: 6;
+    background-image: url(../img/burger.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: 50% 50%;
+    background-color: #565656;
+  }
+
+  .params {
+    padding: $headerHeight + 12 12px 12px;
+    background-color: #efefef;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    z-index: 5;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    cursor: pointer;
+  }
+
+  .params-content {
+    color: #000000;
+
+    h2 {
+      font-size: 1.2rem;
+      padding: 0 0 6px 0;
+      margin: 12px 0 6px;
+      border-bottom: 1px solid #454545;
+    }
+
+    .param {
+      margin-bottom: 6px;
+    }
+  }
+}
+
+

@@ -1,7 +1,7 @@
 const defaults = {
-  highThreshold: 0.5,
-  lowThreshold: 0.3,
-  offDelay: 1000,
+  highThreshold: 0.2,
+  lowThreshold: 0.05,
+  offDelay: 200,
   startCallback: null,
   stopCallback: null,
 };

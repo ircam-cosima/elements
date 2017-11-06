@@ -46,22 +46,27 @@ const projectStore = {
     });
   },
 
-  persist(project) {
+  persist(projectData) {
     return new Promise((resolve, reject) => {
-      const uuid = project.uuid;
+      const uuid = projectData.uuid;
 
       if (!uuid)
         throw new Error(`projectDbMapper: Invalid project "${project.name}"`);
 
       const filename = path.join(dbPath, `${uuid}.json`);
-      const projectData = JSON.stringify(project, null, 2);
 
-      fs.writeFile(filename, projectData, 'utf8', err => {
-        if (err)
-          throw err;
+      try {
+        const json = JSON.stringify(projectData, null, 2);
 
-        resolve(project);
-      });
+        fs.writeFile(filename, json, 'utf8', err => {
+          if (err)
+            throw err;
+
+          resolve(projectData);
+        });
+      } catch(err) {
+        throw new Error(`projectDbMapper: Invalid JSON of project "${project.name}"`);
+      }
     });
   },
 

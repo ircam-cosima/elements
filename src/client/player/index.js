@@ -7,6 +7,8 @@ import projectManager from '../shared/services/ProjectManager';
 import ProjectChooserModule from '../shared/modules/project-chooser/ProjectChooserModule';
 import AudioControlModule from '../shared/modules/audio-control/AudioControlModule';
 import RecordingControlModule from '../shared/modules/recording-control/RecordingControlModule';
+import ModelSyncModule from '../shared/modules/model-sync/ModelSyncModule';
+import ProjectParamsControlModule from '../shared/modules/project-params-control/ProjectParamsControlModule';
 
 function bootstrap() {
   // initialize the client with configuration received
@@ -23,6 +25,8 @@ function bootstrap() {
   });
 
   const modules = [
+    ProjectParamsControlModule,
+    ModelSyncModule,
     ProjectChooserModule,
     AudioControlModule,
     RecordingControlModule,

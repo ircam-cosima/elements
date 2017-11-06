@@ -2,10 +2,11 @@ import { View } from 'soundworks/client';
 
 const template = `
   <label class="checkbox">
-    <span><%= text.mute %></span>
     <% var checked = mute ? ' checked' : ''; %>
     <input type="checkbox" class="player-param" data-name="audio.mute"<%= checked %> />
     <div class="checkbox-ui"></div>
+
+    <span><%= text.mute %></span>
   </label>
 `;
 

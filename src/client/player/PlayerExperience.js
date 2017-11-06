@@ -9,9 +9,14 @@ const template = `
   <canvas class="background"></canvas>
   <div class="foreground">
     <div class="main-content">
+      <% /* @todo - create placeholder dynamically from defined modules */ %>
 
-      <div id="audio-control"></div>
-      <div id="recording-control"></div>
+      <div class="module-container" id="project-params-control"></div>
+      <div class="module-container" id="model-sync"></div>
+      <div class="module-container" id="project-chooser"></div>
+      <div class="module-container" id="audio-control"></div>
+      <div class="module-container" id="recording-control"></div>
+
     </div>
   </div>
 `;
@@ -36,6 +41,9 @@ class PlayerExperience extends soundworks.Experience {
       descriptors: ['devicemotion']
     });
 
+
+    this.subscriptions = new Map();
+
     /**
      * Instanciate and install modules required by the role of the client.
      * Role could be defined according to a hash in url.
@@ -46,10 +54,14 @@ class PlayerExperience extends soundworks.Experience {
       const mod = new ctor(this);
       this.modules.set(mod.id, mod);
     });
+
+    this.dispatch = this.dispatch.bind(this);
   }
 
   start() {
     super.start();
+
+    this.receive('dispatch', this.dispatch);
 
     // init view
     this.view = new soundworks.CanvasView(template, {}, {}, {
@@ -73,7 +85,7 @@ class PlayerExperience extends soundworks.Experience {
 
     // sensors chain and xmm decoder
     this.processedSensors = new mano.ProcessedSensors();
-    // this.xmmDecoder = new mano.Processor({});
+    this.xmmDecoder = new mano.XmmProcessor({ /* @todo: pass options */ });
 
     Promise.all([this.show(), this.processedSensors.init()])
       .then(() => {
@@ -88,12 +100,70 @@ class PlayerExperience extends soundworks.Experience {
     this.modules.forEach(module => module.stop());
   }
 
+  //
+  subscribe(module, actionType) {
+    if (!this.subscriptions.has(actionType)) {
+      this.subscriptions.set(actionType, new Set());
+      this.send('subscribe', actionType);
+    }
+
+    const subscribedModules = this.subscriptions.get(actionType);
+    subscribedModules.add(module);
+  }
+
+  unsubscribe(module, actionType) {
+    if (this.subscriptions.has(actionType)) {
+      const subscribedModules = this.subscriptions.get(actionType);
+
+      if (subscribedModules.has(module)) {
+        subscribedModules.delete(module);
+
+        if (subscribedModules.size === 0) {
+          this.send('unsubscribe', actionType);
+          this.subscriptions.delete(actionType);
+        }
+      } else {
+        throw new Error(`Invalid unsubscribe call: module ${module.id} did not subscribe to ${actionType}`);
+      }
+    } else {
+      throw new Error(`Invalid unsubscribe call: no module subscribed to ${actionType}`);
+    }
+  }
+
+  request(action) {
+    this.send('request', action);
+  }
+
+  dispatch(action) {
+    const actionType = action.type;
+    const subscribedModules = this.subscriptions.get(actionType);
+
+    subscribedModules.forEach(module => module.dispatch(action));
+  }
+
+  //
   getContainer(selector = '.main-content') {
     return this.view.$el.querySelector(selector);
   }
 
   getAudioOutput() {
     return this.master;
+  }
+
+  /**
+   * Sometime processedSensors seems to output invalid data, this should not
+   * happend but should not crashe the application neither,when this problem is
+   * fixed, we will be able to remove that check.
+   */
+  _checkDataIntegrity(data) {
+    for (let i = 0; i < data.length; i++) {
+      if (!Number.isFinite(data[i]) && data[i] !== null) {
+        this.send('logFaultySensorData', data);
+        return false;
+      }
+    }
+
+    return true;
   }
 }
 

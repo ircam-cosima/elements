@@ -19,11 +19,9 @@ class PlayerCollection {
     return this.uuidPlayerMap.get(uuid);
   }
 
-  /**
-   * @return Array
-   */
-  getList() {
-    return Array.from(this.players);
+  getClients() {
+    const clients = Array.from(this.players).map(player => player.client);
+    return clients;
   }
 
   serialize() {
