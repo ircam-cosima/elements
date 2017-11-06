@@ -92,9 +92,27 @@ select {
   border-radius: 2px;
 }
 
+.select-container {
+  height: 30px;
+  position: relative;
+  display: block;
+
+  span {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  select {
+    height: 30px;
+    position: absolute;
+    right: 0;
+  }
+}
+
 .number-box {
   height: 30px;
   position: relative;
+  display: block;
 
   span {
     display: inline-block;

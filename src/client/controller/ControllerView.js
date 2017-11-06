@@ -1,9 +1,11 @@
 import { View } from 'soundworks/client';
 import template from 'lodash.template';
-// template
+// templates
 import projectTmpl from './templates/project.tmpl';
 import projectParamsTmpl from './templates/project-params.tmpl';
 import playerTmpl from './templates/player.tmpl';
+//
+import mlPresets from '../../shared/config/ml-presets';
 
 const tmpl = `
   <div id="header"></div>
@@ -22,6 +24,7 @@ function createDOM(tmplFunction, data) {
 const model = {
   projectsOverview: [],
   projects: [],
+  mlPresets: mlPresets,
 };
 
 class ControllerView extends View {
@@ -43,6 +46,27 @@ class ControllerView extends View {
         const playerUuid = $player.dataset.uuid;
 
         this.request('add-player-to-project', { playerUuid, projectUuid });
+      },
+
+      // project params
+      'change .project .project-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $project = $input.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.value;
+
+        this.request('update-project-param', { uuid, name, value });
+      },
+      'click .project .preset': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $project = $input.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const name = $input.value;
+
+        this.request('update-project-ml-preset', { uuid, name });
       },
 
       // player params / checkboxes
@@ -95,10 +119,12 @@ class ControllerView extends View {
   addProject(project) {
     this.model.projects.push(project);
 
-    const data = { project: project, global: this.model };
-    const $project = createDOM(this.projectTmpl, data);
+    const projectData = { project: project, global: this.model };
+    const $project = createDOM(this.projectTmpl, projectData);
+
     const $paramsContainer = $project.querySelector('.params');
-    const params = this.projectParamsTmpl(project.params);
+    const paramsData = { params: project.params, global: this.model };
+    const params = this.projectParamsTmpl(paramsData);
     $paramsContainer.innerHTML = params;
 
     this.$projects.appendChild($project);
@@ -115,11 +141,12 @@ class ControllerView extends View {
   }
 
   updateProject(project) {
-    const selector = `#_${project.uuid} > .params`;
+    const selector = `#_${project.uuid} .params`;
     const $paramsContainer = this.$projects.querySelector(selector);
-    const params = this.projectParamsTmpl(project.params);
+    const data = { params: project.params, global: this.model };
+    const params = this.projectParamsTmpl(data);
 
-    $paramContainer.innerHTML = params;
+    $paramsContainer.innerHTML = params;
   }
 
   addPlayerToProject(player, project) {

@@ -153,8 +153,21 @@
       border-bottom: 1px solid #454545;
     }
 
+    h3 {
+      font-size: 1rem;
+      padding: 0 0 6px 0;
+      margin: 12px 0 6px;
+      // border-bottom: 1px solid #454545;
+      color: #454545;
+    }
+
+    .preset {
+
+    }
+
     .param {
       margin-bottom: 6px;
+      display: block;
     }
   }
 }

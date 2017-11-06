@@ -78,30 +78,6 @@ class Project {
     return overview;
   }
 
-  setParam(paramPath, value) {
-    const path = paramPath.split('.');
-    const depth = path.length;
-    let ref = this.params;
-
-    for (let i = 0; i < depth; i++) {
-      const attr = path[i];
-
-      if (attr in ref) {
-        if (i < depth - 1)
-          ref = ref[attr];
-        else
-          ref[attr] = value;
-      } else {
-        throw new Error(`Invalid param ${paramPath}`);
-      }
-    }
-  }
-
-  updateLearningParams() {
-    this.params.learning.trainingSet = this.trainingData.getTrainingSet();
-    this.params.learning.config = this.processor.getConfig();
-  }
-
   addPlayer(player) {
     player.project = this;
     this.players.add(player);

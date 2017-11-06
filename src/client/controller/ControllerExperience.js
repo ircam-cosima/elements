@@ -69,27 +69,28 @@ class ControllerExperience extends soundworks.Experience {
           });
         break;
       }
-
       case 'add-player-to-project': {
         const { player, project } = action.payload;
         this.view.addPlayerToProject(player, project);
         break;
       }
-
       case 'remove-player-from-project': {
         const { player, project } = action.payload;
         this.view.removePlayerFromProject(player, project);
         break;
       }
-
       case 'update-player-param': {
         this.view.updatePlayer(action.payload);
         break;
       }
-
-      default:
+      case 'update-project-param': {
+        this.view.updateProject(action.payload);
+        break;
+      }
+      default: {
         throw new Error(`Invalid action ${action.type}`);
         break;
+      }
     }
   }
 }

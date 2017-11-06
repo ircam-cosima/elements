@@ -34,7 +34,6 @@ class PlayerExperience extends Experience {
             payload: {
               player: player.serialize(),
               project: project.serialize(),
-              model: project.model,
             },
           };
 
@@ -50,6 +49,18 @@ class PlayerExperience extends Experience {
           };
 
           this.dispatch(action, player.client);
+          break;
+        }
+
+        case 'update-project-param': {
+          const [project] = args;
+          const action = {
+            type: 'update-project-param',
+            payload: project.serialize(),
+          };
+
+          const clients = project.players.getClients();
+          this.dispatch(action, clients);
           break;
         }
 
@@ -136,6 +147,18 @@ class PlayerExperience extends Experience {
         case 'update-player-param': {
           const { uuid, name, value } = payload;
           appStore.updatePlayerParam(player, name, value);
+          break;
+        }
+        case 'update-project-param': {
+          const { uuid, name, value } = payload;
+          const project = appStore.projects.get(uuid);
+          appStore.updateProjectParam(project, name, value);
+          break;
+        }
+        case 'update-project-ml-preset': {
+          const { uuid, name } = payload;
+          const project = appStore.projects.get(uuid);
+          appStore.updateProjectMLPreset(project, name);
           break;
         }
         case 'add-example': {

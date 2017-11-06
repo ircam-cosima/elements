@@ -80,7 +80,13 @@ class ControllerExperience extends Experience {
           break;
         }
         case 'update-project-param':
+          const [project] = args;
+          const action = {
+            type: 'update-project-param',
+            payload: project.serialize(),
+          };
 
+          this.dispatch(action, this.clients);
           break;
         default:
 
@@ -112,30 +118,39 @@ class ControllerExperience extends Experience {
 
   request(client) {
     return action => {
-      switch (action.type) {
+      const { type, payload } = action;
+
+      switch (type) {
         case 'list-project': {
           const projectsDetails = appStore.projects.serialize();
           const projectsOverview = appStore.projects.overview();
           action.payload = { projectsDetails, projectsOverview };
-
           this.dispatch(action, client);
           break;
         }
-
         case 'add-player-to-project': {
-          const player = appStore.players.get(action.payload.playerUuid);
-          const project = appStore.projects.get(action.payload.projectUuid);
-
+          const player = appStore.players.get(payload.playerUuid);
+          const project = appStore.projects.get(payload.projectUuid);
           appStore.removePlayerFromProject(player, player.project);
           appStore.addPlayerToProject(player, project);
           break;
         }
-
         case 'update-player-param': {
-          const { uuid, name, value } = action.payload;
+          const { uuid, name, value } = payload;
           const player = appStore.players.get(uuid);
-
           appStore.updatePlayerParam(player, name, value);
+        }
+        case 'update-project-param': {
+          const { uuid, name, value } = payload;
+          const project = appStore.projects.get(uuid);
+          appStore.updateProjectParam(project, name, value);
+          break;
+        }
+        case 'update-project-ml-preset': {
+          const { uuid, name } = payload;
+          const project = appStore.projects.get(uuid);
+          appStore.updateProjectMLPreset(project, name);
+          break;
         }
       }
     }

@@ -2,6 +2,7 @@ import * as mano from 'mano-js/common';
 import merge from 'lodash.merge';
 import projectDbMapper from './utils/projectDbMapper';
 // entities
+import mlPresets from '../../shared/config/ml-presets';
 import Project from './entities/Project';
 import ProjectCollection from './entities/ProjectCollection';
 import Player from './entities/Player';
@@ -107,14 +108,13 @@ const appStore = {
 
     // @todo - move to
     for (let i = 0; i < depth; i++) {
-      if (path[i] in ref) {
+      const key = path[i];
+
+      if (key in ref) {
         if (i < depth - 1) {
-          ref = ref[path[i]];
+          ref = ref[key];
         } else {
 
-          // handle record state machine
-          // @todo - 'idle' should be accessible from everywhere as it should
-          // be the default on a project change / or add a 'reset' state ?
           if (name === 'record.state') {
             const currentState = ref.state;
 
@@ -130,7 +130,7 @@ const appStore = {
               ref.state = 'idle';
 
           } else {
-            ref[path[i]] = value;
+            ref[key] = value;
           }
 
         }
@@ -143,13 +143,85 @@ const appStore = {
   },
 
   updateProjectParam(project, name, value) {
-    throw new Error('`updateProjectParam` not implemented');
+    const path = name.split('.');
+    const depth = path.length;
+    let ref = project.params;
+
+    for (let i = 0; i < depth; i++) {
+      const key = path[i];
+
+      if (key in ref) {
+        if (i < depth - 1) {
+          ref = ref[key];
+        } else {
+          // sanitize learning values
+          if (/^learning\.config/.test(name)) {
+            switch (key) {
+              case 'gaussians':
+              case 'states':
+                value = parseInt(value, 10);
+                break;
+              case 'absoluteRegularization':
+              case 'relativeRegularization':
+                value = parseFloat(value);
+                value = Math.min(1, Math.max(0, value));
+                break;
+            }
+          }
+
+          // sanitize recording options
+          if (/^recording/.test(name)) {
+            switch (key) {
+              case 'highThreshold':
+              case 'lowThreshold':
+              case 'offDelay':
+                value = parseFloat(value);
+                break;
+            }
+          }
+
+          ref[key] = value;
+        }
+      } else {
+        throw new Error(`Invalid param name "${name}"`);
+      }
+    }
+
+    this.emit('update-project-param', project);
+
+    if (path[0] === 'learning') {
+      project.processor.setConfig(project.params.learning.config);
+      project.params.learning.config = project.processor.getConfig();
+      this._updateModel(project);
+    }
+
+    const projectData = Project.toData(project);
+    projectDbMapper.persist(projectData)
+      .then(() => {})
+      .catch(err => console.error(err.stack));
+  },
+
+  updateProjectMLPreset(project, name) {
+    const presetParams = mlPresets[name].params;
+    const config = project.params.learning.config;
+
+    merge(config, presetParams);
+
+    this.emit('update-project-param', project);
+
+    project.processor.setConfig(project.params.learning.config);
+    project.params.learning.config = project.processor.getConfig();
+
+    const projectData = Project.toData(project);
+    projectDbMapper.persist(projectData)
+      .then(() => this._updateModel(project))
+      .catch(err => console.error(err.stack));
   },
 
   addExampleToProject(example, project) {
     try {
       project.trainingData.addExample(example);
-      project.updateLearningParams();
+      project.params.learning.trainingSet = project.trainingData.getTrainingSet();
 
       const projectData = Project.toData(project);
       projectDbMapper.persist(projectData)
@@ -162,7 +234,7 @@ const appStore = {
 
   clearExamplesFromProject(label, project) {
     project.trainingData.removeExamplesByLabel(label);
-    project.updateLearningParams();
+    project.params.learning.trainingSet = project.trainingData.getTrainingSet();
 
     const projectData = Project.toData(project);
     projectDbMapper.persist(projectData)
@@ -172,7 +244,7 @@ const appStore = {
 
   clearAllExamplesFromProject(project) {
     project.trainingData.clear();
-    project.updateLearningParams();
+    project.params.learning.trainingSet = project.trainingData.getTrainingSet();
 
     const projectData = Project.toData(project);
     projectDbMapper.persist(projectData)
