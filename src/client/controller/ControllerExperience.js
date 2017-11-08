@@ -28,25 +28,12 @@ class ControllerExperience extends soundworks.Experience {
 
     // initialize the view / allow for canvas rendering
     this.view = new ControllerView(template, {}, {}, { id: this.id });
-
-    // let the view build the request for now...
     this.view.request = (type, payload) => {
       const action = { type, payload };
       this.request(action);
     };
 
-
-    // this.view.updateClientParam((uuid, name, value) => {
-
-    // });
-
-    // this.view.updateProjectParam((uuid, name, value) => {
-
-    // });
-
-    this.show().then(() => {
-      // do something
-    });
+    this.show();
   }
 
   stop() {}
@@ -56,9 +43,11 @@ class ControllerExperience extends soundworks.Experience {
   }
 
   dispatch(action) {
-    switch (action.type) {
+    const { type, payload } = action;
+
+    switch (type) {
       case 'list-project': {
-          const { projectsDetails, projectsOverview } = action.payload;
+          const { projectsDetails, projectsOverview } = payload;
           projectsDetails.forEach(project => {
             this.view.model.projectsOverview = projectsOverview;
             this.view.addProject(project);
@@ -70,25 +59,28 @@ class ControllerExperience extends soundworks.Experience {
         break;
       }
       case 'add-player-to-project': {
-        const { player, project } = action.payload;
+        const { player, project } = payload;
         this.view.addPlayerToProject(player, project);
         break;
       }
       case 'remove-player-from-project': {
-        const { player, project } = action.payload;
+        const { player, project } = payload;
         this.view.removePlayerFromProject(player, project);
         break;
       }
       case 'update-player-param': {
-        this.view.updatePlayer(action.payload);
+        const player = payload;
+        this.view.updatePlayer(player);
         break;
       }
+      case 'update-model':
       case 'update-project-param': {
-        this.view.updateProject(action.payload);
+        const project = payload;
+        this.view.updateProject(project);
         break;
       }
       default: {
-        throw new Error(`Invalid action ${action.type}`);
+        throw new Error(`Invalid action ${type}`);
         break;
       }
     }

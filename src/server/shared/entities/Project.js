@@ -33,15 +33,15 @@ class Project {
     this.params = {
       name: '',
       clientDefaults: {
-        audio: {
-          intensity: false,
+        audioRendering: {
+          sensors: false,
           mute: false,
         },
         record: {
           label: Object.keys(audioConfig)[0], // defaults to first audio label
         },
       },
-      audio: audioConfig,
+      audioFiles: audioConfig,
       learning: {
         config: null,
         trainingSet: null,
@@ -99,7 +99,8 @@ class Project {
 
     project.uuid = uuidv4();
     project.params.name = name;
-    project.updateLearningParams();
+    project.params.learning.trainingSet = project.trainingData.getTrainingSet();
+    project.params.learning.config = project.processor.getConfig()
 
     return project;
   }

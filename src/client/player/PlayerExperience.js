@@ -1,30 +1,14 @@
 import * as soundworks from 'soundworks/client';
 import * as mano from 'mano-js';
-// for testing purpose
-import WhiteNoiseSynth from '../shared/audio/WhiteNoiseSynth';
+import moduleManager from '../shared/modules/moduleManager';
+import PlayerView from './PlayerView';
+// shared informations
+import { sounds as uiSounds } from '../../shared/config/ui';
 
 const audioContext = soundworks.audioContext;
 
-const template = `
-  <canvas class="background"></canvas>
-  <div class="foreground">
-    <div class="main-content">
-      <% /* @todo - create placeholder dynamically from defined modules */ %>
-
-      <div class="module-container" id="project-params-control"></div>
-      <div class="module-container" id="model-sync"></div>
-      <div class="module-container" id="project-chooser"></div>
-      <div class="module-container" id="audio-control"></div>
-      <div class="module-container" id="recording-control"></div>
-
-    </div>
-  </div>
-`;
-
-// this experience plays a sound when it starts, and plays another sound when
-// other clients join the experience
 class PlayerExperience extends soundworks.Experience {
-  constructor(config, modules = []) {
+  constructor(config, preset) {
     super();
 
     this.platform = this.require('platform', { features: ['web-audio'] });
@@ -35,25 +19,17 @@ class PlayerExperience extends soundworks.Experience {
       assetsDomain: config.assetsDomain,
       // should be loaded when the project is chosen
       // files: { triggers, labels, uiSounds },
+      files: { uiSounds },
     });
-
-    this.motionInput = this.require('motion-input', {
-      descriptors: ['devicemotion']
-    });
-
 
     this.subscriptions = new Map();
 
     /**
-     * Instanciate and install modules required by the role of the client.
-     * Role could be defined according to a hash in url.
+     * List of instanciated modules
      */
     this.modules = new Map();
-    // @todo - should be able to pass options to each modules
-    modules.forEach(ctor => {
-      const mod = new ctor(this);
-      this.modules.set(mod.id, mod);
-    });
+
+    this.preset = preset;
 
     this.dispatch = this.dispatch.bind(this);
   }
@@ -64,36 +40,54 @@ class PlayerExperience extends soundworks.Experience {
     this.receive('dispatch', this.dispatch);
 
     // init view
-    this.view = new soundworks.CanvasView(template, {}, {}, {
-      id: 'player',
-      ratios: { '.main-content': 1 },
-    });
+    this.view = new PlayerView();
 
     // init audio output chain
-    this.mute = audioContext.createGain();
-    this.mute.connect(audioContext.destination);
-    this.mute.gain.value = 0; // mute by default, see `AudioControlModule`
+    this.muteNode = audioContext.createGain();
+    this.muteNode.connect(audioContext.destination);
+    this.muteNode.gain.value = 0; // mute by default, see `AudioControlModule`
 
-    this.master = audioContext.createGain();
-    this.master.connect(this.mute);
-    this.master.gain.value = 1;
+    this.masterNode = audioContext.createGain();
+    this.masterNode.connect(this.muteNode);
+    this.masterNode.gain.value = 1;
 
-    // test synth
-    const synth = new WhiteNoiseSynth();
-    synth.connect(this.getAudioOutput());
-    synth.start();
+    // instanciate modules from configuration
+    for (let moduleId in this.preset) {
+      const ctor = moduleManager.get(moduleId);
+      const options = this.preset[moduleId];
+      const mod = new ctor(this, options);
+      this.modules.set(mod.id, mod);
+      this.view.addPlaceholder(mod.id);
+    }
 
-    // sensors chain and xmm decoder
-    this.processedSensors = new mano.ProcessedSensors();
-    this.xmmDecoder = new mano.XmmProcessor({ /* @todo: pass options */ });
+    // initialization
+    const initPromises = [];
 
-    Promise.all([this.show(), this.processedSensors.init()])
+    this.modules.forEach(module => {
+      const promise = module.init();
+      initPromises.push(promise);
+    });
+
+    // check deps of each module and throw error if problem
+    this.modules.forEach(module => {
+      module.dependencies.forEach(dependency => {
+        if (!this.modules.has(dependency))
+          throw new Error(`${module.id} requires ${dependency}`);
+      });
+    });
+
+    initPromises.push(this.show());
+
+    Promise.all(initPromises)
       .then(() => {
+        this.view.setPreRender((ctx, dt, canvasWidth, canvasHeight) => {
+          ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        });
+
         this.modules.forEach(module => module.start());
         this.modules.forEach(module => module.show());
-
-        this.processedSensors.start();
-      });
+      })
+      .catch(err => console.error(err.stack));
   }
 
   stop() {
@@ -141,29 +135,20 @@ class PlayerExperience extends soundworks.Experience {
     subscribedModules.forEach(module => module.dispatch(action));
   }
 
-  //
-  getContainer(selector = '.main-content') {
-    return this.view.$el.querySelector(selector);
-  }
-
   getAudioOutput() {
-    return this.master;
+    return this.masterNode;
   }
 
-  /**
-   * Sometime processedSensors seems to output invalid data, this should not
-   * happend but should not crashe the application neither,when this problem is
-   * fixed, we will be able to remove that check.
-   */
-  _checkDataIntegrity(data) {
-    for (let i = 0; i < data.length; i++) {
-      if (!Number.isFinite(data[i]) && data[i] !== null) {
-        this.send('logFaultySensorData', data);
-        return false;
-      }
-    }
+  mute(flag) {
+    this.muteNode.gain.value = flag ? 0 : 1;
+  }
 
-    return true;
+  // @todo - test module dependecies and throw more usefull error
+  getModule(id) {
+    if (!this.modules.has(id))
+      throw new Error(`Invalid module "${id}"`)
+
+    return this.modules.get(id);
   }
 }
 

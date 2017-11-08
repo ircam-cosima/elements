@@ -1,8 +1,6 @@
-// import client side soundworks and player experience
 import * as soundworks from 'soundworks/client';
 import ControllerExperience from './ControllerExperience';
 import serviceViews from '../shared/serviceViews';
-import projectManager from '../shared/services/ProjectManager';
 
 function bootstrap() {
   // initialize the client with configuration received
@@ -18,7 +16,6 @@ function bootstrap() {
       instance.view = serviceViews.get(id, config);
   });
 
-  // create client side (player) experience and start the client
   const experience = new ControllerExperience(config);
   soundworks.client.start();
 }

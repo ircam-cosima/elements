@@ -52,9 +52,14 @@ const appStore = {
   createProject(name) {
     const project = Project.create(name);
 
-    this.emit('create-project', project);
-
-    this._updateModel(project);
+    return this._persistProject(project)
+      .then(() => this._updateModel(project))
+      .then(() => {
+        this.projects.add(project);
+        this.emit('create-project', project);
+        return Promise.resolve(project);
+      })
+      .catch(err => console.error(err.stack));
   },
 
   deleteProject(project) {
@@ -195,10 +200,7 @@ const appStore = {
       this._updateModel(project);
     }
 
-    const projectData = Project.toData(project);
-    projectDbMapper.persist(projectData)
-      .then(() => {})
-      .catch(err => console.error(err.stack));
+    this._persistProject(project);
   },
 
   updateProjectMLPreset(project, name) {
@@ -212,8 +214,7 @@ const appStore = {
     project.processor.setConfig(project.params.learning.config);
     project.params.learning.config = project.processor.getConfig();
 
-    const projectData = Project.toData(project);
-    projectDbMapper.persist(projectData)
+    this._persistProject(project)
       .then(() => this._updateModel(project))
       .catch(err => console.error(err.stack));
   },
@@ -223,8 +224,7 @@ const appStore = {
       project.trainingData.addExample(example);
       project.params.learning.trainingSet = project.trainingData.getTrainingSet();
 
-      const projectData = Project.toData(project);
-      projectDbMapper.persist(projectData)
+      this._persistProject(project)
         .then(() => this._updateModel(project))
         .catch(err => console.error(err.stack));
     } catch(err) {
@@ -236,8 +236,7 @@ const appStore = {
     project.trainingData.removeExamplesByLabel(label);
     project.params.learning.trainingSet = project.trainingData.getTrainingSet();
 
-    const projectData = Project.toData(project);
-    projectDbMapper.persist(projectData)
+    this._persistProject(project)
       .then(() => this._updateModel(project))
       .catch(err => console.error(err.stack));
   },
@@ -246,9 +245,15 @@ const appStore = {
     project.trainingData.clear();
     project.params.learning.trainingSet = project.trainingData.getTrainingSet();
 
-    const projectData = Project.toData(project);
-    projectDbMapper.persist(projectData)
+    this._persistProject(project)
       .then(() => this._updateModel(project))
+      .catch(err => console.error(err.stack));
+  },
+
+  _persistProject(project) {
+    const projectData = Project.toData(project);
+
+    return projectDbMapper.persist(projectData)
       .catch(err => console.error(err.stack));
   },
 
@@ -261,16 +266,19 @@ const appStore = {
     const target = config.target.name;
     const xmm = this.xmmInstances[target];
 
-    xmm.setConfig(config);
-    xmm.setTrainingSet(xmmTrainingSet);
-    xmm.train((err, model) => {
-      if (err)
-        console.log(err.stack);
+    return new Promise((resolve, reject) => {
+      xmm.setConfig(config);
+      xmm.setTrainingSet(xmmTrainingSet);
+      xmm.train((err, model) => {
+        if (err)
+          console.log(err.stack);
 
-      const rapidMixModel = rapidMixTranslators.xmmToRapidMixModel(model);
-      project.model = rapidMixModel;
+        const rapidMixModel = rapidMixTranslators.xmmToRapidMixModel(model);
+        project.model = rapidMixModel;
 
-      this.emit('update-model', project, rapidMixModel)
+        this.emit('update-model', project, rapidMixModel)
+        resolve(project);
+      });
     });
   },
 };

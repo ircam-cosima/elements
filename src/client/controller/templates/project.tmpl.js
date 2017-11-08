@@ -3,10 +3,13 @@ const projectTmpl = `
   <div class="header">
     <h1><%= project.params.name %></h1>
 
-    <!-- container for project-params.tmpl.js -->
-    <div class="params"></div>
+    <button class="btn normal toggle-params">Advanced options</button>
+
+    <% /* container for project-params.tmpl.js */ %>
+    <div class="params hidden"></div>
   </div>
 
+  <% /* container for player.tmpl.js */ %>
   <div class="players"></div>
 </div>
 `;

@@ -92,7 +92,7 @@ const template = `
 `;
 
 const model = {
-  state: 'expanded', // 'expanded'
+  state: 'reduced', // 'expanded'
   mlPresets: mlPresets,
   learningConfig: null,
   recordingOptions: null,

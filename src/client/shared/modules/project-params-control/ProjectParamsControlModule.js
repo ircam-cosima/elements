@@ -1,10 +1,11 @@
 import BaseModule from '../BaseModule';
+import moduleManager from '../moduleManager';
 import ProjectParamsControlView from './ProjectParamsControlView';
 
 const MODULE_ID = 'project-params-control';
 
 class ProjectParamsControlModule extends BaseModule {
-  constructor(experience, options) {
+  constructor(experience, options = {}) {
     super(MODULE_ID, experience);
 
     this.subscriptions = [
@@ -27,7 +28,7 @@ class ProjectParamsControlModule extends BaseModule {
   show() {
     this.view.render();
     this.view.show();
-    this.view.appendTo(this.experience.getContainer('#project-params-control'))
+    this.view.appendTo(this.getContainer());
   }
 
   dispatch(action) {
@@ -52,5 +53,7 @@ class ProjectParamsControlModule extends BaseModule {
     this.view.render();
   }
 }
+
+moduleManager.register(MODULE_ID, ProjectParamsControlModule);
 
 export default ProjectParamsControlModule;

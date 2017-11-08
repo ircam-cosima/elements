@@ -30,4 +30,4 @@
 trigger is still in `off` state and thus cannot trigger the `stop` 
 callback, define if it is the desired behavior.
 
-- 
+- Should have controller controls on record only if "can record" client

@@ -1,6 +1,5 @@
 import { View } from 'soundworks/client';
 
-
 const template = `
 <% if (state === 'notification') { %>
 <div class="overlay notification">
@@ -15,7 +14,7 @@ const model = {
   state: 'hidden', // notification
 };
 
-class ModelSyncView extends View {
+class ModelUpdateNotificationView extends View {
   constructor() {
     super(template, model, {}, {
       className: 'model-sync',
@@ -44,4 +43,4 @@ class ModelSyncView extends View {
   }
 }
 
-export default ModelSyncView;
+export default ModelUpdateNotificationView;

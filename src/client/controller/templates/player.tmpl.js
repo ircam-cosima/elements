@@ -6,42 +6,38 @@ const playerTmpl = `
 <% /* ----------------------------------------------- */ %>
 
 <div class="player" id="_<%= player.uuid %>" data-uuid="<%= player.uuid %>">
-  <p class="small"><%= player.uuid %></p>
+  <!-- <p class="small"><%= player.uuid %></p> -->
+  <% var color = global.colors[player.index] %>
+  <div class="color" style="background-color: <%= color %>"></div>
 
-  <div class="select-container">
-
-    <select class="change-project">
-    <% global.projectsOverview.forEach(overview => { %>
-      <% var selected = overview.uuid === player.project.uuid ? ' selected' : ''; %>
-      <option value="<%= overview.uuid %>"<%= selected %>><%= overview.name %></option>
-    <% }); %>
-    </select>
-
-  </div>
+  <select class="change-project">
+  <% global.projectsOverview.forEach(overview => { %>
+    <% var selected = overview.uuid === player.project.uuid ? ' selected' : ''; %>
+    <option value="<%= overview.uuid %>"<%= selected %>><%= overview.name %></option>
+  <% }); %>
+  </select>
 
   <div class="audio-params">
 
     <label class="checkbox">
-      <span>Mute</span>
-      <% var checked = player.params.audio.mute ? ' checked' : ''; %>
-      <input type="checkbox" class="player-param" data-name="audio.mute"<%= checked %> />
+      <% var checked = player.params.audioRendering.mute ? ' checked' : ''; %>
+      <input type="checkbox" class="player-param" data-name="audioRendering.mute"<%= checked %> />
       <div class="checkbox-ui"></div>
+      <span>Mute</span>
     </label>
 
   </div>
 
-  <div class="record-params">
+  <div class="recording-control">
+    <span>Recording (<i><b><%= player.params.record.state %></i></b>)</span>
 
-    <label class="select">
-      <span>Label</span>
-      <select class="player-param" data-name="record.label">
-      <% var labels = Object.keys(project.params.audio) %>
-      <% labels.forEach(function(label) { %>
-        <% var selected = player.params.record.label === label ? ' selected' : ''; %>
-        <option name="<%= label %>"<%= selected %>><%= label %></option>
-      <% }); %>
-      </select>
-    </label>
+    <select class="player-param" data-name="record.label">
+    <% var labels = Object.keys(project.params.audioFiles) %>
+    <% labels.forEach(function(label) { %>
+      <% var selected = player.params.record.label === label ? ' selected' : ''; %>
+      <option name="<%= label %>"<%= selected %>><%= label %></option>
+    <% }); %>
+    </select>
 
     <% if (player.params.record.state === 'idle') { %>
       <button class="btn player-param" data-name="record.state" value="arm">

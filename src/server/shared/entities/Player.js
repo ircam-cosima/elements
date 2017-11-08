@@ -8,8 +8,8 @@ class Player {
     this.project = null;
 
     this.params = {
-      audio: {
-        mute: false,
+      audioRendering: {
+        sensors: false,
         intensity: false,
       },
       record: {

@@ -40,7 +40,6 @@ class PlayerExperience extends Experience {
           this.dispatch(action, player.client);
           break;
         }
-
         case 'update-player-param': {
           const [player] = args;
           const action = {
@@ -51,7 +50,6 @@ class PlayerExperience extends Experience {
           this.dispatch(action, player.client);
           break;
         }
-
         case 'update-project-param': {
           const [project] = args;
           const action = {
@@ -63,19 +61,17 @@ class PlayerExperience extends Experience {
           this.dispatch(action, clients);
           break;
         }
-
         case 'update-model': {
           const [project, model] = args;
           const action = {
             type: 'update-model',
-            payload: model,
+            payload: project.serialize(),
           };
 
           const clients = project.players.getClients();
           this.dispatch(action, clients);
           break;
         }
-
         case 'create-project':
         case 'delete-project': {
           const action = {
@@ -139,7 +135,8 @@ class PlayerExperience extends Experience {
           break;
         }
         case 'add-player-to-project': {
-          const project = appStore.projects.get(action.payload.projectUuid);
+          const { uuid } = payload;
+          const project = appStore.projects.get(uuid);
           appStore.removePlayerFromProject(player, player.project);
           appStore.addPlayerToProject(player, project);
           break;
@@ -177,6 +174,24 @@ class PlayerExperience extends Experience {
           const { uuid } = payload;
           const project = appStore.projects.get(uuid);
           appStore.clearAllExamplesFromProject(project);
+          break;
+        }
+        case 'create-project': {
+          const { name } = payload;
+          // test is project already exists
+          let project = appStore.projects.getByName(name);
+
+          if (project !== null) {
+            appStore.removePlayerFromProject(player, player.project);
+            appStore.addPlayerToProject(player, project);
+          } else {
+            appStore.createProject(name)
+              .then(project => {
+                appStore.removePlayerFromProject(player, player.project);
+                appStore.addPlayerToProject(player, project);
+              })
+              .catch(err => console.error(err.stack));
+          }
           break;
         }
       }

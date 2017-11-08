@@ -1,10 +1,12 @@
 import { client } from 'soundworks/client';
 import * as lfo from 'waves-lfo/common';
 import * as mano from 'mano-js';
-import AutoTrigger from './AutoTrigger';
 import BaseModule from '../BaseModule';
+import moduleManager from '../moduleManager';
+import AutoTrigger from './AutoTrigger';
 import merge from 'lodash.merge';
 import RecordingControlView from './RecordingControlView';
+import SampleSynth from '../../audio/SampleSynth';
 
 const MODULE_ID = 'recording-control';
 
@@ -12,9 +14,7 @@ class RecordingControlModule extends BaseModule {
   constructor(experience, options = {}) {
     super(MODULE_ID, experience);
 
-    this.options = Object.assign({
-      viewContainer: '#recording-control',
-    }, options);
+    this.options = Object.assign({}, options);
 
     this.subscriptions = [
       'add-player-to-project',
@@ -28,6 +28,11 @@ class RecordingControlModule extends BaseModule {
       'clear-examples',
       'clear-all-examples',
     ];
+
+    this.dependencies = [
+      'gesture-recognition',
+      'audio-renderer',
+    ]
 
     this.recordState = null;
     this.recordLabel = null;
@@ -79,17 +84,15 @@ class RecordingControlModule extends BaseModule {
 
     this.feedRecorder = this.feedRecorder.bind(this);
     this.feedAutoTrigger = this.feedAutoTrigger.bind(this);
-  }
 
-  // mano and lfo sensor chain are ready at this point
-  // start() {
-  //   super.start();
-  // }
+    const buffers = this.experience.audioBufferManager.data.uiSounds;
+    this.sampleSynth = new SampleSynth(buffers);
+  }
 
   show() {
     this.view.render();
     this.view.show();
-    this.view.appendTo(this.experience.getContainer(this.options.viewContainer));
+    this.view.appendTo(this.getContainer());
   }
 
   // hide() {}
@@ -99,7 +102,7 @@ class RecordingControlModule extends BaseModule {
     let recordParams;
 
     if (type === 'update-model' || type === 'add-player-to-project') {
-      const model = type === 'update-model' ? payload : payload.project.model;
+      const model = type === 'update-model' ? payload.model : payload.project.model;
       const trainedLabels = model.payload.models.map(mod => mod.label);
 
       this.view.model.trainedLabels = trainedLabels;
@@ -108,7 +111,8 @@ class RecordingControlModule extends BaseModule {
     if (type === 'add-player-to-project' || type === 'update-player-param') {
       switch (type) {
         case 'add-player-to-project':
-          this.view.model.labels = Object.keys(payload.project.params.audio);
+          const audioFiles = payload.project.params.audioFiles;
+          this.view.model.labels = Object.keys(audioFiles);
           this.currentProject = payload.project;
           // @todo - reset any ongoing recording and should set state to `idle`
 
@@ -127,38 +131,46 @@ class RecordingControlModule extends BaseModule {
       if (this.recordState !== recordParams.state) {
         this.recordState = recordParams.state;
 
-        // const decodingModule = this.experience.modules.get('decoding');
+        const gestureRecognitionModule = this.experience.getModule('gesture-recognition');
+        const gestureAudioRendererModule = this.experience.getModule('audio-renderer');
 
         // recording state machine
         switch (recordParams.state) {
           case 'idle': {
             // we should be able to go idle from any state (ex change project while recording)
-            this.experience.processedSensors.removeListener(this.feedRecorder);
-            // this.experience.processedSensors.addListener(decodingModule.feedDecoder);
-            // this.exampleRecorder.clear();
+            gestureRecognitionModule.removeSensorsListener(this.feedRecorder);
+            gestureRecognitionModule.removeSensorsListener(this.feedAutoTrigger);
+            gestureRecognitionModule.enableDecoding();
+            this.exampleRecorder.clear();
             break;
           }
           case 'armed': {
             this.autoTrigger.setState('on');
             // this.experience.processedSensors.removeListener(decodingModule.feedDecoder);
-            this.experience.processedSensors.addListener(this.feedAutoTrigger);
+            gestureRecognitionModule.addSensorsListener(this.feedAutoTrigger);
+            gestureRecognitionModule.disableDecoding();
+
+            gestureAudioRendererModule.enablePreview(this.recordLabel);
             break;
           }
           case 'recording': {
             // @note - if record has been launched from controller, auto trigger
             // is still in `off` and thus cannot trigger `stop`, define if it is
             // a desirable behavior.
-
+            this.sampleSynth.trigger('startRecord');
             // pipe sensors into an example instance
-            this.experience.processedSensors.addListener(this.feedRecorder);
+            gestureRecognitionModule.addSensorsListener(this.feedRecorder);
             break;
           }
           case 'pending': {
+            this.sampleSynth.trigger('stopRecord');
             // stop auto trigger
-            this.experience.processedSensors.removeListener(this.feedAutoTrigger);
-            this.experience.processedSensors.removeListener(this.feedRecorder);
             this.autoTrigger.setState('off');
-            // wait...
+
+            gestureRecognitionModule.removeSensorsListener(this.feedAutoTrigger);
+            gestureRecognitionModule.removeSensorsListener(this.feedRecorder);
+
+            gestureAudioRendererModule.disablePreview()
             break;
           }
           case 'confirm': {
@@ -174,10 +186,6 @@ class RecordingControlModule extends BaseModule {
               },
             };
 
-            this.request(addExampleAction);
-            this.exampleRecorder.clear();
-
-            // go back to idle state
             const idleAction = {
               type: 'update-player-param',
               payload: {
@@ -187,12 +195,11 @@ class RecordingControlModule extends BaseModule {
               },
             };
 
+            this.request(addExampleAction);
             this.request(idleAction);
             break;
           }
           case 'cancel': {
-            this.exampleRecorder.clear();
-            // go back to idle state
             const idleAction = {
               type: 'update-player-param',
               payload: {
@@ -207,7 +214,6 @@ class RecordingControlModule extends BaseModule {
           }
         }
       }
-
     }
 
     this.view.render();
@@ -221,5 +227,7 @@ class RecordingControlModule extends BaseModule {
     this.exampleRecorder.addElement(data);
   }
 }
+
+moduleManager.register(MODULE_ID, RecordingControlModule);
 
 export default RecordingControlModule;

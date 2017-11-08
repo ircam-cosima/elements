@@ -6,6 +6,7 @@ import projectParamsTmpl from './templates/project-params.tmpl';
 import playerTmpl from './templates/player.tmpl';
 //
 import mlPresets from '../../shared/config/ml-presets';
+import { colors } from '../../shared/config/ui';
 
 const tmpl = `
   <div id="header"></div>
@@ -25,6 +26,7 @@ const model = {
   projectsOverview: [],
   projects: [],
   mlPresets: mlPresets,
+  colors: colors,
 };
 
 class ControllerView extends View {
@@ -38,6 +40,24 @@ class ControllerView extends View {
     this.playerTmpl = template(playerTmpl);
 
     this.installEvents({
+      // ----------------------------------------------------------------
+      // REQUESTS TO APP STORE
+      // ----------------------------------------------------------------
+      'click .project .toggle-params': e => {
+        e.preventDefault();
+        const $btn = e.target;
+        const $params = $btn.closest('.project').querySelector('.params');
+        const hidden = $params.classList.contains('hidden');
+
+        if (hidden)
+          $params.classList.remove('hidden');
+        else
+          $params.classList.add('hidden');
+      },
+
+      // ----------------------------------------------------------------
+      // REQUESTS TO APP STORE
+      // ----------------------------------------------------------------
       // player change project
       'change .change-project': e => {
         const $target = e.target;
@@ -59,14 +79,29 @@ class ControllerView extends View {
 
         this.request('update-project-param', { uuid, name, value });
       },
+
       'click .project .preset': e => {
         e.preventDefault();
-        const $input = e.target;
-        const $project = $input.closest('.project');
+        const $btn = e.target;
+        const $project = $btn.closest('.project');
         const uuid = $project.dataset.uuid;
-        const name = $input.value;
+        const name = $btn.value;
 
         this.request('update-project-ml-preset', { uuid, name });
+      },
+
+      'click .project .clear': e => {
+        e.preventDefault();
+        const $btn = e.target;
+        const $project = $btn.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const type = $btn.dataset.type;
+        const payload = { uuid };
+
+        if (type === 'clear-examples')
+          payload.label = $btn.dataset.target;
+
+        this.request(type, payload);
       },
 
       // player params / checkboxes
@@ -89,6 +124,7 @@ class ControllerView extends View {
         const name = $input.dataset.name;
         const value = $input.value;
 
+        console.log(uuid, name, value);
         this.request('update-player-param', { uuid, name, value });
       },
       // player params / buttons
@@ -121,13 +157,9 @@ class ControllerView extends View {
 
     const projectData = { project: project, global: this.model };
     const $project = createDOM(this.projectTmpl, projectData);
-
-    const $paramsContainer = $project.querySelector('.params');
-    const paramsData = { params: project.params, global: this.model };
-    const params = this.projectParamsTmpl(paramsData);
-    $paramsContainer.innerHTML = params;
-
     this.$projects.appendChild($project);
+
+    this.updateProject(project);
   }
 
   removeProject(project) {
@@ -143,7 +175,7 @@ class ControllerView extends View {
   updateProject(project) {
     const selector = `#_${project.uuid} .params`;
     const $paramsContainer = this.$projects.querySelector(selector);
-    const data = { params: project.params, global: this.model };
+    const data = { project: project, global: this.model };
     const params = this.projectParamsTmpl(data);
 
     $paramsContainer.innerHTML = params;

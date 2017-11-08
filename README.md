@@ -92,3 +92,22 @@ GUIs
   use 127.0.0.1/#designer and a set of clients presets
 
 - remove ProjectManager service
+
+
+
+
+
+
+## Modules
+
+audio-control
+- user has control audio parameters (mute, intensity)
+
+
+
+
+
+
+
+
+

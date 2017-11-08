@@ -19,6 +19,17 @@ class ProjectCollection {
     return this.uuidProjectMap.get(uuid);
   }
 
+  getByName(name) {
+    let project = null;
+
+    this.projects.forEach(_project => {
+      if (_project.params.name === name)
+        project = _project;
+    });
+
+    return project;
+  }
+
   /**
    * Return an overview of the projects
    * @return Array<Object<uuid, name>>

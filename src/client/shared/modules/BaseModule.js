@@ -18,7 +18,23 @@ class BaseModule {
      */
     this.allowedRequests = [];
 
+    this.dependencies = [];
+
     this.dispatch = this.dispatch.bind(this);
+  }
+
+  getContainer() {
+    const selector = `#${this.id}`;
+    const $container = this.experience.view.$el.querySelector(selector);
+
+    if ($container === null)
+      throw new Error(`Selector "${selector}" doesn't match any element`);
+
+    return $container;
+  }
+
+  init() {
+    return Promise.resolve(true);
   }
 
   start() {

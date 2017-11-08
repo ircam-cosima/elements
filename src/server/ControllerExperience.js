@@ -32,7 +32,6 @@ class ControllerExperience extends Experience {
           this.dispatch(action, this.clients);
           break;
         }
-
         case 'create-project': {
           const [project] = args;
           const createProjectAction = {
@@ -50,7 +49,6 @@ class ControllerExperience extends Experience {
           this.dispatch(listProjectOverviewAction, this.clients);
           break;
         }
-
         case 'delete-project': {
           const [project] = args;
           const deleteProjectAction = {
@@ -68,7 +66,6 @@ class ControllerExperience extends Experience {
           this.dispatch(listProjectOverviewAction, this.clients);
           break;
         }
-
         case 'update-player-param': {
           const [player] = args;
           const action = {
@@ -79,7 +76,8 @@ class ControllerExperience extends Experience {
           this.dispatch(action, this.clients);
           break;
         }
-        case 'update-project-param':
+        case 'update-model':
+        case 'update-project-param': {
           const [project] = args;
           const action = {
             type: 'update-project-param',
@@ -88,9 +86,7 @@ class ControllerExperience extends Experience {
 
           this.dispatch(action, this.clients);
           break;
-        default:
-
-          break;
+        }
       }
     });
   }
@@ -139,6 +135,7 @@ class ControllerExperience extends Experience {
           const { uuid, name, value } = payload;
           const player = appStore.players.get(uuid);
           appStore.updatePlayerParam(player, name, value);
+          break;
         }
         case 'update-project-param': {
           const { uuid, name, value } = payload;
@@ -152,6 +149,19 @@ class ControllerExperience extends Experience {
           appStore.updateProjectMLPreset(project, name);
           break;
         }
+        case 'clear-examples': {
+          const { uuid, label } = payload;
+          const project = appStore.projects.get(uuid);
+          appStore.clearExamplesFromProject(label, project);
+          break;
+        }
+        case 'clear-all-examples': {
+          const { uuid } = payload;
+          const project = appStore.projects.get(uuid);
+          appStore.clearAllExamplesFromProject(project);
+          break;
+        }
+
       }
     }
   }
