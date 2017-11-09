@@ -1,7 +1,11 @@
 #controller {
   padding: 20px;
   box-sizing: border-box;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+
+  p {
+    font-size: 0.9rem;
+  }
 }
 
 .btn {
@@ -92,9 +96,17 @@ select {
     height: 42px;
   }
 
+  .type {
+    font-weight: bold;
+    width: 170px;
+    display: inline-block;
+    margin-bottom: 20px;
+  }
+
   select {
     background-color: #efefef;
     height: 30px;
+    width: 170px;
     margin-right: 20px;
     display: inline-block;
     vertical-align: middle;
@@ -103,17 +115,26 @@ select {
 
   .audio-params {
     height: 30px;
-    display: inline-block;
     margin-bottom: 12px;
+
+    .checkbox {
+      display: inline-block;
+      width: 170px;
+    }
   }
 
   .recording-control {
     height: 30px;
 
-    span {
+    .record-state {
       display: inline-block;
       vertical-align: middle;
-      width: 220px;
+      width: 170px;
+
+      span {
+        font-style: italic;
+        font-weight: bold;
+      }
     }
 
     .btn {

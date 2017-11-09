@@ -24,6 +24,10 @@ class PlayerCollection {
     return clients;
   }
 
+  forEach(callback) {
+    this.players.forEach(callback);
+  }
+
   serialize() {
     const serializedCollection = [];
 

@@ -10,6 +10,7 @@ const playerTmpl = `
   <% var color = global.colors[player.index] %>
   <div class="color" style="background-color: <%= color %>"></div>
 
+  <p class="type"><%= player.type %></p>
   <select class="change-project">
   <% global.projectsOverview.forEach(overview => { %>
     <% var selected = overview.uuid === player.project.uuid ? ' selected' : ''; %>
@@ -26,10 +27,20 @@ const playerTmpl = `
       <span>Mute</span>
     </label>
 
+    <label class="checkbox">
+      <% var checked = player.params.audioRendering.sensors ? ' checked' : ''; %>
+      <input type="checkbox" class="player-param" data-name="audioRendering.sensors"<%= checked %> />
+      <div class="checkbox-ui"></div>
+      <span>Sensors</span>
+    </label>
+
   </div>
 
+  <% if (Object.keys(player.preset).indexOf('recording-control') !== -1) { %>
   <div class="recording-control">
-    <span>Recording (<i><b><%= player.params.record.state %></i></b>)</span>
+    <p class="record-state">
+      Recording - <span><%= player.params.record.state %></span>
+    </p>
 
     <select class="player-param" data-name="record.label">
     <% var labels = Object.keys(project.params.audioFiles) %>
@@ -63,6 +74,7 @@ const playerTmpl = `
       </button>
     <% } %>
   </div>
+  <% } %>
 
 </div>
 `;

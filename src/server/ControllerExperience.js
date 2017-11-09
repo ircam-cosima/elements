@@ -1,6 +1,7 @@
 import { Experience } from 'soundworks/server';
 import appStore from './shared/appStore';
 
+
 class ControllerExperience extends Experience {
   constructor(clientType, config, comm) {
     super(clientType);
@@ -41,9 +42,11 @@ class ControllerExperience extends Experience {
 
           this.dispatch(createProjectAction, this.clients);
 
+          const projectsDetails = appStore.projects.serialize();
+          const projectsOverview = appStore.projects.overview();
           const listProjectOverviewAction = {
-            type: 'list-project-overview',
-            payload: appStore.projects.overview(),
+            type: 'list-project',
+            payload: { projectsDetails, projectsOverview },
           };
 
           this.dispatch(listProjectOverviewAction, this.clients);
@@ -58,9 +61,11 @@ class ControllerExperience extends Experience {
 
           this.dispatch(deleteProjectAction, this.clients);
 
+          const projectsDetails = appStore.projects.serialize();
+          const projectsOverview = appStore.projects.overview();
           const listProjectOverviewAction = {
-            type: 'list-project-overview',
-            payload: appStore.projects.overview(),
+            type: 'list-project',
+            payload: { projectsDetails, projectsOverview },
           };
 
           this.dispatch(listProjectOverviewAction, this.clients);
@@ -117,11 +122,26 @@ class ControllerExperience extends Experience {
       const { type, payload } = action;
 
       switch (type) {
-        case 'list-project': {
+        case 'init-list-project': {
           const projectsDetails = appStore.projects.serialize();
           const projectsOverview = appStore.projects.overview();
           action.payload = { projectsDetails, projectsOverview };
           this.dispatch(action, client);
+          break;
+        }
+        case 'create-project': {
+          const name = payload.name;
+          const project = appStore.projects.getByName(name);
+
+          if (project === null)
+            appStore.createProject(name);
+
+          break;
+        }
+        case 'delete-project': {
+          const uuid = payload.uuid;
+          const project = appStore.projects.get(uuid);
+          appStore.deleteProject(project);
           break;
         }
         case 'add-player-to-project': {

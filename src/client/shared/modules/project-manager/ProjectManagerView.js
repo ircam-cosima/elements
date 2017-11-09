@@ -22,25 +22,37 @@ const template = `
     <button class="btn create-project">Send</button>
     <% } %>
 
-    <p>Select project</p>
-    <p class="error">
-    <% if (error === true) { %>
-      <%= text.error %>
-    <% } %>
-    </p>
-    <div>
+    <% if (projectList !== 'none') { %>
+
+      <p>Select project</p>
+
+      <p class="error">
+      <% if (error === true) { %><%= text.error %><% } %>
+      </p>
+
+      <% if (projectList === 'select') { %>
+
       <select class="select-project">
         <option value=""><%= text.chooseProject %></option>
         <% projectOverviewList.forEach(function(overview) { %>
-          <% const selected = (project && project.uuid === overview.uuid) ? ' selected' : '' %>
-          <option value="<%= overview.uuid %>"<%= selected %>>
-            <%= overview.name %>
-          </option>
+          <option value="<%= overview.uuid %>"><%= overview.name %></option>
         <% }); %>
       </select>
-    </div>
+
+      <% } else if (projectList === 'buttons') { %>
+
+        <% projectOverviewList.forEach(function(overview) { %>
+          <button class="btn select-project" value="<%= overview.uuid %>">
+            <%= overview.name %>
+          </button>
+        <% }); %>
+
+      <% } %>
+
+    <% } %>
   </div>
   <% } %>
+
 </div>
 
 <% } %>
@@ -53,7 +65,9 @@ const model = {
   state: 'expanded', // 'expanded' || 'reduced'
 
   enableChange: true,
+  enableCreation: false,
   forceProject: false, // don't overlay on load
+  projectList: 'select',
   // prepare field for i18n
   text: {
     chooseProject: 'Choose a project',
@@ -67,19 +81,11 @@ class ProjectChooserView extends View {
       className: 'project-chooser'
     });
 
-    this.model.enableChange = options.enableChange;
-    this.model.forceProject = options.forceProject;
-    this.model.enableCreation = options.enableCreation;
+    Object.assign(this.model, options);
 
     this.selectProject = null;
 
     this.installEvents({
-      'change .select-project': e => {
-        const uuid = e.target.value;
-
-        if (uuid !== '')
-          this.request('add-player-to-project', { uuid });
-      },
       'click .create-project': e => {
         const $input = this.$el.querySelector('.project-name');
         const name = $input.value;
@@ -93,6 +99,24 @@ class ProjectChooserView extends View {
         this.render();
       }
     });
+
+    if (this.model.projectList !== 'none') {
+      let action = null;
+
+      if (this.model.projectList === 'select')
+        action = 'change';
+      else if (this.model.projectList === 'buttons')
+        action = 'click';
+
+      this.installEvents({
+        [`${action} .select-project`]: e => {
+          const uuid = e.target.value;
+
+          if (uuid !== '')
+            this.request('add-player-to-project', { uuid });
+        },
+      });
+    }
   }
 
   onResize(width, height, orientation) {}

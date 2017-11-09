@@ -128,9 +128,10 @@ select {
 
 input[type=text] {
   height: 30px;
-  border-radius: 2px;
   padding: 0 4px;
   box-sizing: border-box;
+  border-radius: 2px;
+  border: 1px solid #cdcdcd;
 }
 
 .select-container {

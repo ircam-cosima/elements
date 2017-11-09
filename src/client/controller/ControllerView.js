@@ -9,7 +9,10 @@ import mlPresets from '../../shared/config/ml-presets';
 import { colors } from '../../shared/config/ui';
 
 const tmpl = `
-  <div id="header"></div>
+  <div id="header">
+    <input type="text" placeholder="project name" class="project-name" value="" />
+    <button class="btn normal create-project">Create</button>
+  </div>
   <div id="projects"></div>
 `;
 
@@ -31,9 +34,7 @@ const model = {
 
 class ControllerView extends View {
   constructor() {
-    super(tmpl, model, {}, {
-      id: 'controller',
-    });
+    super(tmpl, model, {}, { id: 'controller' });
 
     this.projectTmpl = template(projectTmpl);
     this.projectParamsTmpl = template(projectParamsTmpl);
@@ -41,7 +42,7 @@ class ControllerView extends View {
 
     this.installEvents({
       // ----------------------------------------------------------------
-      // REQUESTS TO APP STORE
+      //
       // ----------------------------------------------------------------
       'click .project .toggle-params': e => {
         e.preventDefault();
@@ -53,6 +54,22 @@ class ControllerView extends View {
           $params.classList.remove('hidden');
         else
           $params.classList.add('hidden');
+      },
+      'click #header .create-project': e => {
+        const $btn = e.target;
+        const $input = $btn.previousElementSibling;
+        const name = $input.value;
+
+        this.request('create-project', { name });
+      },
+      'click .project .delete-project': e => {
+        // if (window.confirm('Are you sure?')) {
+          const $btn = e.target;
+          const $project = $btn.closest('.project');
+          const uuid = $project.dataset.uuid;
+
+          this.request('delete-project', { uuid });
+        // }
       },
 
       // ----------------------------------------------------------------
@@ -148,9 +165,9 @@ class ControllerView extends View {
     this.$projects = this.$el.querySelector('#projects');
   }
 
-  onResize(width, height, orientation) {
+  onResize(width, height, orientation) {}
 
-  }
+  // resetHeader() {}
 
   addProject(project) {
     this.model.projects.push(project);
@@ -162,13 +179,14 @@ class ControllerView extends View {
     this.updateProject(project);
   }
 
-  removeProject(project) {
+  deleteProject(project) {
+    const uuid = project.uuid;
     const index = this.model.projects.indexOf(project);
 
     if (index !== -1)
       this.model.projects.splice(index, 1);
 
-    const $project = this.querySelector(`#_${uuid}`);
+    const $project = this.$el.querySelector(`#_${uuid}`);
     $project.remove();
   }
 

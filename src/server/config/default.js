@@ -22,7 +22,7 @@ export default {
 
   // name of the default client type, i.e. the client that can access the
   // application at its root URL
-  defaultClient: 'player',
+  defaultClient: 'default',
 
   // define from where the assets (static files) should be loaded, these value
   // could also refer to a separate server for scalability reasons. This value

@@ -52,35 +52,42 @@ const appStore = {
   createProject(name) {
     const project = Project.create(name);
 
-    return this._persistProject(project)
-      .then(() => this._updateModel(project))
+    const promise = this._persistProject(project)
+      .then(() => this._updateModel(project, true))
       .then(() => {
         this.projects.add(project);
         this.emit('create-project', project);
+
         return Promise.resolve(project);
       })
       .catch(err => console.error(err.stack));
+
+    return promise;
   },
 
   deleteProject(project) {
-    // remove from this.projects
-    // delete related file
-    this.emit('delete-project', project);
+    const players = project.players;
+    players.forEach(player => this.removePlayerFromProject(player, project));
+
+    this.projects.remove(project);
+
+    const promise = projectDbMapper.delete(project)
+      .then(() => this.emit('delete-project', project))
+      .catch(err => console.error(err.stack));
+
+    return promise;
   },
 
   /**
-   * This is the only place where the appStore should deal with the `client`,
-   * after that it should only know `player` entities.
+   * `registerPlayer` and `unregisterPlayer` are the only places where
+   * the appStore should deal with the `client`, after that it should only
+   * know `player` entities.
    */
-  registerPlayer(client) {
-    const player = new Player(client);
+  registerPlayer(client, preset) {
+    const player = new Player(client, preset);
     this.players.add(player);
   },
 
-  /**
-   * This is the only place where the appStore should deal with the `client`,
-   * after that it should only know `player` entities.
-   */
   unregisterPlayer(client) {
     const player = this.players.get(client.uuid);
     const project = player.project;
@@ -258,7 +265,7 @@ const appStore = {
   },
 
   // update xmm model
-  _updateModel(project) {
+  _updateModel(project, silent = false) {
     const config = project.processor.getConfig()
     const trainingSet = project.trainingData.getTrainingSet();
     const xmmTrainingSet = rapidMixTranslators.rapidMixToXmmTrainingSet(trainingSet);
@@ -276,7 +283,9 @@ const appStore = {
         const rapidMixModel = rapidMixTranslators.xmmToRapidMixModel(model);
         project.model = rapidMixModel;
 
-        this.emit('update-model', project, rapidMixModel)
+        if (!silent)
+          this.emit('update-model', project, rapidMixModel);
+
         resolve(project);
       });
     });

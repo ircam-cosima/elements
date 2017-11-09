@@ -35,7 +35,7 @@ class Project {
       clientDefaults: {
         audioRendering: {
           sensors: false,
-          mute: false,
+          mute: true,
         },
         record: {
           label: Object.keys(audioConfig)[0], // defaults to first audio label

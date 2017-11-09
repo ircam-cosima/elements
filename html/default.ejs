@@ -28,11 +28,10 @@
       window.soundworksConfig = JSON.parse('<%- JSON.stringify(data) %>');
     </script>
 
-    <% if (data.env === 'production') { %>
-    <!-- <script src="<%= data.assetsDomain %>js/<%= data.clientType %>.min.js?<%= data.version %>"></script> -->
-    <script src="<%= data.assetsDomain %>js/<%= data.clientType %>.js?<%= data.version %>"></script>
+    <% if (data.clientType === 'controller') { %>
+    <script src="<%= data.assetsDomain %>js/controller.js?<%= data.version %>"></script>
     <% } else { %>
-    <script src="<%= data.assetsDomain %>js/<%= data.clientType %>.js?<%= data.version %>"></script>
+    <script src="<%= data.assetsDomain %>js/player.js?<%= data.version %>"></script>
     <% } %>
 
     <% if (data.env === 'production' && data.gaId) { %>

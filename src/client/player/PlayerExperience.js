@@ -8,8 +8,10 @@ import { sounds as uiSounds } from '../../shared/config/ui';
 const audioContext = soundworks.audioContext;
 
 class PlayerExperience extends soundworks.Experience {
-  constructor(config, preset) {
+  constructor(config) {
     super();
+
+    this.preset = config.preset;
 
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.checkin = this.require('checkin');
@@ -28,8 +30,6 @@ class PlayerExperience extends soundworks.Experience {
      * List of instanciated modules
      */
     this.modules = new Map();
-
-    this.preset = preset;
 
     this.dispatch = this.dispatch.bind(this);
   }
@@ -146,7 +146,7 @@ class PlayerExperience extends soundworks.Experience {
   // @todo - test module dependecies and throw more usefull error
   getModule(id) {
     if (!this.modules.has(id))
-      throw new Error(`Invalid module "${id}"`)
+      throw new Error(`Invalid module "${id}"`);
 
     return this.modules.get(id);
   }

@@ -4,7 +4,7 @@ const presets = {
     'project-manager': {
       enableChange: true,
       enableCreation: true,
-      // projectList: 'none' | 'select' | 'buttons'
+      projectList: 'buttons', // 'none' | 'select' | 'buttons'
     },
     'gesture-recognition': {},
     'audio-renderer': {},
@@ -19,7 +19,7 @@ const presets = {
   //   // 'project-params-control': {},
   //   'project-manager': {
   //     enableChange: false,
-  //     forceProject: 'fefc0121-083c-4fe9-9a08-bd35d4a25790', // name or uuid
+  //     // forceProject: 'fefc0121-083c-4fe9-9a08-bd35d4a25790', // name or uuid
   //   },
   //   'gesture-recognition': {},
   //   // 'recording-control': {},

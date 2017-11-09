@@ -4,6 +4,7 @@ const projectTmpl = `
     <h1><%= project.params.name %></h1>
 
     <button class="btn normal toggle-params">Advanced options</button>
+    <button class="btn danger delete-project">Delete</button>
 
     <% /* container for project-params.tmpl.js */ %>
     <div class="params hidden"></div>

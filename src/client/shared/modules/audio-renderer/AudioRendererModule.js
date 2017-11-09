@@ -19,6 +19,7 @@ class AudioRendererModule extends BaseModule {
 
     this.subscriptions = [
       'add-player-to-project',
+      'remove-player-from-project',
       'update-player-param',
       'update-model',
     ];
@@ -71,18 +72,21 @@ class AudioRendererModule extends BaseModule {
 
     // @todo - as something is async here, something could go wrong
     switch (type) {
+      case 'remove-player-from-project': {
+        if (this.mapping) {
+          this.disableSensors();
+          this.mapping.stop();
+        }
+
+        this.gestureRecognitionModule.removeDecoderListener(this.processDecoderOutput);
+        break;
+      }
       case 'add-player-to-project': {
         const audioBufferManager = this.experience.audioBufferManager;
         const uuid = payload.project.uuid;
         const audioFiles = payload.project.params.audioFiles;
         const audioParams = payload.player.params.audioRendering;
 
-        if (this.mapping)
-          this.disableSensors();
-
-        this.gestureRecognitionModule.removeDecoderListener(this.processDecoderOutput);
-
-        // @todo - add a loading state to the view
         if (this.view) {
           merge(this.view.model, audioParams);
           this.view.model.loading = true;
@@ -96,16 +100,18 @@ class AudioRendererModule extends BaseModule {
             const labels = model.payload.models.map(mod => mod.label);
             const audioOutput = this.experience.getAudioOutput();
 
-            this.experience.mute(audioParams.mute);
-
             // @todo - instanciate mapping according to project definition...
             this.mapping = new SimpleFadeMapping();
             this.mapping.setBuffers(buffers[uuid]);
             this.mapping.setLabels(labels);
             this.mapping.setAudioDestination(audioOutput);
 
+            this.experience.mute(audioParams.mute);
+
             if (audioParams.sensors)
               this.enableSensors();
+            else
+              this.disableSensors();
 
             if (this.view) {
               this.view.model.loading = false;
@@ -124,7 +130,6 @@ class AudioRendererModule extends BaseModule {
       }
       case 'update-player-param': {
         const audioParams = payload.params.audioRendering;
-
         this.experience.mute(audioParams.mute);
 
         if (audioParams.sensors)

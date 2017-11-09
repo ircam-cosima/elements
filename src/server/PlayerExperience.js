@@ -2,20 +2,32 @@ import { Experience } from 'soundworks/server';
 import appStore from './shared/appStore';
 
 class PlayerExperience extends Experience {
-  constructor(clientType, config, comm) {
-    super(clientType);
+  constructor(clientTypes, config, presets, comm) {
+    super(clientTypes);
 
     this.config = config;
+    this.presets = presets;
     this.comm = comm;
 
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.checkin = this.require('checkin');
-    // this.sharedParams = this.require('shared-params');
-    // this.playerRegister = this.require('player-register');
 
-    // this.rawSocket = this.require('raw-socket', {
-    //   protocol: { channel: 'sensors', type: 'Float32' },
-    // });
+    // @todo - if some preset contains 'stream-sensors'
+    this.streamSensors = false;
+
+    for (let name in presets) {
+      const preset = presets[name];
+      const modules = Object.keys(preset);
+
+      if (modules.indexOf('stream-sensors') !== -1)
+        this.streamSensors = true;
+    }
+
+    if (this.streamSensors) {
+      this.rawSocket = this.require('raw-socket', {
+        protocol: { channel: 'sensors', type: 'Float32' },
+      });
+    }
 
     this.subscriptions = new Map();
   }
@@ -24,6 +36,8 @@ class PlayerExperience extends Experience {
     super.start();
 
     // create sensor and decoding chain (is common to every player)
+    if (this.streamSensors)
+      this.initializeSensorStreaming();
 
     appStore.addListener((channel, ...args) => {
       switch (channel) {
@@ -31,6 +45,19 @@ class PlayerExperience extends Experience {
           const [player, project] = args;
           const action = {
             type: 'add-player-to-project',
+            payload: {
+              player: player.serialize(),
+              project: project.serialize(),
+            },
+          };
+
+          this.dispatch(action, player.client);
+          break;
+        }
+        case 'remove-player-from-project': {
+          const [player, project] = args;
+          const action = {
+            type: 'remove-player-from-project',
             payload: {
               player: player.serialize(),
               project: project.serialize(),
@@ -72,7 +99,16 @@ class PlayerExperience extends Experience {
           this.dispatch(action, clients);
           break;
         }
-        case 'create-project':
+        case 'create-project': {
+          const action = {
+            type: 'list-project-overview',
+            payload: appStore.projects.overview(),
+          }
+
+          const clients = this.subscriptions.get('list-project-overview');
+          this.dispatch(action, clients);
+          break;
+        }
         case 'delete-project': {
           const action = {
             type: 'list-project-overview',
@@ -89,7 +125,8 @@ class PlayerExperience extends Experience {
 
   enter(client) {
     super.enter(client);
-    appStore.registerPlayer(client);
+    const preset = this.presets[client.type];
+    appStore.registerPlayer(client, preset);
 
     this.receive(client, 'subscribe', this.subscribe(client));
     this.receive(client, 'unsubscribe', this.unsubscribe(client));
@@ -204,7 +241,7 @@ class PlayerExperience extends Experience {
     if (this.subscriptions.has(actionType)) {
       const subscribedClients = this.subscriptions.get(actionType);
 
-      if (!clients.length)
+      if (!('forEach' in clients))
         clients = [clients];
 
       clients.forEach(client => {
@@ -212,6 +249,12 @@ class PlayerExperience extends Experience {
           this.send(client, 'dispatch', action);
       });
     }
+  }
+
+  initializeSensorStreaming() {
+    // this.rawSocket.receive('sensors', data => {
+    //   this.rawSocket.broadcast('controller', null, 'sensor', data);
+    // });
   }
 }
 

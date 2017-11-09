@@ -1,11 +1,8 @@
-import * as soundworks from 'soundworks/client';
+import { Experience } from 'soundworks/client';
 import ControllerView from './ControllerView';
 
-const template = ``;
 
-// this experience plays a sound when it starts, and plays another sound when
-// other clients join the experience
-class ControllerExperience extends soundworks.Experience {
+class ControllerExperience extends Experience {
   constructor(config) {
     super();
 
@@ -20,14 +17,14 @@ class ControllerExperience extends soundworks.Experience {
     this.receive('dispatch', this.dispatch);
 
     const action = {
-      type: 'list-project',
+      type: 'init-list-project',
       payload: null,
     };
 
     this.request(action);
 
     // initialize the view / allow for canvas rendering
-    this.view = new ControllerView(template, {}, {}, { id: this.id });
+    this.view = new ControllerView();
     this.view.request = (type, payload) => {
       const action = { type, payload };
       this.request(action);
@@ -46,7 +43,7 @@ class ControllerExperience extends soundworks.Experience {
     const { type, payload } = action;
 
     switch (type) {
-      case 'list-project': {
+      case 'init-list-project': {
           const { projectsDetails, projectsOverview } = payload;
           projectsDetails.forEach(project => {
             this.view.model.projectsOverview = projectsOverview;
@@ -56,6 +53,17 @@ class ControllerExperience extends soundworks.Experience {
               this.view.addPlayerToProject(player, project.uuid);
             });
           });
+        break;
+      }
+      case 'list-project': {
+        const { projectsDetails, projectsOverview } = payload;
+        this.view.model.projectsOverview = projectsOverview;
+
+        projectsDetails.forEach(project => {
+          project.players.forEach(player => {
+            this.view.updatePlayer(player);
+          });
+        });
         break;
       }
       case 'add-player-to-project': {
@@ -77,6 +85,16 @@ class ControllerExperience extends soundworks.Experience {
       case 'update-project-param': {
         const project = payload;
         this.view.updateProject(project);
+        break;
+      }
+      case 'create-project': {
+        const project = payload;
+        this.view.addProject(project);
+        break;
+      }
+      case 'delete-project': {
+        const project = payload;
+        this.view.deleteProject(project);
         break;
       }
       default: {

@@ -11,6 +11,8 @@ class LoopSynth {
     this.output = audioContext.createGain();
     this.output.gain.value = 0;
     this.output.gain.setValueAtTime(0, audioContext.currentTime);
+
+    this.disconnect = this.disconnect.bind(this);
   }
 
   set gain(value) {
@@ -21,16 +23,14 @@ class LoopSynth {
     this.output.connect(destination);
   }
 
+  disconnect() {
+    this.output.disconnect();
+  }
+
   trigger(label, bufferIndex) {
+    this.stop();
+
     const now = audioContext.currentTime;
-
-    if (this._current.src) {
-      const { src, env } = this._current;
-
-      env.gain.linearRampToValueAtTime(0, now + this.fadeDuration);
-      src.stop(now + this.fadeDuration);
-    }
-
     const buffer = this.buffers[label][bufferIndex];
 
     const env = audioContext.createGain();
@@ -48,6 +48,22 @@ class LoopSynth {
     this._current.src = src;
     this._current.env = env;
     this._current.label = label;
+  }
+
+  stop(callback = null) {
+    if (this._current.src) {
+      const { src, env } = this._current;
+      const now = audioContext.currentTime;
+
+      env.gain.linearRampToValueAtTime(0, now + this.fadeDuration);
+      src.stop(now + this.fadeDuration);
+
+      if (callback)
+        src.onend = callback;
+    } else {
+      if (callback)
+        callback();
+    }
   }
 }
 

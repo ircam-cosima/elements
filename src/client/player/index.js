@@ -11,8 +11,6 @@ import AudioRendererModule from '../shared/modules/audio-renderer/AudioRendererM
 import CanvasRendererModule from '../shared/modules/canvas-renderer/CanvasRendererModule';
 import RecordingControlModule from '../shared/modules/recording-control/RecordingControlModule';
 
-import presets from './presets';
-
 function bootstrap() {
   // initialize the client with configuration received
   // from the server through the `index.html`
@@ -27,14 +25,7 @@ function bootstrap() {
       instance.view = serviceViews.get(id, config);
   });
 
-  let preset = null;
-
-  if (Array.isArray(client.urlParams) && presets[client.urlParams[0]])
-    preset = presets[client.urlParams[0]];
-  else
-    preset = presets['default'];
-
-  const experience = new PlayerExperience(config, preset);
+  const experience = new PlayerExperience(config);
   client.start();
 }
 

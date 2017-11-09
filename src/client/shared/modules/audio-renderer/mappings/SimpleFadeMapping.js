@@ -31,6 +31,10 @@ class SimpleFadeMapping {
     this.currentLabel = null;
   }
 
+  stop() {
+    this.synth.stop(this.synth.disconnect);
+  }
+
   setLabels(labels) {
     this.labels = labels;
   }

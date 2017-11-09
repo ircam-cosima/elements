@@ -7,6 +7,8 @@ import appStore from './shared/appStore';
 import ControllerExperience from './ControllerExperience';
 import PlayerExperience from './PlayerExperience';
 
+import presets from '../shared/presets';
+
 const server = soundworks.server;
 // process config file
 const configName = process.env.ENV || 'default';
@@ -35,6 +37,7 @@ appStore.init()
     server.setClientConfigDefinition((clientType, config, httpRequest) => {
       return {
         clientType: clientType,
+        preset: presets[clientType],
         env: config.env,
         appName: config.appName,
         websockets: config.websockets,
@@ -46,7 +49,9 @@ appStore.init()
 
     const comm = new EventEmitter();
 
-    const player = new PlayerExperience('player', config, comm);
+    const clientTypes = Object.keys(presets);
+    const player = new PlayerExperience(clientTypes, config, presets, comm);
+
     const controller = new ControllerExperience('controller', config, comm);
 
     server.start();
