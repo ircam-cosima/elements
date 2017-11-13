@@ -16,6 +16,7 @@ class GestureRecognitionModule extends BaseModule {
       'update-model',
     ];
 
+    this.decoderInputs = null;
     // notification of model update
     this.view = new ModelUpdateNotificationView();
 
@@ -50,20 +51,24 @@ class GestureRecognitionModule extends BaseModule {
     switch (type) {
       case 'add-player-to-project': {
         model = payload.project.model;
+        this.decoderInputs = payload.project.params.learning.inputs;
         break;
       }
       case 'update-model': {
         model = payload.model;
+        this.decoderInputs = payload.params.learning.inputs;
         break;
       }
     }
 
-    this.disableDecoding();
-    this.decoder.setModel(model);
-    this.enableDecoding();
+    if (model !== null) {
+      this.disableDecoding();
+      this.decoder.setModel(model);
+      this.enableDecoding();
 
-    this.view.model.state = 'notification';
-    this.view.render();
+      this.view.model.state = 'notification';
+      this.view.render();
+    }
   }
 
   addSensorsListener(callback) {
@@ -92,6 +97,38 @@ class GestureRecognitionModule extends BaseModule {
 
   feedDecoder(data) {
     if (this._checkDataIntegrity(data)) {
+      const { intensity, bandpass, orientation } = this.decoderInputs;
+
+      // filter data according to `project.params.learning.inputs`
+      if (!intensity || !bandpass || !orientation) {
+        const filteredData = [];
+        let index = 0;
+
+        if (intensity) {
+          for (let i = 0; i < 2; i++) {
+            filteredData[index] = data[i];
+            index += 1;
+          }
+        }
+
+        if (bandpass) {
+          for (let i = 2; i < 5; i++) {
+            filteredData[index] = data[i];
+            index += 1;
+          }
+        }
+
+        if (orientation) {
+          for (let i = 5; i < 8; i++) {
+            filteredData[index] = data[i];
+            index += 1;
+          }
+        }
+
+        if (filteredData.length !== 0)
+          data = filteredData;
+      }
+
       const results = this.decoder.run(data);
 
       // don't forward when no results

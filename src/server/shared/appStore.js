@@ -98,6 +98,9 @@ const appStore = {
 
   /** Used by the `ProjectManager` service */
   addPlayerToProject(player, project) {
+    if (!project)
+      throw new Error('Cannot add player to invalid project, check your presets (`forceProject`)');
+
     merge(player.params, project.params.clientDefaults);
 
     project.addPlayer(player);
@@ -268,7 +271,73 @@ const appStore = {
   _updateModel(project, silent = false) {
     const config = project.processor.getConfig()
     const trainingSet = project.trainingData.getTrainingSet();
-    const xmmTrainingSet = rapidMixTranslators.rapidMixToXmmTrainingSet(trainingSet);
+
+    let trainedTraniningSet = trainingSet;
+
+    // if one of the input is false, recreate a new trainingSet from raw data
+    const inputs = project.params.learning.inputs;
+
+    if (!inputs.intensity || !inputs.bandpass || !inputs.orientation) {
+      const data = trainingSet.payload.data;
+      let inputDimension = 0;
+
+      const filteredTrainingSet = {
+        docType: 'rapid-mix:training-set',
+        docVersion: '1.0.0',
+        payload: {
+          inputDimension: 0,
+          outputDimension: 0,
+          data: [],
+        }
+      }
+      // // loop throught each example
+      for (let i = 0; i < data.length; i++) {
+        const srcExample = data[i];
+        const destExample = {
+          label: srcExample.label,
+          input: [],
+        };
+
+        // create filtered copy of each input in example
+        for (let j = 0; j < srcExample.input.length; j++) {
+          const srcDatum = srcExample.input[j];
+          const datum = [];
+          let index = 0;
+
+          if (inputs.intensity) {
+            for (let k = 0; k < 2; k++) {
+              datum[index] = srcDatum[k];
+              index += 1;
+            }
+          }
+
+          if (inputs.bandpass) {
+            for (let k = 2; k < 5; k++) {
+              datum[index] = srcDatum[k];
+              index += 1;
+            }
+          }
+
+          if (inputs.orientation) {
+            for (let k = 5; k < 8; k++) {
+              datum[index] = srcDatum[k];
+              index += 1;
+            }
+          }
+
+          filteredTrainingSet.payload.inputDimension = index;
+          destExample.input.push(datum);
+        }
+
+        filteredTrainingSet.payload.data.push(destExample);
+      }
+
+      // don't use filtered input if no dimensions, as it crashes xmm
+      if (filteredTrainingSet.payload.inputDimension !== 0)
+        trainedTraniningSet = filteredTrainingSet;
+    }
+
+    const xmmTrainingSet = rapidMixTranslators.rapidMixToXmmTrainingSet(trainedTraniningSet);
 
     const target = config.target.name;
     const xmm = this.xmmInstances[target];

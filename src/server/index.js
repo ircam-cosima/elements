@@ -38,6 +38,7 @@ appStore.init()
       return {
         clientType: clientType,
         preset: presets[clientType],
+        presets: presets,
         env: config.env,
         appName: config.appName,
         websockets: config.websockets,
@@ -52,7 +53,7 @@ appStore.init()
     const clientTypes = Object.keys(presets);
     const player = new PlayerExperience(clientTypes, config, presets, comm);
 
-    const controller = new ControllerExperience('controller', config, comm);
+    const controller = new ControllerExperience('controller', config, presets, comm);
 
     server.start();
   })

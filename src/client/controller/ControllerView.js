@@ -1,9 +1,13 @@
 import { View } from 'soundworks/client';
 import template from 'lodash.template';
+import * as lfo from 'waves-lfo/client';
+import * as controllers from 'basic-controllers';
 // templates
 import projectTmpl from './templates/project.tmpl';
 import projectParamsTmpl from './templates/project-params.tmpl';
 import playerTmpl from './templates/player.tmpl';
+import playerParamsTmpl from './templates/player-params.tmpl';
+import playerSensorsTmpl from './templates/player-sensors.tmpl';
 //
 import mlPresets from '../../shared/config/ml-presets';
 import { colors } from '../../shared/config/ui';
@@ -39,6 +43,10 @@ class ControllerView extends View {
     this.projectTmpl = template(projectTmpl);
     this.projectParamsTmpl = template(projectParamsTmpl);
     this.playerTmpl = template(playerTmpl);
+    this.playerParamsTmpl = template(playerParamsTmpl);
+    this.playerSensorsTmpl = template(playerSensorsTmpl);
+
+    this.lfoDisplayChains = new Map();
 
     this.installEvents({
       // ----------------------------------------------------------------
@@ -56,6 +64,7 @@ class ControllerView extends View {
           $params.classList.add('hidden');
       },
       'click #header .create-project': e => {
+        e.preventDefault();
         const $btn = e.target;
         const $input = $btn.previousElementSibling;
         const name = $input.value;
@@ -64,6 +73,7 @@ class ControllerView extends View {
       },
       'click .project .delete-project': e => {
         // if (window.confirm('Are you sure?')) {
+          e.preventDefault();
           const $btn = e.target;
           const $project = $btn.closest('.project');
           const uuid = $project.dataset.uuid;
@@ -77,6 +87,7 @@ class ControllerView extends View {
       // ----------------------------------------------------------------
       // player change project
       'change .change-project': e => {
+        e.preventDefault();
         const $target = e.target;
         const $player = $target.closest('.player');
         const projectUuid = $target.value;
@@ -93,6 +104,17 @@ class ControllerView extends View {
         const uuid = $project.dataset.uuid;
         const name = $input.dataset.name;
         const value = $input.value;
+
+        this.request('update-project-param', { uuid, name, value });
+      },
+
+      'click .project input[type=checkbox].project-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $project = $input.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = !($input.hasAttribute('checked'));
 
         this.request('update-project-param', { uuid, name, value });
       },
@@ -155,6 +177,22 @@ class ControllerView extends View {
 
         this.request('update-player-param', { uuid, name, value });
       },
+
+      'click .player .sensors-display .close': e => {
+        e.preventDefault();
+        const $btn = e.target;
+        const $player = $btn.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const index = parseInt($player.dataset.index, 10);
+
+        this.request('update-player-param', {
+          uuid: uuid,
+          name: 'sensors.stream',
+          value: false,
+        });
+
+        this._deleteSensorsStream(uuid, index);
+      }
     });
   }
 
@@ -200,28 +238,158 @@ class ControllerView extends View {
   }
 
   addPlayerToProject(player, project) {
-    const selector = `#_${player.project.uuid} > .players`;
-    const $container = this.$projects.querySelector(selector);
     const data = { player: player, global: this.model };
     const $player = createDOM(this.playerTmpl, data);
 
+    const selector = `#_${player.project.uuid} > .players`;
+    const $container = this.$projects.querySelector(selector);
     $container.appendChild($player);
+
+    this.updatePlayer(player);
   }
 
   removePlayerFromProject(player, project) {
     const selector = `#_${player.uuid}`;
     const $player = this.$el.querySelector(selector);
 
+    if (this.lfoDisplayChains.has(player.index))
+      this._deleteSensorsStream(player.uuid, player.index);
+
     $player.remove();
   }
 
   updatePlayer(player) {
-    const $current = this.$el.querySelector(`#_${player.uuid}`);
+    const $container = this.$el.querySelector(`#_${player.uuid} .player-params`);
     const data = { player: player, global: this.model };
-    const $new = createDOM(this.playerTmpl, data);
-    const $container = $current.parentElement;
+    const $player = this.playerParamsTmpl(data);
+    // update or create
+    $container.innerHTML = $player;
 
-    $container.replaceChild($new, $current);
+    // remove from player template, is overriden on each param change
+    if (player.params.sensors.stream) {
+      const hasChain = this.lfoDisplayChains.has(player.index);
+
+      if (!hasChain) {
+        const $sensorsContainer = this.$el.querySelector(`#_${player.uuid} .sensors-display`);
+        const playerSensors = this.playerSensorsTmpl({});
+        $sensorsContainer.innerHTML = playerSensors;
+
+        const $canvasContainer = $sensorsContainer.querySelector('.canvas-container');
+        const $controllerContainer = $sensorsContainer.querySelector('.controllers');
+
+        const displayFilter = [1, 1, 1, 1, 1, 1, 1, 1];
+        // build lfo chain
+        const eventIn = new lfo.source.EventIn({
+          frameType: 'vector',
+          frameSize: 8,
+          frameRate: 0,
+        });
+
+        const filter = new lfo.operator.Multiplier({
+          factor: displayFilter,
+        });
+
+        const bpfDisplay = new lfo.sink.BpfDisplay({
+          min: -1,
+          max: 1,
+          width: 600,
+          height: 300,
+          duration: 10,
+          line: true,
+          radius: 0,
+          colors: [
+            '#da251c', '#f8cc11', // intensity
+            'steelblue', 'orange', 'green',
+            '#565656', '#fa8064', '#54b2a9',
+          ],
+          container: $canvasContainer,
+        });
+
+        eventIn.connect(filter);
+        filter.connect(bpfDisplay);
+        eventIn.start();
+
+        // controls
+        const intensityToggle = new controllers.Toggle({
+          label: 'intensity',
+          active: true,
+          container: $controllerContainer,
+          callback: active => {
+            const value = active === true ? 1 : 0;
+            displayFilter[0] = value;
+            displayFilter[1] = value;
+          }
+        });
+
+        const bandpassToggle = new controllers.Toggle({
+          label: 'bandpass',
+          active: true,
+          container: $controllerContainer,
+          callback: active => {
+            const value = active === true ? 1 : 0;
+            displayFilter[2] = value;
+            displayFilter[3] = value;
+            displayFilter[4] = value;
+          }
+        });
+
+        const orientationToggle = new controllers.Toggle({
+          label: 'orientation',
+          active: true,
+          container: $controllerContainer,
+          callback: active => {
+            const value = active === true ? 1 : 0;
+            displayFilter[5] = value;
+            displayFilter[6] = value;
+            displayFilter[7] = value;
+          }
+        });
+
+        const bpfTickness = new controllers.Slider({
+          label: 'tickness',
+          min: 0,
+          max: 10,
+          step: 1,
+          value: 0,
+          container: $controllerContainer,
+          callback: value => bpfDisplay.params.set('radius', value),
+        });
+
+        const lfoChain = {
+          eventIn, filter, bpfDisplay,
+          intensityToggle, bandpassToggle, orientationToggle, bpfTickness
+        };
+
+        this.lfoDisplayChains.set(player.index, lfoChain);
+
+      // @todo - change behavior to be able to keep a stopped visualization
+      } else {
+        const lfoChain = this.lfoDisplayChains.get(player.index);
+        lfoChain.bpfDisplay.resetStream();
+      }
+    }
+  }
+
+  processSensorsStream(playerIndex, data) {
+    const chain = this.lfoDisplayChains.get(playerIndex);
+    // as everything is async, we cannot garantee that the chain still exists
+    if (chain)
+      chain.eventIn.process(null, data);
+  }
+
+  _deleteSensorsStream(uuid, index) {
+    let lfoChain = this.lfoDisplayChains.get(index);
+
+    lfoChain.eventIn.finalizeStream();
+    lfoChain.eventIn.destroy();
+    lfoChain.filter.destroy();
+    lfoChain.bpfDisplay.destroy();
+
+    this.lfoDisplayChains.delete(index);
+    lfoChain = null;
+    // delete container
+    const $container = this.$el.querySelector(`.players #_${uuid} .sensors-display`);
+    $container.innerHTML = '';
   }
 }
 

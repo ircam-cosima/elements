@@ -2,14 +2,9 @@
 import { client } from 'soundworks/client';
 import PlayerExperience from './PlayerExperience';
 import serviceViews from '../shared/serviceViews';
+// load modules
+import * as modules from '../shared/modules/index';
 
-// load all modules
-import ProjectParamsControlModule from '../shared/modules/project-params-control/ProjectParamsControlModule';
-import ProjectManagerModule from '../shared/modules/project-manager/ProjectManagerModule';
-import GestureRecognitionModule from '../shared/modules/gesture-recognition/GestureRecognitionModule';
-import AudioRendererModule from '../shared/modules/audio-renderer/AudioRendererModule';
-import CanvasRendererModule from '../shared/modules/canvas-renderer/CanvasRendererModule';
-import RecordingControlModule from '../shared/modules/recording-control/RecordingControlModule';
 
 function bootstrap() {
   // initialize the client with configuration received

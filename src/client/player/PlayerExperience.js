@@ -24,11 +24,13 @@ class PlayerExperience extends soundworks.Experience {
       files: { uiSounds },
     });
 
-    this.subscriptions = new Map();
+    this.streamSensors = false;
 
-    /**
-     * List of instanciated modules
-     */
+    if (Object.keys(this.preset).indexOf('stream-sensors') !== -1)
+      this.rawSocket = this.require('raw-socket');
+
+
+    this.subscriptions = new Map();
     this.modules = new Map();
 
     this.dispatch = this.dispatch.bind(this);
@@ -60,7 +62,7 @@ class PlayerExperience extends soundworks.Experience {
       this.view.addPlaceholder(mod.id);
     }
 
-    // initialization
+    // modules initialization
     const initPromises = [];
 
     this.modules.forEach(module => {
@@ -94,7 +96,6 @@ class PlayerExperience extends soundworks.Experience {
     this.modules.forEach(module => module.stop());
   }
 
-  //
   subscribe(module, actionType) {
     if (!this.subscriptions.has(actionType)) {
       this.subscriptions.set(actionType, new Set());

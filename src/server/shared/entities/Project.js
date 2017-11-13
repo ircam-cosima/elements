@@ -6,23 +6,16 @@ import merge from 'lodash.merge';
 import { labels as audioConfig } from '../../../shared/config/audio';
 
 
-function clone(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}
-
-
 class Project {
   constructor() {
     this.uuid = null;
     this.players = new PlayerCollection();
 
     this.trainingData = new mano.TrainingData();
-    // @todo - remove that
-    this.processor = new mano.XmmProcessor({
-      // config should come from somewhere else
-      // url: `http://localhost:${config.port}${config.trainUrl}`,
-      url: null,
-    });
+    // copy of `this.trainingData` according to `params.learning.filter`
+    this.filteredTrainingData = new mano.TrainingData();
+    // used for config formatting
+    this.processor = new mano.XmmProcessor({ url: null, });
 
     /**
      * xmm model is not part of the params as it will never be saved but always
@@ -45,6 +38,11 @@ class Project {
       learning: {
         config: null,
         trainingSet: null,
+        inputs: { // use data when true
+          intensity: true,
+          bandpass: true,
+          orientation: true,
+        }
       },
       recording: {
         type: 'AutoTrigger',

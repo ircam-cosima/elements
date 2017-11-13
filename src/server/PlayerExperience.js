@@ -12,7 +12,7 @@ class PlayerExperience extends Experience {
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.checkin = this.require('checkin');
 
-    // @todo - if some preset contains 'stream-sensors'
+    // define if we need the `rawSocket` service
     this.streamSensors = false;
 
     for (let name in presets) {
@@ -34,10 +34,6 @@ class PlayerExperience extends Experience {
 
   start() {
     super.start();
-
-    // create sensor and decoding chain (is common to every player)
-    if (this.streamSensors)
-      this.initializeSensorStreaming();
 
     appStore.addListener((channel, ...args) => {
       switch (channel) {
@@ -131,6 +127,10 @@ class PlayerExperience extends Experience {
     this.receive(client, 'subscribe', this.subscribe(client));
     this.receive(client, 'unsubscribe', this.unsubscribe(client));
     this.receive(client, 'request', this.request(client));
+
+    // create sensor and decoding chain (is common to every player)
+    if (this.streamSensors)
+      this.initializeSensorStreaming(client);
   }
 
   exit(client) {
@@ -172,8 +172,9 @@ class PlayerExperience extends Experience {
           break;
         }
         case 'add-player-to-project': {
-          const { uuid } = payload;
-          const project = appStore.projects.get(uuid);
+          const { projectUuid } = payload;
+          // @todo - allow request by name
+          const project = appStore.projects.get(projectUuid);
           appStore.removePlayerFromProject(player, player.project);
           appStore.addPlayerToProject(player, project);
           break;
@@ -251,10 +252,10 @@ class PlayerExperience extends Experience {
     }
   }
 
-  initializeSensorStreaming() {
-    // this.rawSocket.receive('sensors', data => {
-    //   this.rawSocket.broadcast('controller', null, 'sensor', data);
-    // });
+  initializeSensorStreaming(client) {
+    this.rawSocket.receive(client, 'sensors', data => {
+      this.rawSocket.broadcast('controller', null, 'sensors', data);
+    });
   }
 }
 

@@ -3,15 +3,28 @@ import appStore from './shared/appStore';
 
 
 class ControllerExperience extends Experience {
-  constructor(clientType, config, comm) {
+  constructor(clientType, config, presets, comm) {
     super(clientType);
 
     this.config = config;
     this.comm = comm;
 
-    // this.rawSocket = this.require('raw-socket', {
-    //   protocol: { channel: 'sensors', type: 'Float32' },
-    // });
+    // define if we need the `rawSocket` service
+    this.streamSensors = false;
+
+    for (let name in presets) {
+      const preset = presets[name];
+      const modules = Object.keys(preset);
+
+      if (modules.indexOf('stream-sensors') !== -1)
+        this.streamSensors = true;
+    }
+
+    if (this.streamSensors) {
+      this.rawSocket = this.require('raw-socket', {
+        protocol: { channel: 'sensors', type: 'Float32' },
+      });
+    }
   }
 
   start() {

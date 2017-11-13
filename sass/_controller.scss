@@ -5,6 +5,10 @@
 
   p {
     font-size: 0.9rem;
+
+    &.tiny {
+      font-size: 0.7rem;
+    }
   }
 }
 
@@ -12,7 +16,7 @@
   font-size: 0.8rem;
   cursor: pointer;
   display: inline-block;
-  width: 140px;
+  width: 160px;
   height: 30px;
 }
 
@@ -32,8 +36,7 @@ select {
 
   h1 {
     font-size: 1rem;
-    // font-weight: normal;
-    width: 283px;
+    width: 650px;
     display: inline-block;
   }
 
@@ -93,7 +96,7 @@ select {
     top: 12px;
     left: 0;
     width: 20px;
-    height: 42px;
+    height: 30px;
   }
 
   .type {
@@ -113,14 +116,14 @@ select {
     box-sizing: border-box;
   }
 
-  .audio-params {
-    height: 30px;
-    margin-bottom: 12px;
+  .checkbox {
+    display: inline-block;
+    width: 160px;
+  }
 
-    .checkbox {
-      display: inline-block;
-      width: 170px;
-    }
+  .audio-params, .sensors-params {
+    height: 30px;
+    display: inline-block;
   }
 
   .recording-control {
@@ -144,5 +147,40 @@ select {
       box-sizing: border-box;
     }
 
+  }
+
+  .sensors-display {
+    background-color: 1px solid #efefef;
+    position: relative;
+    margin-top: 12px;
+    overflow: auto;
+
+    .close {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 20px;
+      height: 20px;
+    }
+
+    .controllers {
+      width: 602px;
+      margin-left: 20px;
+
+      .basic-controllers {
+        border: none;
+        border-bottom: 1px solid #cdcdcd;
+        background-color: transparent;
+      }
+
+      .basic-controllers span {
+        font-size: 0.8rem;
+        font-style: normal;
+      }
+    }
+
+    .canvas-container, .controllers {
+      float: left;
+    }
   }
 }

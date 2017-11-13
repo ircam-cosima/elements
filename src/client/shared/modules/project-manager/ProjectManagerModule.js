@@ -38,7 +38,9 @@ class ProjectManager extends BaseModule {
     });
 
     this.view.request = (type, payload) => {
-      // payload.clientUuid = client.uuid;
+      if (type === 'add-player-to-project')
+        payload.clientUuid = client.uuid;
+
       const action = { type, payload };
       this.request(action);
     };
@@ -71,7 +73,7 @@ class ProjectManager extends BaseModule {
         type: 'add-player-to-project',
         payload: {
           clientUuid: client.uuid,
-          projectUuid: 'fefc0121-083c-4fe9-9a08-bd35d4a25790',
+          projectUuid: this.options.forceProject,
         },
       };
 

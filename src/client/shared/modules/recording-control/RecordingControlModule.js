@@ -1,4 +1,4 @@
-import { client } from 'soundworks/client';
+import { client, audioContext } from 'soundworks/client';
 import * as lfo from 'waves-lfo/common';
 import * as mano from 'mano-js';
 import BaseModule from '../BaseModule';
@@ -19,6 +19,7 @@ class RecordingControlModule extends BaseModule {
     this.subscriptions = [
       'add-player-to-project',
       'update-player-param',
+      'update-project-param',
       'update-model',
     ];
 
@@ -86,7 +87,9 @@ class RecordingControlModule extends BaseModule {
     this.feedAutoTrigger = this.feedAutoTrigger.bind(this);
 
     const buffers = this.experience.audioBufferManager.data.uiSounds;
+
     this.sampleSynth = new SampleSynth(buffers);
+    this.sampleSynth.connect(this.experience.getAudioOutput());
   }
 
   show() {
@@ -95,12 +98,11 @@ class RecordingControlModule extends BaseModule {
     this.view.appendTo(this.getContainer());
   }
 
-  // hide() {}
-
   dispatch(action) {
     const { type, payload } = action;
     let recordParams;
 
+    // handle trained labels
     if (type === 'update-model' || type === 'add-player-to-project') {
       const model = type === 'update-model' ? payload.model : payload.project.model;
       const trainedLabels = model.payload.models.map(mod => mod.label);
@@ -108,6 +110,21 @@ class RecordingControlModule extends BaseModule {
       this.view.model.trainedLabels = trainedLabels;
     }
 
+    // handle autoTrigger params
+    if (type === 'add-player-to-project' || type === 'update-project-param') {
+      let recording = null;
+
+      if (type === 'add-player-to-project')
+        recording = payload.project.params.recording.options;
+      else
+        recording = payload.params.recording.options;
+
+      this.autoTrigger.highThreshold = recording.highThreshold;
+      this.autoTrigger.lowThreshold = recording.lowThreshold;
+      this.autoTrigger.offDelay = recording.offDelay;
+    }
+
+    // handle recording state
     if (type === 'add-player-to-project' || type === 'update-player-param') {
       switch (type) {
         case 'add-player-to-project':

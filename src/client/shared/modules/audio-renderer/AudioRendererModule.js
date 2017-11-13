@@ -146,30 +146,40 @@ class AudioRendererModule extends BaseModule {
 
   enablePreview(label) {
     this.gestureRecognitionModule.removeDecoderListener(this.processDecoderOutput);
-    this.mapping.enablePreview(label);
+
+    if (this.mapping)
+      this.mapping.enablePreview(label);
   }
 
   disablePreview() {
-    this.mapping.disablePreview();
+    if (this.mapping)
+      this.mapping.disablePreview();
+
     this.gestureRecognitionModule.addDecoderListener(this.processDecoderOutput);
   }
 
   enableSensors() {
-    this.mapping.enableSensors();
+    if (this.mapping)
+      this.mapping.enableSensors();
+
     this.gestureRecognitionModule.addSensorsListener(this.processSensorsData);
   }
 
   disableSensors() {
     this.gestureRecognitionModule.removeSensorsListener(this.processSensorsData);
-    this.mapping.disableSensors();
+
+    if (this.mapping)
+      this.mapping.disableSensors();
   }
 
   processSensorsData(data) {
-    this.mapping.processSensorsData(data);
+    if (this.mapping)
+      this.mapping.processSensorsData(data);
   }
 
   processDecoderOutput(data) {
-    this.mapping.processDecoderOutput(data);
+    if (this.mapping)
+      this.mapping.processDecoderOutput(data);
   }
 }
 

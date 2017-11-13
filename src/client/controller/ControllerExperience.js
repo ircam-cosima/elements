@@ -9,6 +9,21 @@ class ControllerExperience extends Experience {
     this.config = config;
 
     this.dispatch = this.dispatch.bind(this);
+
+    // define if we need the `rawSocket` service
+    const presets = config.presets;
+    this.streamSensors = false;
+    this.buffer = null;
+
+    for (let name in presets) {
+      const preset = presets[name];
+      const modules = Object.keys(preset);
+
+      if (modules.indexOf('stream-sensors') !== -1) {
+        this.streamSensors = true;
+        this.rawSocket = this.require('raw-socket');
+      }
+    }
   }
 
   start() {
@@ -29,6 +44,20 @@ class ControllerExperience extends Experience {
       const action = { type, payload };
       this.request(action);
     };
+
+    if (this.streamSensors) {
+      this.rawSocket.receive('sensors', data => {
+        if (!this.buffer)
+          this.buffer = new Float32Array(data.length - 1);
+
+        const playerIndex = data[0];
+
+        for (let i = 0; i < this.buffer.length; i++)
+          this.buffer[i] = data[i + 1];
+
+        this.view.processSensorsStream(playerIndex, this.buffer);
+      });
+    }
 
     this.show();
   }

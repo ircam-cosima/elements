@@ -17,18 +17,15 @@ const template = `
   <div class="overlay-container">
 
     <% if (enableCreation) { %>
-    <p>Create or select project</p>
-    <input type="text" class="project-name" placeholder="project name" />
-    <button class="btn create-project">Send</button>
+      <p>Create or select project</p>
+      <input type="text" class="project-name" placeholder="project name" />
+      <button class="btn create-project">Send</button>
     <% } %>
 
     <% if (projectList !== 'none') { %>
 
       <p>Select project</p>
-
-      <p class="error">
-      <% if (error === true) { %><%= text.error %><% } %>
-      </p>
+      <p class="error"><% if (error === true) { %><%= text.error %><% } %></p>
 
       <% if (projectList === 'select') { %>
 
@@ -52,7 +49,6 @@ const template = `
     <% } %>
   </div>
   <% } %>
-
 </div>
 
 <% } %>
@@ -110,10 +106,10 @@ class ProjectChooserView extends View {
 
       this.installEvents({
         [`${action} .select-project`]: e => {
-          const uuid = e.target.value;
+          const projectUuid = e.target.value;
 
-          if (uuid !== '')
-            this.request('add-player-to-project', { uuid });
+          if (projectUuid !== '')
+            this.request('add-player-to-project', { projectUuid });
         },
       });
     }
@@ -125,7 +121,7 @@ class ProjectChooserView extends View {
     super.onRender();
 
     // the overlay must be skipped only on first rendering
-    if (this.state === 'reduced')
+    if (this.model.state === 'reduced')
       this.model.forceProject = false;
 
     this.$el.classList.remove('reduced', 'expanded');

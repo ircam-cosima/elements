@@ -5,6 +5,7 @@ const presets = {
       enableChange: true,
       enableCreation: true,
       projectList: 'buttons', // 'none' | 'select' | 'buttons'
+      forceProject: 'abe43a26-42ca-4687-ba85-874976d70efc',
     },
     'gesture-recognition': {},
     'audio-renderer': {},
@@ -12,6 +13,9 @@ const presets = {
     'canvas-renderer': {
       background: false,
       likelihoods: true,
+    },
+    'stream-sensors': {
+      oscPort: null,
     },
   },
 

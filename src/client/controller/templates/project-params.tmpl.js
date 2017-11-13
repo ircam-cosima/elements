@@ -1,4 +1,6 @@
 const projectParamsTmpl = `
+<p class="tiny"><%= project.uuid %></p>
+
 <h2>Labels</h2>
 
 <button class="btn clear danger" data-type="clear-all-examples">
@@ -17,6 +19,29 @@ const projectParamsTmpl = `
 <% for (var name in global.mlPresets) { %>
   <button class="btn preset" value="<%= name %>"><%= global.mlPresets[name].label %></button>
 <% } %>
+
+<h2>Inputs</h2>
+
+<label class="param checkbox">
+  <% var checked = project.params.learning.inputs.intensity ? ' checked' : ''; %>
+  <input type="checkbox" class="project-param" data-name="learning.inputs.intensity"<%= checked %> />
+  <div class="checkbox-ui"></div>
+  <span>Intensity</span>
+</label>
+
+<label class="param checkbox">
+  <% var checked = project.params.learning.inputs.bandpass ? ' checked' : ''; %>
+  <input type="checkbox" class="project-param" data-name="learning.inputs.bandpass"<%= checked %> />
+  <div class="checkbox-ui"></div>
+  <span>Bandpass</span>
+</label>
+
+<label class="param checkbox">
+  <% var checked = project.params.learning.inputs.orientation ? ' checked' : ''; %>
+  <input type="checkbox" class="project-param" data-name="learning.inputs.orientation"<%= checked %> />
+  <div class="checkbox-ui"></div>
+  <span>Orientation</span>
+</label>
 
 <h2>Learning Params</h2>
 
