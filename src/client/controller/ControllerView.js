@@ -14,8 +14,15 @@ import { colors } from '../../shared/config/ui';
 
 const tmpl = `
   <div id="header">
-    <input type="text" placeholder="project name" class="project-name" value="" />
-    <button class="btn normal create-project">Create</button>
+    <div class="section" id="create-project">
+      <input type="text" placeholder="project name" class="project-name" value="" />
+      <button class="btn normal create-project">Create</button>
+    </div>
+
+    <form class="section" id="upload-project" enctype="multipart/form-data" method="post">
+      <input type="file" name="project" required />
+      <input type="submit" class="btn normal" value="upload" />
+    </form>
   </div>
   <div id="projects"></div>
 `;
@@ -52,6 +59,37 @@ class ControllerView extends View {
       // ----------------------------------------------------------------
       //
       // ----------------------------------------------------------------
+      'click #header .create-project': e => {
+        e.preventDefault();
+        const $btn = e.target;
+        const $input = $btn.previousElementSibling;
+        const name = $input.value;
+
+        this.request('create-project', { name });
+      },
+
+      'submit #header #upload-project': e => {
+        e.preventDefault();
+        const $form = e.target;
+        const data = new FormData($form);
+
+        const request = new XMLHttpRequest();
+        request.open('POST', './upload', true);
+        request.onload = e => {
+          console.log(e);
+        }
+
+        request.send(data);
+      },
+
+      'click .project .export-project': e => {
+        e.preventDefault();
+        const $btn = e.target;
+        const $project = $btn.closest('.project');
+        const uuid = $project.dataset.uuid;
+
+        window.open(`./download?uuid=${uuid}`);
+      },
       'click .project .toggle-params': e => {
         e.preventDefault();
         const $btn = e.target;
@@ -63,23 +101,15 @@ class ControllerView extends View {
         else
           $params.classList.add('hidden');
       },
-      'click #header .create-project': e => {
-        e.preventDefault();
-        const $btn = e.target;
-        const $input = $btn.previousElementSibling;
-        const name = $input.value;
-
-        this.request('create-project', { name });
-      },
       'click .project .delete-project': e => {
-        // if (window.confirm('Are you sure?')) {
+        if (window.confirm('Are you sure?')) {
           e.preventDefault();
           const $btn = e.target;
           const $project = $btn.closest('.project');
           const uuid = $project.dataset.uuid;
 
           this.request('delete-project', { uuid });
-        // }
+        }
       },
 
       // ----------------------------------------------------------------
@@ -96,7 +126,7 @@ class ControllerView extends View {
         this.request('add-player-to-project', { playerUuid, projectUuid });
       },
 
-      // project params
+      // project params (select, numbers)
       'change .project .project-param': e => {
         e.preventDefault();
         const $input = e.target;
@@ -119,13 +149,23 @@ class ControllerView extends View {
         this.request('update-project-param', { uuid, name, value });
       },
 
-            // @todo - these have bad behaviors due to rendering
+      // @fixme (but how?) - these have bad behavior due to rendering
       'input .project input[type=range].project-param': e => {
         const $input = e.target;
         const $project = $input.closest('.project');
         const uuid = $project.dataset.uuid;
         const name = $input.dataset.name;
         const value = $input.value;
+
+        this.request('update-project-param', { uuid, name, value });
+      },
+      // name
+      'blur .project [contenteditable].project-param': e => {
+        const $input = e.target;
+        const $project = $input.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.textContent;
 
         this.request('update-project-param', { uuid, name, value });
       },
@@ -201,6 +241,17 @@ class ControllerView extends View {
         this.request('update-player-param', { uuid, name, value });
       },
 
+      'click .player .trigger-audio': e => {
+        e.preventDefault();
+        const $el = e.target;
+        const $player = $el.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const kind = $el.dataset.kind;
+        const label = $el.dataset.label;
+
+        this.request('trigger-audio', { uuid, kind, label });
+      },
+
       'click .player .sensors-display .close': e => {
         e.preventDefault();
         const $btn = e.target;
@@ -252,8 +303,14 @@ class ControllerView extends View {
   }
 
   updateProject(project) {
-    const selector = `#_${project.uuid} .params`;
-    const $paramsContainer = this.$projects.querySelector(selector);
+    // update project name
+    const nameSelector = `#_${project.uuid} .header .name`;
+    const $name = this.$projects.querySelector(nameSelector);
+    $name.textContent = project.params.name;
+
+    // update params
+    const paramsSelector = `#_${project.uuid} .header .params`;
+    const $paramsContainer = this.$projects.querySelector(paramsSelector);
     const data = { project: project, global: this.model };
     const params = this.projectParamsTmpl(data);
 

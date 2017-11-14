@@ -59,6 +59,10 @@ class PlayerExperience extends soundworks.Experience {
     for (let moduleId in this.preset) {
       const ctor = moduleManager.get(moduleId);
       const options = this.preset[moduleId];
+
+      if (!ctor)
+        throw new Error(`Undefined module "${moduleId}"`);
+
       const mod = new ctor(this, options);
       this.modules.set(mod.id, mod);
       this.view.addPlaceholder(mod.id);

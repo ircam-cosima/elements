@@ -49,8 +49,16 @@ const appStore = {
   /**
    *
    */
-  createProject(name) {
+  createProject(name, params = null) {
     const project = Project.create(name);
+
+    if (params !== null) {
+      merge(project.params, params);
+      // update training instances
+      const { trainingSet, config } = project.params.learning;
+      project.trainingData.setTrainingSet(trainingSet);
+      project.processor.setConfig(config);
+    }
 
     const promise = this._persistProject(project)
       .then(() => this._updateModel(project, true))
@@ -154,7 +162,7 @@ const appStore = {
       }
     }
 
-    this.emit('update-player-param', player);
+    this.emit('update-player-param', player, name, value);
   },
 
   updateProjectParam(project, name, value) {
@@ -212,7 +220,7 @@ const appStore = {
       }
     }
 
-    this.emit('update-project-param', project);
+    this.emit('update-project-param', project, name, value);
 
     if (path[0] === 'learning') {
       project.processor.setConfig(project.params.learning.config);

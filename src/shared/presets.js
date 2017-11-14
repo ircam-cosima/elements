@@ -5,7 +5,7 @@ const presets = {
       enableChange: true,
       enableCreation: true,
       projectList: 'buttons', // 'none' | 'select' | 'buttons'
-      forceProject: 'abe43a26-42ca-4687-ba85-874976d70efc',
+      forceProject: 'cdb88e55-7977-476c-8616-2a9fe063f357',
     },
     'gesture-recognition': {},
     'audio-renderer': {},
@@ -17,6 +17,7 @@ const presets = {
     'stream-sensors': {
       oscPort: null,
     },
+    'audio-trigger': {},
   },
 
   // default: {

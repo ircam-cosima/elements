@@ -35,6 +35,13 @@ class PlayerExperience extends Experience {
   start() {
     super.start();
 
+    this.comm.addListener('trigger-audio', action => {
+      const { uuid } = action.payload;
+      const player = appStore.players.get(uuid);
+
+      this.dispatch(action, player.client);
+    });
+
     appStore.addListener((channel, ...args) => {
       switch (channel) {
         case 'add-player-to-project': {
@@ -74,7 +81,7 @@ class PlayerExperience extends Experience {
           break;
         }
         case 'update-project-param': {
-          const [project] = args;
+          const [project, name] = args;
           const action = {
             type: 'update-project-param',
             payload: project.serialize(),
@@ -82,6 +89,16 @@ class PlayerExperience extends Experience {
 
           const clients = project.players.getClients();
           this.dispatch(action, clients);
+
+          if (name === 'name') {
+            const action = {
+              type: 'list-project-overview',
+              payload: appStore.projects.overview(),
+            }
+
+            const clients = this.subscriptions.get('list-project-overview');
+            this.dispatch(action, clients);
+          }
           break;
         }
         case 'update-model': {

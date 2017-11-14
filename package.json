@@ -30,6 +30,7 @@
     "body-parser": "^1.17.2",
     "chalk": "^2.1.0",
     "debug": "2.6.9",
+    "express-fileupload": "^0.3.0",
     "lodash.merge": "4.6.0",
     "lodash.template": "^4.4.0",
     "mano-js": "github:ircam-rnd/mano-js",

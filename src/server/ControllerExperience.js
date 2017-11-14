@@ -198,6 +198,9 @@ class ControllerExperience extends Experience {
           appStore.clearAllExamplesFromProject(project);
           break;
         }
+        case 'trigger-audio': {
+          this.comm.emit('trigger-audio', action);
+        }
 
       }
     }

@@ -7,7 +7,7 @@ const playerParamsTmpl = `
 
 <!-- <p class="small"><%= player.uuid %></p> -->
 <% var color = global.colors[player.index] %>
-<div class="color" style="background-color: <%= color %>"></div>
+<div class="color trigger-audio" data-kind="ui" data-label="noise" style="background-color: <%= color %>"></div>
 
 <p class="type"><%= player.type %></p>
 <select class="change-project">

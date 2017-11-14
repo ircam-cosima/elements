@@ -10,6 +10,16 @@
       font-size: 0.7rem;
     }
   }
+
+  #header {
+    .section {
+      margin: 12px 0;
+    }
+
+    input[type=text] {
+      width: 284px;
+    }
+  }
 }
 
 .btn {
@@ -36,7 +46,7 @@ select {
 
   h1 {
     font-size: 1rem;
-    width: 650px;
+    width: 390px;
     display: inline-block;
   }
 

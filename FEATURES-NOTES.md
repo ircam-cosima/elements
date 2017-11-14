@@ -9,8 +9,8 @@
 
 - mute / sensors at project level (ok)
 - slider volume per projet / client (`project.params.clientParams`) - ok
-- trigger audio
-- import / export project
+- trigger audio - ok (noise)
+- import / export project - 
 
 ===================================================================
 

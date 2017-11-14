@@ -1,12 +1,14 @@
 import 'source-map-support/register'; // enable sourcemaps in node
 import { EventEmitter } from 'events';
 import path from 'path';
+import fileUpload from 'express-fileupload';
 import * as soundworks from 'soundworks/server';
 
 import appStore from './shared/appStore';
 import ControllerExperience from './ControllerExperience';
 import PlayerExperience from './PlayerExperience';
 
+import projectDbMapper from './shared/utils/projectDbMapper';
 import presets from '../shared/presets';
 
 const server = soundworks.server;
@@ -33,6 +35,8 @@ if (process.env.PORT)
 appStore.init()
   .then(() => {
     server.init(config);
+
+    server.router.use(fileUpload());
     // define the configuration object to be passed to the `.ejs` template
     server.setClientConfigDefinition((clientType, config, httpRequest) => {
       return {
@@ -49,11 +53,36 @@ appStore.init()
     });
 
     const comm = new EventEmitter();
-
     const clientTypes = Object.keys(presets);
-    const player = new PlayerExperience(clientTypes, config, presets, comm);
 
+    const player = new PlayerExperience(clientTypes, config, presets, comm);
     const controller = new ControllerExperience('controller', config, presets, comm);
+
+    // updload and download files
+    server.router.get('/download', (req, res) => {
+      const uuid = req.query.uuid;
+      const filename = projectDbMapper.getFilename(uuid);
+      res.download(filename);
+    });
+
+    server.router.post('/upload', (req, res) => {
+      if (!req.files)
+        return res.status(400).send('No files were uploaded.');
+
+      const file = req.files.project;
+      let json = null;
+
+      try {
+        json = JSON.parse(file.data.toString());
+      } catch(err) {
+        return res.status(500).send(err);
+      }
+
+      appStore
+        .createProject(json.params.name, json.params)
+        .then(() => res.send('project restored'))
+        .catch(err => res.status(500).send(err))
+    });
 
     server.start();
   })

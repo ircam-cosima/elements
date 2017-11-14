@@ -11,6 +11,11 @@ if (!fs.existsSync(dbPath))
  * Naive project persistance implementation.
  */
 const projectStore = {
+  getFilename(uuid) {
+    const filename = path.join(dbPath, `${uuid}.json`);
+    return filename;
+  },
+
   getList() {
     return new Promise((resolve, reject) => {
       fs.readdir(dbPath, (err, files) => {

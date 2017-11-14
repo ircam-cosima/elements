@@ -20,6 +20,7 @@ class ProjectManager extends BaseModule {
       'list-project-overview',
       'add-player-to-project',
       'remove-player-from-project',
+      'update-project-param',
     ];
 
     this.allowedRequests = [
@@ -82,21 +83,28 @@ class ProjectManager extends BaseModule {
   }
 
   dispatch(action) {
-    switch (action.type) {
+    const { type, payload } = action;
+
+    switch (type) {
       case 'list-project-overview': {
-        this.view.model.projectOverviewList = action.payload;
+        this.view.model.projectOverviewList = payload;
         this.view.render();
         break;
       }
       case 'add-player-to-project': {
-        this.view.model.project = action.payload.project;
+        this.view.model.project = payload.project;
         this.view.model.state = 'reduced',
         this.view.render();
         break;
       }
       case 'remove-player-from-project': {
-        this.view.model.project = action.payload.project;
+        this.view.model.project = payload.project;
         this.view.model.state = 'expanded',
+        this.view.render();
+        break;
+      }
+      case 'update-project-param': {
+        this.view.model.project = payload;
         this.view.render();
         break;
       }
