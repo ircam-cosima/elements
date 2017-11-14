@@ -254,7 +254,7 @@ class PlayerExperience extends Experience {
 
   initializeSensorStreaming(client) {
     this.rawSocket.receive(client, 'sensors', data => {
-      this.rawSocket.broadcast('controller', null, 'sensors', data);
+      this.comm.emit('sensors', data);
     });
   }
 }

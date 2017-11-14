@@ -13,6 +13,7 @@ class Player {
       audioRendering: {
         sensors: false,
         intensity: false,
+        volume: 0, // in dB
       },
       record: {
         state: 'idle',

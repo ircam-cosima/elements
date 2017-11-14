@@ -1,5 +1,6 @@
 import * as soundworks from 'soundworks/client';
 import * as mano from 'mano-js';
+import { decibelToLinear } from 'soundworks/utils/math';
 import moduleManager from '../shared/modules/moduleManager';
 import PlayerView from './PlayerView';
 // shared informations
@@ -52,6 +53,7 @@ class PlayerExperience extends soundworks.Experience {
     this.masterNode = audioContext.createGain();
     this.masterNode.connect(this.muteNode);
     this.masterNode.gain.value = 1;
+    this.masterNode.gain.setValueAtTime(1, audioContext.currentTime);
 
     // instanciate modules from configuration
     for (let moduleId in this.preset) {
@@ -138,6 +140,11 @@ class PlayerExperience extends soundworks.Experience {
 
   getAudioOutput() {
     return this.masterNode;
+  }
+
+  volume(volume) {
+    const gain = decibelToLinear(volume);
+    this.masterNode.gain.setValueAtTime(gain, audioContext.currentTime + 0.005);
   }
 
   mute(flag) {

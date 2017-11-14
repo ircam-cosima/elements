@@ -29,6 +29,7 @@ class Project {
         audioRendering: {
           sensors: false,
           mute: true,
+          volume: 0,
         },
         record: {
           label: Object.keys(audioConfig)[0], // defaults to first audio label

@@ -20,6 +20,27 @@ const projectParamsTmpl = `
   <button class="btn preset" value="<%= name %>"><%= global.mlPresets[name].label %></button>
 <% } %>
 
+<h2>Client params</h2>
+
+<label class="param checkbox">
+  <% var checked = project.params.clientDefaults.audioRendering.mute ? ' checked' : ''; %>
+  <input type="checkbox" class="project-param" data-name="clientDefaults.audioRendering.mute"<%= checked %> />
+  <div class="checkbox-ui"></div>
+  <span>Mute</span>
+</label>
+
+<label class="param checkbox">
+  <% var checked = project.params.clientDefaults.audioRendering.sensors ? ' checked' : ''; %>
+  <input type="checkbox" class="project-param" data-name="clientDefaults.audioRendering.sensors"<%= checked %> />
+  <div class="checkbox-ui"></div>
+  <span>Sensors</span>
+</label>
+
+<label class="slider">
+  <input type="range" class="project-param" data-name="clientDefaults.audioRendering.volume" min="-80" max="6" step="0.1" value="<%= project.params.clientDefaults.audioRendering.volume %>" />
+  <span>Volume</span>
+</label>
+
 <h2>Inputs</h2>
 
 <label class="param checkbox">

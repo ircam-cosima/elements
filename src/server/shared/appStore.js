@@ -195,6 +195,16 @@ const appStore = {
             }
           }
 
+          // override clients parameters
+          if (/^clientDefaults/.test(name)) {
+            const players = project.players;
+            const playerParam = name.replace(/^clientDefaults\./, '');
+
+            players.forEach(player => {
+              this.updatePlayerParam(player, playerParam, value);
+            });
+          }
+
           ref[key] = value;
         }
       } else {

@@ -1,9 +1,7 @@
 import { audioContext } from 'soundworks/client';
 
 class SampleSynth {
-  constructor(buffers) {
-    this.buffers = buffers;
-
+  constructor() {
     this.output = audioContext.createGain();
     this.output.gain.value = 1;
   }
@@ -16,9 +14,7 @@ class SampleSynth {
     this.output.disconnect();
   }
 
-  trigger(label) {
-    const buffer = this.buffers[label];
-
+  trigger(buffer) {
     const src = audioContext.createBufferSource();
     src.connect(this.output);
     src.buffer = buffer;

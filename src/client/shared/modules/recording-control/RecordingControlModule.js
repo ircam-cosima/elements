@@ -86,10 +86,8 @@ class RecordingControlModule extends BaseModule {
     this.feedRecorder = this.feedRecorder.bind(this);
     this.feedAutoTrigger = this.feedAutoTrigger.bind(this);
 
-    const buffers = this.experience.audioBufferManager.data.uiSounds;
-
-    this.sampleSynth = new SampleSynth(buffers);
-    this.sampleSynth.connect(this.experience.getAudioOutput());
+    this.sampleSynth = new SampleSynth();
+    this.sampleSynth.connect(audioContext.destination); // bypass mute
   }
 
   show() {
@@ -174,13 +172,15 @@ class RecordingControlModule extends BaseModule {
             // @note - if record has been launched from controller, auto trigger
             // is still in `off` and thus cannot trigger `stop`, define if it is
             // a desirable behavior.
-            this.sampleSynth.trigger('startRecord');
+            const buffer = this.experience.audioBufferManager.data.uiSounds['startRecord'];
+            this.sampleSynth.trigger(buffer);
             // pipe sensors into an example instance
             gestureRecognitionModule.addSensorsListener(this.feedRecorder);
             break;
           }
           case 'pending': {
-            this.sampleSynth.trigger('stopRecord');
+            const buffer = this.experience.audioBufferManager.data.uiSounds['stopRecord'];
+            this.sampleSynth.trigger(buffer);
             // stop auto trigger
             this.autoTrigger.setState('off');
 

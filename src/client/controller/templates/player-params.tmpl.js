@@ -17,6 +17,18 @@ const playerParamsTmpl = `
 <% }); %>
 </select>
 
+
+<% if (Object.keys(player.preset).indexOf('stream-sensors') !== -1) { %>
+<div class="sensors-params">
+  <label class="checkbox">
+    <% var checked = player.params.sensors.stream ? ' checked' : ''; %>
+    <input type="checkbox" class="player-param" data-name="sensors.stream"<%= checked %> />
+    <div class="checkbox-ui"></div>
+    <span>Stream sensors</span>
+  <label>
+</div>
+<% } %>
+
 <div class="audio-params">
 
   <label class="checkbox">
@@ -33,18 +45,12 @@ const playerParamsTmpl = `
     <span>Sensors</span>
   </label>
 
-</div>
+  <label class="slider">
+    <input type="range" class="player-param" data-name="audioRendering.volume" min="-80" max="6" step="0.1" value="<%= player.params.audioRendering.volume %>" />
+    <span>Volume</span>
+  </label>
 
-<% if (Object.keys(player.preset).indexOf('stream-sensors') !== -1) { %>
-<div class="sensors-params">
-  <label class="checkbox">
-    <% var checked = player.params.sensors.stream ? ' checked' : ''; %>
-    <input type="checkbox" class="player-param" data-name="sensors.stream"<%= checked %> />
-    <div class="checkbox-ui"></div>
-    <span>Stream sensors</span>
-  <label>
 </div>
-<% } %>
 
 <% if (Object.keys(player.preset).indexOf('recording-control') !== -1) { %>
 <div class="recording-control">

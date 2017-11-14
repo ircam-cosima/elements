@@ -137,6 +137,8 @@ class AudioRendererModule extends BaseModule {
         else
           this.disableSensors();
 
+        this.experience.volume(audioParams.volume);
+
         merge(this.view.model, audioParams);
         this.view.render();
         break;

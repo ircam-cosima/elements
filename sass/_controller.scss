@@ -64,6 +64,11 @@ select {
       margin: 6px 0;
     }
 
+    .checkbox {
+      display: inline-block;
+      width: 160px;
+    }
+
     .preset {
       @extend .btn.normal;
     }
@@ -103,7 +108,6 @@ select {
     font-weight: bold;
     width: 170px;
     display: inline-block;
-    margin-bottom: 20px;
   }
 
   select {
@@ -118,10 +122,16 @@ select {
 
   .checkbox {
     display: inline-block;
-    width: 160px;
+    width: 192px;
   }
 
-  .audio-params, .sensors-params {
+  .audio-params {
+    height: 30px;
+    display: block;
+    margin: 12px 0 12px 170px;
+  }
+
+  .sensors-params {
     height: 30px;
     display: inline-block;
   }

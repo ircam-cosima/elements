@@ -30,6 +30,10 @@ class ControllerExperience extends Experience {
   start() {
     super.start();
 
+    this.comm.addListener('sensors', data => {
+      this.rawSocket.broadcast('controller', null, 'sensors', data);
+    });
+
     appStore.addListener((channel, ...args) => {
       switch (channel) {
         case 'add-player-to-project':

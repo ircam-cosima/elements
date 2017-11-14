@@ -1,21 +1,23 @@
 # Elements - notes / features
 
-- handle several modules that subscribe to the same channels doesn't multiply network traffic
-- make the controller a module
-
 ## CSS Radios and checkboxes
 
 - https://codepen.io/AngelaVelasquez/pen/Eypnq
 - https://codepen.io/bbodine1/pen/novBm
 
-## Feedback from AAD workshop
+## Features
 
-
-
+- mute / sensors at project level (ok)
+- slider volume per projet / client (`project.params.clientParams`) - ok
+- trigger audio
 - import / export project
+
+===================================================================
+
+- alternative autoTrigger with count down
 - import audio file
-- create projects
-- slider volume par projet / client (`project.params.clientParams`)
+- create projects and associate audio files
+- make the controller a module
 - new synths / transition
 - use both intensities
 - dynamic modules

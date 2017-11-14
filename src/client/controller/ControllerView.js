@@ -119,6 +119,17 @@ class ControllerView extends View {
         this.request('update-project-param', { uuid, name, value });
       },
 
+            // @todo - these have bad behaviors due to rendering
+      'input .project input[type=range].project-param': e => {
+        const $input = e.target;
+        const $project = $input.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.value;
+
+        this.request('update-project-param', { uuid, name, value });
+      },
+
       'click .project .preset': e => {
         e.preventDefault();
         const $btn = e.target;
@@ -163,9 +174,21 @@ class ControllerView extends View {
         const name = $input.dataset.name;
         const value = $input.value;
 
-        console.log(uuid, name, value);
         this.request('update-player-param', { uuid, name, value });
       },
+      // player params / slider
+      // @todo - these have bad behaviors due to rendering
+      'input .player input[type=range].player-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $player = $input.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.value;
+
+        this.request('update-player-param', { uuid, name, value });
+      },
+
       // player params / buttons
       'click .player button.player-param': e => {
         e.preventDefault();
