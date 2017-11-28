@@ -33,11 +33,11 @@
     "express-fileupload": "^0.3.0",
     "lodash.merge": "4.6.0",
     "lodash.template": "^4.4.0",
-    "mano-js": "github:ircam-rnd/mano-js",
+    "mano-js": "github:ircam-rnd/mano-js#v1.1.0",
     "soundworks": "collective-soundworks/soundworks#marco-revelo",
     "source-map-support": "^0.4.17",
     "sqlite3": "^3.1.9",
-    "waves-lfo": "^1.1.1",
+    "waves-lfo": "~1.1.1",
     "xmm-node": "github:ircam-rnd/xmm-node"
   },
   "devDependencies": {

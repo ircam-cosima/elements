@@ -8,7 +8,7 @@ import ProjectCollection from './entities/ProjectCollection';
 import Player from './entities/Player';
 import PlayerCollection from './entities/PlayerCollection';
 import xmm from 'xmm-node';
-import { translators as rapidMixTranslators } from 'rapid-mix-adapters';
+import rapidMixAdapters from 'rapid-mix-adapters';
 
 const appStore = {
   init() {
@@ -56,7 +56,7 @@ const appStore = {
       merge(project.params, params);
       // update training instances
       const { trainingSet, config } = project.params.learning;
-      project.trainingData.setTrainingSet(trainingSet);
+      project.trainingSet.setTrainingSet(trainingSet);
       project.processor.setConfig(config);
     }
 
@@ -249,20 +249,20 @@ const appStore = {
 
   addExampleToProject(example, project) {
     try {
-      project.trainingData.addExample(example);
-      project.params.learning.trainingSet = project.trainingData.getTrainingSet();
+      project.trainingSet.addExample(example);
+      project.params.learning.trainingSet = project.trainingSet.toJSON();
 
       this._persistProject(project)
         .then(() => this._updateModel(project))
         .catch(err => console.error(err.stack));
     } catch(err) {
-      console.error(`Cannot add invalid example to trainingData`);
+      console.error(`Cannot add invalid example to trainingSet`);
     }
   },
 
   clearExamplesFromProject(label, project) {
-    project.trainingData.removeExamplesByLabel(label);
-    project.params.learning.trainingSet = project.trainingData.getTrainingSet();
+    project.trainingSet.removeExamplesByLabel(label);
+    project.params.learning.trainingSet = project.trainingSet.toJSON();
 
     this._persistProject(project)
       .then(() => this._updateModel(project))
@@ -270,8 +270,8 @@ const appStore = {
   },
 
   clearAllExamplesFromProject(project) {
-    project.trainingData.clear();
-    project.params.learning.trainingSet = project.trainingData.getTrainingSet();
+    project.trainingSet.clear();
+    project.params.learning.trainingSet = project.trainingSet.toJSON();
 
     this._persistProject(project)
       .then(() => this._updateModel(project))
@@ -288,7 +288,7 @@ const appStore = {
   // update xmm model
   _updateModel(project, silent = false) {
     const config = project.processor.getConfig()
-    const trainingSet = project.trainingData.getTrainingSet();
+    const trainingSet = project.trainingSet.toJSON();
 
     let trainedTraniningSet = trainingSet;
 
@@ -355,7 +355,7 @@ const appStore = {
         trainedTraniningSet = filteredTrainingSet;
     }
 
-    const xmmTrainingSet = rapidMixTranslators.rapidMixToXmmTrainingSet(trainedTraniningSet);
+    const xmmTrainingSet = rapidMixAdapters.rapidMixToXmmTrainingSet(trainedTraniningSet);
 
     const target = config.target.name;
     const xmm = this.xmmInstances[target];
@@ -367,7 +367,7 @@ const appStore = {
         if (err)
           console.log(err.stack);
 
-        const rapidMixModel = rapidMixTranslators.xmmToRapidMixModel(model);
+        const rapidMixModel = rapidMixAdapters.xmmToRapidMixModel(model);
         project.model = rapidMixModel;
 
         if (!silent)

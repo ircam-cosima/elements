@@ -193,7 +193,7 @@ class RecordingControlModule extends BaseModule {
           case 'confirm': {
             // send the example
             this.exampleRecorder.setLabel(this.recordLabel);
-            const example = this.exampleRecorder.getExample();
+            const example = this.exampleRecorder.toJSON();
 
             const addExampleAction = {
               type: 'add-example',

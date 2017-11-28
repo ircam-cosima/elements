@@ -11,9 +11,9 @@ class Project {
     this.uuid = null;
     this.players = new PlayerCollection();
 
-    this.trainingData = new mano.TrainingData();
-    // copy of `this.trainingData` according to `params.learning.filter`
-    this.filteredTrainingData = new mano.TrainingData();
+    this.trainingSet = new mano.TrainingSet();
+    // copy of `this.trainingSet` according to `params.learning.filter`
+    this.filteredTrainingData = new mano.TrainingSet();
     // used for config formatting
     this.processor = new mano.XmmProcessor({ url: null, });
 
@@ -98,7 +98,7 @@ class Project {
 
     project.uuid = uuidv4();
     project.params.name = name;
-    project.params.learning.trainingSet = project.trainingData.getTrainingSet();
+    project.params.learning.trainingSet = project.trainingSet.toJSON();
     project.params.learning.config = project.processor.getConfig()
 
     return project;
@@ -117,7 +117,7 @@ class Project {
 
     // update mano instances from JSON informations
     const { trainingSet, config } = project.params.learning;
-    project.trainingData.setTrainingSet(trainingSet);
+    project.trainingSet.setTrainingSet(trainingSet);
     project.processor.setConfig(config);
 
     return project;
