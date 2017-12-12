@@ -14,8 +14,11 @@ const presets = {
       background: false,
       likelihoods: true,
     },
-    'stream-sensors': {
-      oscPort: null,
+    'streams': {
+      osc: {
+        sendAddress: '127.0.0.1',
+        sendPort: 57120,
+      },
     },
     'audio-trigger': {},
   },

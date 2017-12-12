@@ -2,13 +2,19 @@
 
 ## Features
 
-- bug - do not allow to create a project with an empty name
-- stream results [likelihoods, time progression]
-- stream sensors and likelihoods to osc 
+- bug - do not allow to create a project with an empty name - ok
+- stream sensors to osc - ok
+
+Mercredi
+- stream decoding results [likelihoods, time progression] 
 - preview btn
+
+Jeudi
 - new synths / transitions
   + statistical granular 
   + segment on energy
+
+Vendredi
 - use intensity to control the cutoff of a filter
 - alternative autoTrigger with count down - option temps min / max
 

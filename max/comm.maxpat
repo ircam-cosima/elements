@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 1303.0, 332.0, 497.0, 220.0 ],
+		"rect" : [ 1306.0, 79.0, 478.0, 708.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -37,6 +37,44 @@
 		"style" : "",
 		"subpatcher_template" : "",
 		"boxes" : [ 			{
+				"box" : 				{
+					"id" : "obj-8",
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 193.0, 89.0, 150.0, 20.0 ],
+					"style" : "",
+					"text" : "=> Select player index"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-7",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 33.0, 120.0, 87.0, 22.0 ],
+					"style" : "",
+					"text" : "route 0"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-6",
+					"maxclass" : "number",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "bang" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 132.0, 89.0, 50.0, 22.0 ],
+					"style" : ""
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"id" : "obj-1",
 					"maxclass" : "newobj",
@@ -1127,7 +1165,7 @@
  ]
 					}
 ,
-					"patching_rect" : [ 344.723633, 28.087891, 80.0, 22.0 ],
+					"patching_rect" : [ 359.723633, 23.0, 80.0, 22.0 ],
 					"saved_object_attributes" : 					{
 						"description" : "",
 						"digest" : "",
@@ -1160,7 +1198,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 33.0, 90.0, 87.0, 22.0 ],
+					"patching_rect" : [ 33.0, 89.0, 87.0, 22.0 ],
 					"style" : "",
 					"text" : "route /sensors"
 				}
@@ -1169,13 +1207,14 @@
 , 			{
 				"box" : 				{
 					"id" : "obj-4",
+					"linecount" : 2,
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 33.0, 132.0, 431.0, 22.0 ],
+					"patching_rect" : [ 33.0, 158.0, 246.0, 35.0 ],
 					"style" : "",
-					"text" : "0.000001 0. 0.00099 -0.00095 -0.000351 0.003352 0.004904 -0.999982"
+					"text" : "0. 0. 0.000567 -0.000143 -0.000509 0.002319 -0.035149 -0.999379"
 				}
 
 			}
@@ -1202,8 +1241,22 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-4", 1 ],
+					"destination" : [ "obj-7", 0 ],
 					"source" : [ "obj-5", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-7", 1 ],
+					"source" : [ "obj-6", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-4", 1 ],
+					"source" : [ "obj-7", 0 ]
 				}
 
 			}

@@ -9,7 +9,9 @@ const playerParamsTmpl = `
 <% var color = global.colors[player.index] %>
 <div class="color trigger-audio" data-kind="ui" data-label="noise" style="background-color: <%= color %>"></div>
 
-<p class="type"><%= player.type %></p>
+<p class="type">
+  <%= player.type %> (index: <%= player.index %>)
+</p>
 <select class="change-project">
 <% global.projectsOverview.forEach(overview => { %>
   <% var selected = overview.uuid === player.project.uuid ? ' selected' : ''; %>
@@ -18,11 +20,11 @@ const playerParamsTmpl = `
 </select>
 
 
-<% if (Object.keys(player.preset).indexOf('stream-sensors') !== -1) { %>
-<div class="sensors-params">
+<% if (Object.keys(player.preset).indexOf('streams') !== -1) { %>
+<div class="streams-params">
   <label class="checkbox">
-    <% var checked = player.params.sensors.stream ? ' checked' : ''; %>
-    <input type="checkbox" class="player-param" data-name="sensors.stream"<%= checked %> />
+    <% var checked = player.params.streams.sensors ? ' checked' : ''; %>
+    <input type="checkbox" class="player-param" data-name="streams.sensors"<%= checked %> />
     <div class="checkbox-ui"></div>
     <span>Stream sensors</span>
   <label>

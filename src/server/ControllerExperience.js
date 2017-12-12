@@ -10,29 +10,47 @@ class ControllerExperience extends Experience {
     this.comm = comm;
 
     // define if we need the `rawSocket` service
-    this.streamSensors = false;
+    this.streams = false;
+    this.oscStreams = false;
 
     for (let name in presets) {
       const preset = presets[name];
-      const modules = Object.keys(preset);
+      const moduleIds = Object.keys(preset);
 
-      if (modules.indexOf('stream-sensors') !== -1)
-        this.streamSensors = true;
-    }
+      if (moduleIds.indexOf('streams') !== -1) {
+        this.streams = true;
 
-    if (this.streamSensors) {
-      this.rawSocket = this.require('raw-socket', {
-        protocol: { channel: 'sensors', type: 'Float32' },
-      });
+        this.rawSocket = this.require('raw-socket', {
+          protocol: { channel: 'sensors', type: 'Float32' },
+        });
+
+        const streamsConfig = preset['streams'];
+
+        if (streamsConfig.osc) {
+          if (streamsConfig.osc.sendAddress)
+            this.config.osc.sendAddress = streamsConfig.osc.sendAddress;
+
+          if (streamsConfig.osc.sendPort)
+            this.config.osc.sendPort = streamsConfig.osc.sendPort;
+
+          this.oscStreams = true;
+          this.osc = this.require('osc');
+        }
+      }
     }
   }
 
   start() {
     super.start();
 
-    this.comm.addListener('sensors', data => {
-      this.rawSocket.broadcast('controller', null, 'sensors', data);
-    });
+    if (this.streams) {
+      this.comm.addListener('sensors', data => {
+        this.rawSocket.broadcast('controller', null, 'sensors', data);
+
+        if (this.oscStreams)
+          this.osc.send('/sensors', Array.from(data));
+      });
+    }
 
     appStore.addListener((channel, ...args) => {
       switch (channel) {

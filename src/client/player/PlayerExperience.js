@@ -27,7 +27,7 @@ class PlayerExperience extends soundworks.Experience {
 
     this.streamSensors = false;
 
-    if (Object.keys(this.preset).indexOf('stream-sensors') !== -1)
+    if (Object.keys(this.preset).indexOf('streams') !== -1)
       this.rawSocket = this.require('raw-socket');
 
 

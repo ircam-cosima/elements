@@ -12,15 +12,15 @@ class ControllerExperience extends Experience {
 
     // define if we need the `rawSocket` service
     const presets = config.presets;
-    this.streamSensors = false;
+    this.streams = false;
     this.buffer = null;
 
     for (let name in presets) {
       const preset = presets[name];
       const modules = Object.keys(preset);
 
-      if (modules.indexOf('stream-sensors') !== -1) {
-        this.streamSensors = true;
+      if (modules.indexOf('streams') !== -1) {
+        this.streams = true;
         this.rawSocket = this.require('raw-socket');
       }
     }
@@ -45,7 +45,7 @@ class ControllerExperience extends Experience {
       this.request(action);
     };
 
-    if (this.streamSensors) {
+    if (this.streams) {
       this.rawSocket.receive('sensors', data => {
         if (!this.buffer)
           this.buffer = new Float32Array(data.length - 1);

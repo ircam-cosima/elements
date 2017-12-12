@@ -2,9 +2,9 @@ import { client } from 'soundworks/client';
 import BaseModule from '../BaseModule';
 import moduleManager from '../moduleManager';
 
-const MODULE_ID = 'stream-sensors';
+const MODULE_ID = 'streams';
 
-class StreamSensorsModule extends BaseModule {
+class StreamsModule extends BaseModule {
   constructor(experience, options) {
     super(MODULE_ID, experience);
 
@@ -20,12 +20,12 @@ class StreamSensorsModule extends BaseModule {
       'gesture-recognition',
     ];
 
-    this.isStreaming = false;
+    this.isStreamingSensors = false;
 
     this.gestureRecognitionModule = this.experience.getModule('gesture-recognition');
 
     this.processSensors = this.processSensors.bind(this);
-    this.buffer = null;
+    this.sensorsBuffer = null;
   }
 
   dispatch(action) {
@@ -33,15 +33,15 @@ class StreamSensorsModule extends BaseModule {
 
     switch (type) {
       case 'update-player-param': {
-        const stream = payload.params.sensors.stream;
+        const streamSensors = payload.params.streams.sensors;
 
-        if (stream !== this.isStreaming) {
-          if (stream)
+        if (streamSensors !== this.isStreamingSensors) {
+          if (streamSensors)
             this.gestureRecognitionModule.addSensorsListener(this.processSensors);
           else
             this.gestureRecognitionModule.removeSensorsListener(this.processSensors);
 
-          this.isStreaming = stream;
+          this.isStreamingSensors = streamSensors;
         }
         break;
       }
@@ -51,18 +51,18 @@ class StreamSensorsModule extends BaseModule {
   processSensors(data) {
     const rawSocket = this.experience.rawSocket;
 
-    if (!this.buffer)
-      this.buffer = new Float32Array(data.length + 1);
+    if (!this.sensorsBuffer)
+      this.sensorsBuffer = new Float32Array(data.length + 1);
 
-    this.buffer[0] = client.index;
+    this.sensorsBuffer[0] = client.index;
 
     for (let i = 0; i < data.length; i++)
-      this.buffer[i + 1] =  data[i];
+      this.sensorsBuffer[i + 1] =  data[i];
 
-    rawSocket.send('sensors', this.buffer);
+    rawSocket.send('sensors', this.sensorsBuffer);
   }
 }
 
-moduleManager.register(MODULE_ID, StreamSensorsModule);
+moduleManager.register(MODULE_ID, StreamsModule);
 
-export default StreamSensorsModule;
+export default StreamsModule;

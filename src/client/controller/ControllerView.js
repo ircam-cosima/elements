@@ -245,7 +245,7 @@ class ControllerView extends View {
         this.request('update-player-param', { uuid, name, value });
       },
 
-      'click .player .trigger-audio': e => {
+      'mousedown .player .trigger-audio': e => {
         e.preventDefault();
         const $el = e.target;
         const $player = $el.closest('.player');
@@ -265,7 +265,7 @@ class ControllerView extends View {
 
         this.request('update-player-param', {
           uuid: uuid,
-          name: 'sensors.stream',
+          name: 'streams.sensors',
           value: false,
         });
 
@@ -349,11 +349,17 @@ class ControllerView extends View {
     // update or create
     $container.innerHTML = $player;
 
+    const hasSensorsLfoChain = this.lfoDisplayChains.has(player.index);
     // remove from player template, is overriden on each param change
-    if (player.params.sensors.stream) {
-      const hasChain = this.lfoDisplayChains.has(player.index);
-
-      if (!hasChain) {
+    if (player.params.streams.sensors) {
+      if (hasSensorsLfoChain) {
+        if (hasSensorsLfoChain.isStreaming === false) {
+          const lfoChain = this.lfoDisplayChains.get(player.index);
+          // reset stream
+          lfoChain.bpfDisplay.resetStream();
+          hasSensorsLfoChain.isStreaming = true;
+        }
+      } else {
         const $sensorsContainer = this.$el.querySelector(`#_${player.uuid} .sensors-display`);
         const playerSensors = this.playerSensorsTmpl({});
         $sensorsContainer.innerHTML = playerSensors;
@@ -440,17 +446,23 @@ class ControllerView extends View {
         });
 
         const lfoChain = {
-          eventIn, filter, bpfDisplay,
-          intensityToggle, bandpassToggle, orientationToggle, bpfTickness
+          eventIn,
+          filter,
+          bpfDisplay,
+          intensityToggle,
+          bandpassToggle,
+          orientationToggle,
+          bpfTickness,
+          isStreaming: true,
         };
 
         this.lfoDisplayChains.set(player.index, lfoChain);
-
-      // @todo - change behavior to be able to keep a stopped visualization
-      } else {
-        const lfoChain = this.lfoDisplayChains.get(player.index);
-        lfoChain.bpfDisplay.resetStream();
       }
+    }
+
+    if (!player.params.streams.sensors && hasSensorsLfoChain) {
+      const lfoChain = this.lfoDisplayChains.get(player.index);
+      lfoChain.isStreaming = false;
     }
   }
 

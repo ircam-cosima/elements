@@ -19,10 +19,11 @@ class Player {
         state: 'idle',
         label: '',
       },
-      sensors: {
-        stream: false,
-      }
-    }
+      streams: {
+        sensors: false,
+        likelihoods: false,
+      },
+    };
   }
 
   serialize() {

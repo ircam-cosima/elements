@@ -13,20 +13,19 @@ class PlayerExperience extends Experience {
     this.checkin = this.require('checkin');
 
     // define if we need the `rawSocket` service
-    this.streamSensors = false;
+    this.streams = false;
 
     for (let name in presets) {
       const preset = presets[name];
       const modules = Object.keys(preset);
 
-      if (modules.indexOf('stream-sensors') !== -1)
-        this.streamSensors = true;
-    }
+      if (modules.indexOf('streams') !== -1) {
+        this.streams = true;
 
-    if (this.streamSensors) {
-      this.rawSocket = this.require('raw-socket', {
-        protocol: { channel: 'sensors', type: 'Float32' },
-      });
+        this.rawSocket = this.require('raw-socket', {
+          protocol: { channel: 'sensors', type: 'Float32' },
+        });
+      }
     }
 
     this.subscriptions = new Map();
@@ -146,7 +145,7 @@ class PlayerExperience extends Experience {
     this.receive(client, 'request', this.request(client));
 
     // create sensor and decoding chain (is common to every player)
-    if (this.streamSensors)
+    if (this.streams)
       this.initializeSensorStreaming(client);
   }
 
