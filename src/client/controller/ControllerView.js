@@ -64,8 +64,12 @@ class ControllerView extends View {
         const $btn = e.target;
         const $input = $btn.previousElementSibling;
         const name = $input.value;
+        $input.classList.remove('error');
 
-        this.request('create-project', { name });
+        if (name === '')
+          $input.classList.add('error');
+        else
+          this.request('create-project', { name });
       },
 
       'submit #header #upload-project': e => {

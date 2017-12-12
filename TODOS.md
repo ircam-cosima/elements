@@ -2,13 +2,20 @@
 
 ## Features
 
-- stream sensors to osc 
+- bug - do not allow to create a project with an empty name
+- stream results [likelihoods, time progression]
+- stream sensors and likelihoods to osc 
 - preview btn
-- alternative autoTrigger with count down
+- new synths / transitions
+  + statistical granular 
+  + segment on energy
+- use intensity to control the cutoff of a filter
+- alternative autoTrigger with count down - option temps min / max
+
 - import audio file
 - create projects and associate audio files
+
 - make the controller a module
-- new synths / transitions
 - use both intensities
 - dynamicaly add and remove modules
 
