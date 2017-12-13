@@ -50,6 +50,18 @@ class ControllerExperience extends Experience {
         if (this.oscStreams)
           this.osc.send('/sensors', Array.from(data));
       });
+
+      this.comm.addListener('likelihoods', data => {
+        this.rawSocket.broadcast('controller', null, 'likelihoods', data);
+
+        if (this.oscStreams)
+          this.osc.send('/likelihoods', Array.from(data));
+      });
+
+      this.comm.addListener('timeProgressions', data => {
+        if (this.oscStreams)
+          this.osc.send('/timeProgressions', Array.from(data));
+      });
     }
 
     appStore.addListener((channel, ...args) => {

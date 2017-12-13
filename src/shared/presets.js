@@ -5,7 +5,7 @@ const presets = {
       enableChange: true,
       enableCreation: true,
       projectList: 'buttons', // 'none' | 'select' | 'buttons'
-      forceProject: 'cdb88e55-7977-476c-8616-2a9fe063f357',
+      forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
     },
     'gesture-recognition': {},
     'audio-renderer': {},

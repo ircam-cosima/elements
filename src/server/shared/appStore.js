@@ -18,8 +18,8 @@ const appStore = {
     this._listeners = new Set();
 
     this.xmmInstances = {
-      'xmm:gmm': new xmm('gmm'),
-      'xmm:hhmm': new xmm('hhmm'),
+      'gmm': new xmm('gmm'),
+      'hhmm': new xmm('hhmm'),
     };
 
     // load persisted projects in memory
@@ -287,7 +287,7 @@ const appStore = {
 
   // update xmm model
   _updateModel(project, silent = false) {
-    const config = project.processor.getConfig()
+    const config = project.processor.getConfig();
     const trainingSet = project.trainingSet.toJSON();
 
     let trainedTraniningSet = trainingSet;
@@ -300,7 +300,7 @@ const appStore = {
       let inputDimension = 0;
 
       const filteredTrainingSet = {
-        docType: 'rapid-mix:training-set',
+        docType: 'rapid-mix:ml-training-set',
         docVersion: '1.0.0',
         payload: {
           inputDimension: 0,
@@ -356,12 +356,13 @@ const appStore = {
     }
 
     const xmmTrainingSet = rapidMixAdapters.rapidMixToXmmTrainingSet(trainedTraniningSet);
+    const xmmConfig = rapidMixAdapters.rapidMixToXmmModel(config);
 
-    const target = config.target.name;
+    const target = config.payload.modelType;
     const xmm = this.xmmInstances[target];
 
     return new Promise((resolve, reject) => {
-      xmm.setConfig(config);
+      xmm.setConfig(xmmConfig);
       xmm.setTrainingSet(xmmTrainingSet);
       xmm.train((err, model) => {
         if (err)

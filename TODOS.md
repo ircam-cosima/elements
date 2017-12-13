@@ -7,6 +7,8 @@
 
 Mercredi
 - stream decoding results [likelihoods, time progression] 
+  => maybe split in 2 different controls
+
 - preview btn
 
 Jeudi
@@ -18,7 +20,7 @@ Vendredi
 - use intensity to control the cutoff of a filter
 - alternative autoTrigger with count down - option temps min / max
 
-- import audio file
+- import audio files
 - create projects and associate audio files
 
 - make the controller a module

@@ -8,6 +8,7 @@ import projectParamsTmpl from './templates/project-params.tmpl';
 import playerTmpl from './templates/player.tmpl';
 import playerParamsTmpl from './templates/player-params.tmpl';
 import playerSensorsTmpl from './templates/player-sensors.tmpl';
+import playerLikelihoodsTmpl from './templates/player-likelihoods.tmpl';
 //
 import mlPresets from '../../shared/config/ml-presets';
 import { colors } from '../../shared/config/ui';
@@ -52,8 +53,11 @@ class ControllerView extends View {
     this.playerTmpl = template(playerTmpl);
     this.playerParamsTmpl = template(playerParamsTmpl);
     this.playerSensorsTmpl = template(playerSensorsTmpl);
+    this.playerLikelihoodsTmpl = template(playerLikelihoodsTmpl);
 
-    this.lfoDisplayChains = new Map();
+    this.sensorsDisplayChains = new Map();
+    this.likelihoodsDisplayChains = new Map();
+    this.likelihoodResetRequired = false;
 
     this.installEvents({
       // ----------------------------------------------------------------
@@ -256,20 +260,24 @@ class ControllerView extends View {
         this.request('trigger-audio', { uuid, kind, label });
       },
 
-      'click .player .sensors-display .close': e => {
+      'click .player .stream-display .close': e => {
         e.preventDefault();
         const $btn = e.target;
         const $player = $btn.closest('.player');
         const uuid = $player.dataset.uuid;
         const index = parseInt($player.dataset.index, 10);
+        const paramName = $btn.dataset.name;
 
         this.request('update-player-param', {
           uuid: uuid,
-          name: 'streams.sensors',
+          name: paramName,
           value: false,
         });
 
-        this._deleteSensorsStream(uuid, index);
+        if (paramName === 'streams.sensors')
+          this._deleteSensorsStream(uuid, index);
+        else if (paramName === 'streams.decoding')
+          this._deleteLikelihoodsStream(uuid, index);
       }
     });
   }
@@ -336,7 +344,7 @@ class ControllerView extends View {
     const selector = `#_${player.uuid}`;
     const $player = this.$el.querySelector(selector);
 
-    if (this.lfoDisplayChains.has(player.index))
+    if (this.sensorsDisplayChains.has(player.index))
       this._deleteSensorsStream(player.uuid, player.index);
 
     $player.remove();
@@ -349,17 +357,20 @@ class ControllerView extends View {
     // update or create
     $container.innerHTML = $player;
 
-    const hasSensorsLfoChain = this.lfoDisplayChains.has(player.index);
-    // remove from player template, is overriden on each param change
-    if (player.params.streams.sensors) {
-      if (hasSensorsLfoChain) {
-        if (hasSensorsLfoChain.isStreaming === false) {
-          const lfoChain = this.lfoDisplayChains.get(player.index);
-          // reset stream
-          lfoChain.bpfDisplay.resetStream();
-          hasSensorsLfoChain.isStreaming = true;
-        }
-      } else {
+    this._updateSensorsStream(player);
+    this._updateLikelihoodsStream(player);
+  }
+
+  _updateSensorsStream(player) {
+    const lfoChain = this.sensorsDisplayChains.get(player.index);
+
+    if (player.params.streams.sensors === true) {
+      if (lfoChain && lfoChain.isStreaming === false) {
+        // reset stream
+        lfoChain.bpfDisplay.resetStream();
+        lfoChain.isStreaming = true;
+
+      } else if (!lfoChain) {
         const $sensorsContainer = this.$el.querySelector(`#_${player.uuid} .sensors-display`);
         const playerSensors = this.playerSensorsTmpl({});
         $sensorsContainer.innerHTML = playerSensors;
@@ -456,37 +467,120 @@ class ControllerView extends View {
           isStreaming: true,
         };
 
-        this.lfoDisplayChains.set(player.index, lfoChain);
+        this.sensorsDisplayChains.set(player.index, lfoChain);
       }
-    }
-
-    if (!player.params.streams.sensors && hasSensorsLfoChain) {
-      const lfoChain = this.lfoDisplayChains.get(player.index);
+    } else if (player.params.streams.sensors === false && lfoChain && lfoChain.isStreaming === true) {
       lfoChain.isStreaming = false;
     }
   }
 
-  processSensorsStream(playerIndex, data) {
-    const chain = this.lfoDisplayChains.get(playerIndex);
-    // as everything is async, we cannot garantee that the chain still exists
-    if (chain)
-      chain.eventIn.process(null, data);
-  }
-
   _deleteSensorsStream(uuid, index) {
-    let lfoChain = this.lfoDisplayChains.get(index);
+    let lfoChain = this.sensorsDisplayChains.get(index);
 
     lfoChain.eventIn.finalizeStream();
     lfoChain.eventIn.destroy();
     lfoChain.filter.destroy();
     lfoChain.bpfDisplay.destroy();
 
-    this.lfoDisplayChains.delete(index);
+    this.sensorsDisplayChains.delete(index);
     lfoChain = null;
     // delete container
     const $container = this.$el.querySelector(`.players #_${uuid} .sensors-display`);
     $container.innerHTML = '';
   }
+
+  processSensorsStream(playerIndex, data) {
+    const chain = this.sensorsDisplayChains.get(playerIndex);
+    // as everything is async, we cannot garantee that the chain still exists
+    if (chain)
+      chain.eventIn.process(null, data);
+  }
+
+  _updateLikelihoodsStream(player) {
+    const lfoChain = this.likelihoodsDisplayChains.get(player.index);
+
+    if (player.params.streams.decoding === true) {
+      if (lfoChain && lfoChain.isStreaming === false) {
+
+        lfoChain.barChartDisplay.resetStream();
+        lfoChain.isStreaming = true;
+
+      } else if (!lfoChain) {
+
+        const $likelihoodsContainer = this.$el.querySelector(`#_${player.uuid} .likelihoods-display`);
+        const playerLikelihoods = this.playerLikelihoodsTmpl({});
+        $likelihoodsContainer.innerHTML = playerLikelihoods;
+
+        const $canvasContainer = $likelihoodsContainer.querySelector('.canvas-container');
+
+        const eventIn = new lfo.source.EventIn({
+          frameSize: 1, // dummy value
+          frameRate: 0, // dummy value
+          frameType: 'vector',
+        });
+
+        const barChartDisplay = new lfo.sink.BarChartDisplay({
+          container: $canvasContainer,
+          width: 600,
+          colors: [
+            '#ff0000',
+            '#00ff00',
+            '#3355ff',
+            '#999900',
+            '#990099',
+            '#009999',
+          ],
+        });
+
+        eventIn.connect(barChartDisplay);
+        eventIn.start();
+
+        const lfoChain = {
+          eventIn,
+          barChartDisplay,
+          isStreaming: true,
+        };
+
+        this.likelihoodsDisplayChains.set(player.index, lfoChain);
+      }
+    } else if (player.params.streams.decoding === false && lfoChain && lfoChain.isStreaming === true) {
+      lfoChain.isStreaming = false;
+    }
+  }
+
+  _deleteLikelihoodsStream(uuid, index) {
+    let lfoChain = this.likelihoodsDisplayChains.get(index);
+
+    lfoChain.eventIn.finalizeStream();
+    lfoChain.eventIn.destroy();
+    lfoChain.barChartDisplay.destroy();
+
+    this.likelihoodsDisplayChains.delete(index);
+    lfoChain = null;
+    // delete container
+    const $container = this.$el.querySelector(`.players #_${uuid} .likelihoods-display`);
+    $container.innerHTML = '';
+
+    this.likelihoodResetRequired = true;
+  }
+
+  processLikelihoodsStream(playerIndex, data, reset) {
+    const chain = this.likelihoodsDisplayChains.get(playerIndex);
+
+    if (chain) {
+      if (reset || this.likelihoodResetRequired) {
+        chain.eventIn.streamParams.frameSize = data.length;
+        chain.eventIn.propagateStreamParams();
+
+        this.likelihoodResetRequired = false;
+      }
+
+      chain.eventIn.process(null, data);
+    } else if (reset) {
+      this.likelihoodResetRequired = true;
+    }
+  }
+
 }
 
 export default ControllerView;

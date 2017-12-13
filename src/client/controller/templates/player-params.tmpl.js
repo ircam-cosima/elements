@@ -27,7 +27,14 @@ const playerParamsTmpl = `
     <input type="checkbox" class="player-param" data-name="streams.sensors"<%= checked %> />
     <div class="checkbox-ui"></div>
     <span>Stream sensors</span>
-  <label>
+  </label>
+
+  <label class="checkbox">
+    <% var checked = player.params.streams.decoding ? ' checked' : ''; %>
+    <input type="checkbox" class="player-param" data-name="streams.decoding"<%= checked %> />
+    <div class="checkbox-ui"></div>
+    <span>Stream decoding</span>
+  </label>
 </div>
 <% } %>
 

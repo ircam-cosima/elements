@@ -68,7 +68,7 @@ class LikelihoodsRenderer extends Canvas2dRenderer {
       const rectangleWidth = this.width / length;
 
       for (let i = 0; i < length; i++) {
-        ctx.fillStyle = colorMap[i];
+        ctx.fillStyle = colorMap[i % colorMap.length];
 
         const likelihood = likelihoods[i];
         const width = rectangleWidth;

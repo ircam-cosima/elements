@@ -21,6 +21,7 @@ class PlayerCollection {
 
   getClients() {
     const clients = Array.from(this.players).map(player => player.client);
+
     return clients;
   }
 

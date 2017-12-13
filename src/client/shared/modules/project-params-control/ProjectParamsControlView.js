@@ -16,9 +16,9 @@ const template = `
 
     <label class="param select-container">
       <span>Model Type</span>
-      <select class="project-param" data-name="learning.config.target.name">
-        <option value="xmm:gmm"<%= learningConfig.target.name === 'xmm:gmm' ? ' selected' : '' %>>gmm</option>
-        <option value="xmm:hhmm"<%= learningConfig.target.name === 'xmm:hhmm' ? ' selected' : '' %>>hhmm</option>
+      <select class="project-param" data-name="learning.config.payload.modelType">
+        <option value="xmm:gmm"<%= learningConfig.payload.modelType === 'gmm' ? ' selected' : '' %>>gmm</option>
+        <option value="xmm:hhmm"<%= learningConfig.payload.modelType === 'hhmm' ? ' selected' : '' %>>hhmm</option>
       </select>
     </label>
 
@@ -50,7 +50,7 @@ const template = `
       <input class="project-param" data-name="learning.config.payload.relativeRegularization" type="number" value="<%= learningConfig.payload.relativeRegularization %>" />
     </label>
 
-    <% if (learningConfig.target.name === 'xmm:hhmm') { %>
+    <% if (learningConfig.payload.modelType === 'hhmm') { %>
       <h3>HHMM params</h3>
 
       <label class="param select-container">

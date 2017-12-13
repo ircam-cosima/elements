@@ -23,7 +23,11 @@ class PlayerExperience extends Experience {
         this.streams = true;
 
         this.rawSocket = this.require('raw-socket', {
-          protocol: { channel: 'sensors', type: 'Float32' },
+          protocol: [
+            { channel: 'sensors', type: 'Float32' },
+            { channel: 'likelihoods', type: 'Float32' },
+            { channel: 'timeProgressions', type: 'Float32' },
+          ],
         });
       }
     }
@@ -271,6 +275,14 @@ class PlayerExperience extends Experience {
   initializeSensorStreaming(client) {
     this.rawSocket.receive(client, 'sensors', data => {
       this.comm.emit('sensors', data);
+    });
+
+    this.rawSocket.receive(client, 'likelihoods', data => {
+      this.comm.emit('likelihoods', data);
+    });
+
+    this.rawSocket.receive(client, 'timeProgressions', data => {
+      this.comm.emit('timeProgressions', data);
     });
   }
 }

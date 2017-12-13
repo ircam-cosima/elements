@@ -20,7 +20,7 @@ const projectParamsTmpl = `
   <button class="btn preset" value="<%= name %>"><%= global.mlPresets[name].label %></button>
 <% } %>
 
-<h2>Client params</h2>
+<h2>Audio params</h2>
 
 <label class="param checkbox">
   <% var checked = project.params.clientDefaults.audioRendering.mute ? ' checked' : ''; %>
@@ -68,9 +68,9 @@ const projectParamsTmpl = `
 
 <label class="param select-container">
   <span>Model Type</span>
-  <select class="project-param" data-name="learning.config.target.name">
-    <option value="xmm:gmm"<%= project.params.learning.config.target.name === 'xmm:gmm' ? ' selected' : '' %>>gmm</option>
-    <option value="xmm:hhmm"<%= project.params.learning.config.target.name === 'xmm:hhmm' ? ' selected' : '' %>>hhmm</option>
+  <select class="project-param" data-name="learning.config.payload.modelType">
+    <option value="xmm:gmm"<%= project.params.learning.config.payload.modelType === 'gmm' ? ' selected' : '' %>>gmm</option>
+    <option value="xmm:hhmm"<%= project.params.learning.config.payload.modelType === 'hhmm' ? ' selected' : '' %>>hhmm</option>
   </select>
 </label>
 
@@ -102,7 +102,7 @@ const projectParamsTmpl = `
   <input class="project-param" data-name="learning.config.payload.relativeRegularization" type="number" value="<%= project.params.learning.config.payload.relativeRegularization %>" />
 </label>
 
-<% if (project.params.learning.config.target.name === 'xmm:hhmm') { %>
+<% if (project.params.learning.config.payload.modelType === 'hhmm') { %>
   <h3>HHMM params</h3>
 
   <label class="param select-container">

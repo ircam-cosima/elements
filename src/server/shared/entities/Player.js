@@ -21,7 +21,7 @@ class Player {
       },
       streams: {
         sensors: false,
-        likelihoods: false,
+        decoding: false,
       },
     };
   }

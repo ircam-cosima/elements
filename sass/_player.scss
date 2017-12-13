@@ -24,7 +24,9 @@
 }
 
 #gesture-recognition,
-#canvas-renderer {
+#canvas-renderer,
+#streams,
+#audio-trigger {
   margin-bottom: 0;
 }
 
@@ -85,7 +87,7 @@
   .label-choice {
     position: relative;
     height: 30px;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 
     span {
       display: inline-block;
@@ -100,14 +102,22 @@
   }
 
   .btn.clear {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+
+    &[data-type=clear-examples] {
+      border-color: #eea236;
+    }
+
+    &[data-type=clear-all-examples] {
+      border-color: #d43f3a;
+    }
   }
 
   .record-btn {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    margin: 20px auto 0;
+    margin: 12px auto 0;
     display: block;
     border: 1px solid #cdcdcd;
     font-size: 1.4rem;

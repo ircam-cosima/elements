@@ -13,7 +13,9 @@ class ControllerExperience extends Experience {
     // define if we need the `rawSocket` service
     const presets = config.presets;
     this.streams = false;
-    this.buffer = null;
+
+    this.sensorsBuffer = null;
+    this.likelihoodsBuffer = null;
 
     for (let name in presets) {
       const preset = presets[name];
@@ -47,15 +49,33 @@ class ControllerExperience extends Experience {
 
     if (this.streams) {
       this.rawSocket.receive('sensors', data => {
-        if (!this.buffer)
-          this.buffer = new Float32Array(data.length - 1);
+        if (!this.sensorsBuffer)
+          this.sensorsBuffer = new Float32Array(data.length - 1);
 
         const playerIndex = data[0];
 
-        for (let i = 0; i < this.buffer.length; i++)
-          this.buffer[i] = data[i + 1];
+        for (let i = 0; i < this.sensorsBuffer.length; i++)
+          this.sensorsBuffer[i] = data[i + 1];
 
-        this.view.processSensorsStream(playerIndex, this.buffer);
+        this.view.processSensorsStream(playerIndex, this.sensorsBuffer);
+      });
+
+      this.rawSocket.receive('likelihoods', data => {
+        const bufferLength = data.length - 1;
+        let reset = false;
+
+        if (!this.likelihoodsBuffer || this.likelihoodsBuffer.length !== bufferLength) {
+          this.likelihoodsBuffer = new Float32Array(bufferLength);
+          reset = true;
+          console.log(reset);
+        }
+
+        const playerIndex = data[0];
+
+        for (let i = 0; i < bufferLength; i++)
+          this.likelihoodsBuffer[i] = data[i + 1];
+
+        this.view.processLikelihoodsStream(playerIndex, this.likelihoodsBuffer, reset);
       });
     }
 

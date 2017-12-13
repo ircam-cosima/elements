@@ -172,7 +172,7 @@ select {
 
   }
 
-  .sensors-display {
+  .stream-display {
     background-color: 1px solid #efefef;
     position: relative;
     margin-top: 12px;
@@ -185,7 +185,9 @@ select {
       width: 20px;
       height: 20px;
     }
+  }
 
+  .sensors-display {
     .controllers {
       width: 602px;
       margin-left: 20px;

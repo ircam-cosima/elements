@@ -3,9 +3,10 @@ export default {
     label: 'postures',
     params: {
       target: {
-        name: 'xmm:gmm',
+        name: 'xmm',
       },
       payload: {
+        modelType: 'gmm',
         gaussians: 1,
         absoluteRegularization: 0.01,
         relativeRegularization: 0.01,
@@ -19,9 +20,10 @@ export default {
     label: 'short gestures',
     params: {
       target: {
-        name: 'xmm:hhmm',
+        name: 'xmm',
       },
       payload: {
+        modelType: 'hhmm',
         gaussians: 1,
         absoluteRegularization: 0.1,
         relativeRegularization: 0.1,
@@ -35,9 +37,10 @@ export default {
     label: 'long gestures',
     params: {
       target: {
-        name: 'xmm:hhmm',
+        name: 'xmm',
       },
       payload: {
+        modelType: 'hhmm',
         gaussians: 1,
         absoluteRegularization: 0.1,
         relativeRegularization: 0.1,
