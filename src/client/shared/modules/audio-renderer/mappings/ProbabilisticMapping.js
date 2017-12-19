@@ -1,11 +1,20 @@
 import * as audio from 'waves-audio';
+import BaseMapping from './BaseMapping';
 
 const audioContext = audio.audioContext;
 const scheduler = audio.getScheduler();
 
+scheduler.period = 0.04;
+scheduler.lookahead = 0.1;
+
 class ProbabilisticEngine extends audio.GranularEngine {
   constructor(...args) {
     super(...args);
+
+
+    this.periodAbs = 0.04;
+    this.durationRel = 4;
+    this.centered = true;
 
     this.buffers = null;
     this.labels = null;
@@ -52,7 +61,6 @@ class ProbabilisticEngine extends audio.GranularEngine {
     this.positionVar = duration / 4;
 
     const nextTime = super.advanceTime(time);
-
     return nextTime;
   }
 }
@@ -76,8 +84,7 @@ class ProbabilisticGranularSynth {
   }
 
   set gain(value) {
-    const now = audioContext.currentTime;
-    this.output.gain.setValueAtTime(value, now + 0.005);
+    this.engine.gain = value;
   }
 
   connect(destination) {
@@ -113,8 +120,20 @@ class ProbabilisticGranularSynth {
 
 }
 
-class ProbabilisticMapping {
+const audioProcesses = [
+  // {
+  //   type: 'energy-filter',
+  //   options: {},
+  // },
+  {
+    type: 'feedback-delay'
+  }
+];
+
+class ProbabilisticMapping extends BaseMapping {
   constructor() {
+    super(audioProcesses);
+
     this.labels = null;
     this.buffers = null;
     this.destination = null;
@@ -125,6 +144,7 @@ class ProbabilisticMapping {
   stop() {
     this.synth.stop(() => {
       this.synth.disconnect();
+      this.stopProcesses();
     });
   }
 
@@ -139,8 +159,7 @@ class ProbabilisticMapping {
   }
 
   setAudioDestination(destination) {
-    this.output = destination;
-    this.synth.connect(this.output);
+    this.createAudioChain(this.synth, destination);
   }
 
   enablePreview(label) {
@@ -155,20 +174,27 @@ class ProbabilisticMapping {
   }
 
   enableSensors() {
-    // console.log('todo');
+    // this.synth.gain = 0;
+    super.enableSensors();
   }
 
   disableSensors() {
-    // console.log('todo');
+    // this.synth.gain = 1;
+    super.disableSensors();
   }
 
-  processSensorsData() {
-    // console.log('todo');
+  processSensorsData(data) {
+    // const gain = Math.sqrt(data[1]);
+    // this.synth.gain = gain;
+
+    super.processSensorsData(data);
   }
 
   processDecoderOutput(data) {
     const { likelihoods } = data;
     this.synth.update(likelihoods);
+
+    super.processDecoderOutput(data);
   }
 }
 

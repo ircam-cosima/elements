@@ -56,7 +56,7 @@ class LikelihoodsRenderer extends Canvas2dRenderer {
   }
 
   render(ctx) {
-    this.flag = (this.flag + 1) % 4;
+    this.flag = (this.flag + 1) % 8;
 
     if (this.flag !== 0)
       return;

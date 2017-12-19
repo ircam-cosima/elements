@@ -104,6 +104,7 @@ class AudioRendererModule extends BaseModule {
             // @todo - instanciate mapping according to project definition...
             // this.mapping = new LikeliestMapping();
             this.mapping = new ProbabilisticMapping();
+
             this.mapping.setBuffers(buffers[uuid]);
             this.mapping.setLabels(labels);
             this.mapping.setAudioDestination(audioOutput);

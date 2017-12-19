@@ -34,6 +34,9 @@ class PlayerExperience extends soundworks.Experience {
     this.subscriptions = new Map();
     this.modules = new Map();
 
+    // @todo - formalize that properly
+    this.renderFrameInvRatio = 8; // render 1 frame over 8
+
     this.dispatch = this.dispatch.bind(this);
   }
 
@@ -92,7 +95,7 @@ class PlayerExperience extends soundworks.Experience {
         let flag = 0;
 
         this.view.setPreRender((ctx, dt, canvasWidth, canvasHeight) => {
-          flag = (flag + 1) % 4;
+          flag = (flag + 1) % 8;
 
           if (flag !== 0)
             return;

@@ -13,16 +13,13 @@
 
 synths
 - Granular synth in SimpleFadeMapping
+- Statistical Granular
 
 ### todos
 
+- mappings and synth configuration
 - new synths / transitions
-  + statistical granular 
   + segment on energy
-
-- `LikeliestMapping`: allow to choose between LoopSynth and GranularSynth from configuration
-
-- configure mapping to choose between LoopSynth and GranularSynth
 
 Vendredi
 - alternative autoTrigger with count down - option temps min / max
