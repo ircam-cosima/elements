@@ -18,6 +18,7 @@ class Player {
       record: {
         state: 'idle',
         label: '',
+        preview: false,
       },
       streams: {
         sensors: false,

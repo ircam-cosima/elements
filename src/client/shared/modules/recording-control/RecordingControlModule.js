@@ -37,6 +37,7 @@ class RecordingControlModule extends BaseModule {
 
     this.recordState = null;
     this.recordLabel = null;
+    this.preview = false;
     this.currentProject = null;
 
     this.view = new RecordingControlView();
@@ -130,7 +131,6 @@ class RecordingControlModule extends BaseModule {
           this.view.model.labels = Object.keys(audioFiles);
           this.currentProject = payload.project;
           // @todo - reset any ongoing recording and should set state to `idle`
-
           recordParams = payload.player.params.record;
           break;
         case 'update-player-param':
@@ -138,16 +138,36 @@ class RecordingControlModule extends BaseModule {
           break;
       }
 
-      this.recordLabel = recordParams.label;
+      const gestureRecognitionModule = this.experience.getModule('gesture-recognition');
+      const audioRendererModule = this.experience.getModule('audio-renderer');
+
+      // audio preview
+      if (this.preview !== recordParams.preview) {
+        this.preview = recordParams.preview;
+        const audioRendererModule = this.experience.getModule('audio-renderer');
+
+        if (this.preview) {
+          gestureRecognitionModule.disableDecoding();
+          audioRendererModule.enablePreview(recordParams.label);
+        } else {
+          audioRendererModule.disablePreview();
+          gestureRecognitionModule.enableDecoding();
+        }
+      }
+
+      // update preview on label change
+      if (this.preview && this.recordLabel !== recordParams.label) {
+        audioRendererModule.enablePreview(recordParams.label);
+      }
+
       this.view.model.recordState = recordParams.state;
       this.view.model.recordLabel = recordParams.label;
+      this.view.model.preview = recordParams.preview;
+      this.recordLabel = recordParams.label;
 
       // recording state machine
       if (this.recordState !== recordParams.state) {
         this.recordState = recordParams.state;
-
-        const gestureRecognitionModule = this.experience.getModule('gesture-recognition');
-        const gestureAudioRendererModule = this.experience.getModule('audio-renderer');
 
         // recording state machine
         switch (recordParams.state) {
@@ -165,7 +185,7 @@ class RecordingControlModule extends BaseModule {
             gestureRecognitionModule.addSensorsListener(this.feedAutoTrigger);
             gestureRecognitionModule.disableDecoding();
 
-            gestureAudioRendererModule.enablePreview(this.recordLabel);
+            audioRendererModule.enablePreview(this.recordLabel);
             break;
           }
           case 'recording': {
@@ -187,7 +207,7 @@ class RecordingControlModule extends BaseModule {
             gestureRecognitionModule.removeSensorsListener(this.feedAutoTrigger);
             gestureRecognitionModule.removeSensorsListener(this.feedRecorder);
 
-            gestureAudioRendererModule.disablePreview()
+            audioRendererModule.disablePreview();
             break;
           }
           case 'confirm': {

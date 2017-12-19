@@ -13,6 +13,14 @@ const template = `
     </select>
   </div>
 
+  <label class="checkbox">
+    <% var checked = preview ? ' checked' : ''; %>
+    <input type="checkbox" class="player-param" data-name="record.preview"<%= checked %> />
+    <div class="checkbox-ui"></div>
+
+    <span>Preview</span>
+  </label>
+
   <% var disabled = trainedLabels.indexOf(recordLabel) === -1 ? ' disabled' : ''; %>
   <button class="clear btn" data-type="clear-examples" data-target="<%= recordLabel %>"<%= disabled %>>
     clear <%= recordLabel %> recordings
@@ -81,6 +89,7 @@ const model = {
   labels: [],
   recordLabel: '',
   recordState: 'idle',
+  preview: false,
   trainedLabels: [],
   confirm: null,
   text: {
@@ -103,6 +112,7 @@ class RecordingControlView extends View {
 
         this.request('update-player-param', { name, value });
       },
+      // button, checkbox
       'click button.player-param': e => {
         e.preventDefault();
         const $input = e.target;
@@ -111,7 +121,14 @@ class RecordingControlView extends View {
 
         this.request('update-player-param', { name, value });
       },
-      //
+      'click input.player-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const name = $input.dataset.name;
+        const value = !($input.hasAttribute('checked'));
+
+        this.request('update-player-param', { name, value });
+      },
       'click button.clear': e => {
         e.preventDefault();
         const $btn = e.target;

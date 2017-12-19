@@ -75,6 +75,13 @@ const playerParamsTmpl = `
   <% }); %>
   </select>
 
+  <label class="checkbox">
+    <% var checked = player.params.record.preview ? ' checked' : ''; %>
+    <input type="checkbox" class="player-param" data-name="record.preview"<%= checked %> />
+    <div class="checkbox-ui"></div>
+    <span>Preview</span>
+  </label>
+
   <% if (player.params.record.state === 'idle') { %>
     <button class="btn player-param" data-name="record.state" value="arm">
       Arm

@@ -82,27 +82,41 @@ class StreamsModule extends BaseModule {
     rawSocket.send('sensors', this.sensorsBuffer);
   }
 
-  // may
   processDecoding(results) {
     const rawSocket = this.experience.rawSocket;
-    let length = results.likelihoods.length;
+
+    // -----------------------------------------------------------
+    // likelihoods
+    // -----------------------------------------------------------
+    const length = results.likelihoods.length;
 
     if (!this.likelihoodsBuffer || this.likelihoodsBuffer.length - 1 !== length) {
       this.likelihoodsBuffer = new Float32Array(length + 1);
-      this.timeProgressionsBuffer = new Float32Array(length + 1);
-
       this.likelihoodsBuffer[0] = client.index;
-      this.timeProgressionsBuffer[0] = client.index;
     }
 
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < length; i++)
       this.likelihoodsBuffer[i + 1] = results.likelihoods[i];
-      this.timeProgressionsBuffer[i + 1] = results.timeProgressions[i];
+
+    rawSocket.send('likelihoods', this.likelihoodsBuffer);
+
+    // -----------------------------------------------------------
+    // timeProgressions - only available when modelType === hhmm)
+    // -----------------------------------------------------------
+    if (results.timeProgressions) {
+      const length = results.timeProgressions.length;
+
+      if (!this.timeProgressionsBuffer || this.timeProgressionsBuffer.length - 1 !== length) {
+        this.timeProgressionsBuffer = new Float32Array(length + 1);
+        this.timeProgressionsBuffer[0] = client.index;
+      }
+
+      for (let i = 0; i < length; i++)
+        this.timeProgressionsBuffer[i + 1] = results.timeProgressions[i];
+
+      rawSocket.send('timeProgressions', this.timeProgressionsBuffer);
     }
 
-    // console.log(this.likelihoodsBuffer);
-    rawSocket.send('likelihoods', this.likelihoodsBuffer);
-    rawSocket.send('timeProgressions', this.timeProgressionsBuffer);
   }
 }
 

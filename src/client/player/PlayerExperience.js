@@ -14,7 +14,7 @@ class PlayerExperience extends soundworks.Experience {
 
     this.preset = config.preset;
 
-    this.platform = this.require('platform', { features: ['web-audio'] });
+    this.platform = this.require('platform', { features: ['web-audio', 'mobile-device'] });
     this.checkin = this.require('checkin');
     // this.sharedParams = this.require('shared-params');
 
@@ -88,7 +88,15 @@ class PlayerExperience extends soundworks.Experience {
 
     Promise.all(initPromises)
       .then(() => {
+        // @warning - render only 1 frame over 4
+        let flag = 0;
+
         this.view.setPreRender((ctx, dt, canvasWidth, canvasHeight) => {
+          flag = (flag + 1) % 4;
+
+          if (flag !== 0)
+            return;
+
           ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         });
 

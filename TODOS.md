@@ -2,23 +2,32 @@
 
 ## Features
 
-- bug - do not allow to create a project with an empty name - ok
-- stream sensors to osc - ok
+### done
 
-Mercredi
-- stream decoding results [likelihoods, time progression] 
-  => maybe split in 2 different controls
+- bug - do not allow to create a project with an empty name - _ok_
+- stream sensors to osc - _ok_
+- stream decoding results [likelihoods, time progression] - _ok_
+  => maybe split in 2 different controls?
+- preview btn - _ok_
+- use intensity to control the cutoff of a filter - _ok_
 
-- preview btn
+synths
+- Granular synth in SimpleFadeMapping
 
-Jeudi
+### todos
+
 - new synths / transitions
   + statistical granular 
   + segment on energy
 
+- `LikeliestMapping`: allow to choose between LoopSynth and GranularSynth from configuration
+
+- configure mapping to choose between LoopSynth and GranularSynth
+
 Vendredi
-- use intensity to control the cutoff of a filter
 - alternative autoTrigger with count down - option temps min / max
+
+### later
 
 - import audio files
 - create projects and associate audio files

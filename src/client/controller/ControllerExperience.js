@@ -67,7 +67,6 @@ class ControllerExperience extends Experience {
         if (!this.likelihoodsBuffer || this.likelihoodsBuffer.length !== bufferLength) {
           this.likelihoodsBuffer = new Float32Array(bufferLength);
           reset = true;
-          console.log(reset);
         }
 
         const playerIndex = data[0];

@@ -1,6 +1,5 @@
 import { audioContext } from 'soundworks/client';
 
-
 class LoopSynth {
   constructor() {
     this.buffers = null;
@@ -9,14 +8,15 @@ class LoopSynth {
     this._current = {};
 
     this.output = audioContext.createGain();
-    this.output.gain.value = 0;
-    this.output.gain.setValueAtTime(0, audioContext.currentTime);
+    this.output.gain.value = 1;
+    this.output.gain.setValueAtTime(1, audioContext.currentTime);
 
     this.disconnect = this.disconnect.bind(this);
   }
 
   set gain(value) {
-    this.output.gain.setValueAtTime(value, audioContext.currentTime + 0.005);
+    const now = audioContext.currentTime;
+    this.output.gain.setValueAtTime(value, now + 0.005);
   }
 
   connect(destination) {
@@ -54,14 +54,19 @@ class LoopSynth {
     if (this._current.src) {
       const { src, env } = this._current;
       const now = audioContext.currentTime;
+      const endTime = now + this.fadeDuration;
 
-      env.gain.linearRampToValueAtTime(0, now + this.fadeDuration);
-      src.stop(now + this.fadeDuration);
+      env.gain.cancelScheduledValues(now);
+      env.gain.setValueAtTime(env.gain.value, now);
+      env.gain.linearRampToValueAtTime(0, endTime);
+      src.stop(endTime);
+
+      this._current.src = null;
+      this._current.env = null;
 
       if (callback)
         src.onend = callback;
-    } else {
-      if (callback)
+    } else if (callback !== null) {
         callback();
     }
   }

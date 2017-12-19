@@ -20,6 +20,9 @@ class LikelihoodsRenderer extends Canvas2dRenderer {
 
     this.type = 'likelihood-renderer';
     this.modelResults = null;
+
+    // renderer 1 frame over 2
+    this.flag = 0;
   }
 
   setResults(results) {
@@ -53,6 +56,11 @@ class LikelihoodsRenderer extends Canvas2dRenderer {
   }
 
   render(ctx) {
+    this.flag = (this.flag + 1) % 4;
+
+    if (this.flag !== 0)
+      return;
+
     ctx.save();
     ctx.translate(this.left, this.top);
 

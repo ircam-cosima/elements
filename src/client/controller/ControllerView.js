@@ -1,7 +1,7 @@
 import { View } from 'soundworks/client';
 import template from 'lodash.template';
+import * as controllers from '@ircam/basic-controllers';
 import * as lfo from 'waves-lfo/client';
-import * as controllers from 'basic-controllers';
 // templates
 import projectTmpl from './templates/project.tmpl';
 import projectParamsTmpl from './templates/project-params.tmpl';

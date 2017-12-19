@@ -5,7 +5,8 @@ import AudioControlView from './AudioControlView';
 import merge from 'lodash.merge';
 
 // mappings
-import SimpleFadeMapping from './mappings/SimpleFadeMapping';
+import LikeliestMapping from './mappings/LikeliestMapping';
+import ProbabilisticMapping from './mappings/ProbabilisticMapping';
 
 const MODULE_ID = 'audio-renderer';
 
@@ -101,12 +102,14 @@ class AudioRendererModule extends BaseModule {
             const audioOutput = this.experience.getAudioOutput();
 
             // @todo - instanciate mapping according to project definition...
-            this.mapping = new SimpleFadeMapping();
+            // this.mapping = new LikeliestMapping();
+            this.mapping = new ProbabilisticMapping();
             this.mapping.setBuffers(buffers[uuid]);
             this.mapping.setLabels(labels);
             this.mapping.setAudioDestination(audioOutput);
 
             this.experience.mute(audioParams.mute);
+            this.experience.volume(audioParams.volume);
 
             if (audioParams.sensors)
               this.enableSensors();
@@ -130,14 +133,14 @@ class AudioRendererModule extends BaseModule {
       }
       case 'update-player-param': {
         const audioParams = payload.params.audioRendering;
+
         this.experience.mute(audioParams.mute);
+        this.experience.volume(audioParams.volume);
 
         if (audioParams.sensors)
           this.enableSensors();
         else
           this.disableSensors();
-
-        this.experience.volume(audioParams.volume);
 
         merge(this.view.model, audioParams);
         this.view.render();
@@ -146,6 +149,9 @@ class AudioRendererModule extends BaseModule {
     }
   }
 
+  /**
+   * @note - consumed by the `RecordingControlModule`.
+   */
   enablePreview(label) {
     this.gestureRecognitionModule.removeDecoderListener(this.processDecoderOutput);
 
@@ -153,6 +159,9 @@ class AudioRendererModule extends BaseModule {
       this.mapping.enablePreview(label);
   }
 
+  /**
+   * @note - consumed by the `RecordingControlModule`.
+   */
   disablePreview() {
     if (this.mapping)
       this.mapping.disablePreview();
