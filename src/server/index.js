@@ -9,7 +9,7 @@ import ControllerExperience from './ControllerExperience';
 import PlayerExperience from './PlayerExperience';
 
 import projectDbMapper from './shared/utils/projectDbMapper';
-import presets from '../shared/presets';
+import clientPresets from '../shared/config/client-presets';
 
 const server = soundworks.server;
 // process config file
@@ -41,8 +41,8 @@ appStore.init()
     server.setClientConfigDefinition((clientType, config, httpRequest) => {
       return {
         clientType: clientType,
-        preset: presets[clientType],
-        presets: presets,
+        preset: clientPresets[clientType],
+        presets: clientPresets,
         env: config.env,
         appName: config.appName,
         websockets: config.websockets,
@@ -53,10 +53,10 @@ appStore.init()
     });
 
     const comm = new EventEmitter();
-    const clientTypes = Object.keys(presets);
+    const clientTypes = Object.keys(clientPresets);
 
-    const player = new PlayerExperience(clientTypes, config, presets, comm);
-    const controller = new ControllerExperience('controller', config, presets, comm);
+    const player = new PlayerExperience(clientTypes, config, clientPresets, comm);
+    const controller = new ControllerExperience('controller', config, clientPresets, comm);
 
     // updload and download files
     server.router.get('/download', (req, res) => {

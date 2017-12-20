@@ -125,9 +125,9 @@ const audioProcesses = [
   //   type: 'energy-filter',
   //   options: {},
   // },
-  {
-    type: 'feedback-delay'
-  }
+  // {
+  //   type: 'feedback-delay'
+  // }
 ];
 
 class ProbabilisticMapping extends BaseMapping {
@@ -164,28 +164,28 @@ class ProbabilisticMapping extends BaseMapping {
 
   enablePreview(label) {
     this.synth.stop();
-    this.synth.labels = [label]; // force dummy label
+    this.synth.labels = [label];
     this.synth.update([1]);
   }
 
   disablePreview() {
-    this.synth.labels = this.labels; // re-apply current labels
+    this.synth.labels = this.labels;
     this.synth.stop();
   }
 
   enableSensors() {
-    // this.synth.gain = 0;
+    this.synth.gain = 0;
     super.enableSensors();
   }
 
   disableSensors() {
-    // this.synth.gain = 1;
+    this.synth.gain = 1;
     super.disableSensors();
   }
 
   processSensorsData(data) {
-    // const gain = Math.sqrt(data[1]);
-    // this.synth.gain = gain;
+    const gain = Math.sqrt(data[1]);
+    this.synth.gain = gain;
 
     super.processSensorsData(data);
   }
@@ -199,33 +199,4 @@ class ProbabilisticMapping extends BaseMapping {
 }
 
 export default ProbabilisticMapping;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
