@@ -1,5 +1,6 @@
 import * as audio from 'waves-audio';
 import BaseMapping from './BaseMapping';
+import mappingManager from './mappingManager';
 
 const audioContext = audio.audioContext;
 const scheduler = audio.getScheduler();
@@ -120,19 +121,11 @@ class ProbabilisticGranularSynth {
 
 }
 
-const audioProcesses = [
-  // {
-  //   type: 'energy-filter',
-  //   options: {},
-  // },
-  // {
-  //   type: 'feedback-delay'
-  // }
-];
+const MAPPING_ID = 'probabilistic-mapping';
 
 class ProbabilisticMapping extends BaseMapping {
-  constructor() {
-    super(audioProcesses);
+  constructor(synthConfig = {}, audioProcessesConfig = []) {
+    super(MAPPING_ID, audioProcessesConfig);
 
     this.labels = null;
     this.buffers = null;
@@ -197,6 +190,8 @@ class ProbabilisticMapping extends BaseMapping {
     super.processDecoderOutput(data);
   }
 }
+
+mappingManager.register(MAPPING_ID, ProbabilisticMapping);
 
 export default ProbabilisticMapping;
 

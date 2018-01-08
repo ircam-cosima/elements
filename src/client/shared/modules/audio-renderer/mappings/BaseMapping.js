@@ -7,12 +7,13 @@ const processsesTypes = {
 };
 
 class BaseMapping {
-  constructor(audioProcessesDefinitions = []) {
+  constructor(id, audioProcessesDefinitions = []) {
+    this.id = id;
     this.processes = new Set();
 
     audioProcessesDefinitions.forEach(defs => {
       const ctor = processsesTypes[defs.type];
-      const options = defs.options;
+      const options = defs.options || {};
       const proc = new ctor(options);
 
       this.processes.add(proc);

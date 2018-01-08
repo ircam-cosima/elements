@@ -1,12 +1,10 @@
 import { client } from 'soundworks/client';
 import BaseModule from '../BaseModule';
-import moduleManager from '../moduleManager';
 import AudioControlView from './AudioControlView';
+import mappingManager from './mappings/mappingManager';
+import moduleManager from '../moduleManager';
 import merge from 'lodash.merge';
 
-// mappings
-import LikeliestMapping from './mappings/LikeliestMapping';
-import ProbabilisticMapping from './mappings/ProbabilisticMapping';
 
 const MODULE_ID = 'audio-renderer';
 
@@ -14,9 +12,21 @@ class AudioRendererModule extends BaseModule {
   constructor(experience, options) {
     super(MODULE_ID, experience);
 
-    this.options = Object.assign({
+    this.options = merge({
       showView: true,
-    }, options)
+      mapping: {
+        type: 'likeliest-mapping',
+        synth: {
+          type: 'loop',
+        },
+        audioProcesses: [
+          {
+            type: 'energy-filter',
+            options: {},
+          },
+        ],
+      },
+    }, options);
 
     this.subscriptions = [
       'add-player-to-project',
@@ -101,9 +111,12 @@ class AudioRendererModule extends BaseModule {
             const labels = model.payload.models.map(mod => mod.label);
             const audioOutput = this.experience.getAudioOutput();
 
-            // @todo - instanciate mapping according to project definition...
-            // this.mapping = new LikeliestMapping();
-            this.mapping = new ProbabilisticMapping();
+            const mappingType = this.options.mapping.type;
+            const synthConfig = this.options.mapping.synth;
+            const audioProcessesConfig = this.options.mapping.audioProcesses;
+            const mappingCtor = mappingManager.get(mappingType);
+
+            this.mapping = new mappingCtor(synthConfig, audioProcessesConfig);
 
             this.mapping.setBuffers(buffers[uuid]);
             this.mapping.setLabels(labels);

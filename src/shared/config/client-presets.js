@@ -81,7 +81,23 @@ const clientPresets = {
     },
     'gesture-recognition': {},
     'audio-renderer': {
-      // @todo - define mapping and audio-processes
+      mapping: {
+        type: 'probabilistic-mapping',
+        // synth: { // only exists with `likeliest-mapping`
+        //   type: 'loop', // or granular
+        // },
+        audioProcesses: [
+          {
+            type: 'energy-filter',
+            options: {},
+          },
+          {
+            type: 'feedback-delay',
+            options: {},
+          },
+        ],
+      },
+      showView: true,
     },
     'recording-control': {},
     'canvas-renderer': {
@@ -102,8 +118,8 @@ const clientPresets = {
    */
   // default: {
   //   'project-manager': {
-  //     enableChange: true,
-  //     // forceProject: 'fefc0121-083c-4fe9-9a08-bd35d4a25790', // name or uuid
+  //     enableChange: false,
+  //     forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
   //   },
   //   'gesture-recognition': {},
   //   'audio-renderer': {},

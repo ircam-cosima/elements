@@ -1,7 +1,5 @@
 import { View } from 'soundworks/client';
 import template from 'lodash.template';
-import * as controllers from '@ircam/basic-controllers';
-import * as lfo from 'waves-lfo/client';
 // templates
 import projectTmpl from './templates/project.tmpl';
 import projectParamsTmpl from './templates/project-params.tmpl';
@@ -9,9 +7,14 @@ import playerTmpl from './templates/player.tmpl';
 import playerParamsTmpl from './templates/player-params.tmpl';
 import playerSensorsTmpl from './templates/player-sensors.tmpl';
 import playerLikelihoodsTmpl from './templates/player-likelihoods.tmpl';
+
+import SensorsDisplay from './display-components/SensorsDisplay';
+import LikelihoodsDisplay from './display-components/LikelihoodsDisplay';
+
 //
 import mlPresets from '../../shared/config/ml-presets';
 import { colors } from '../../shared/config/ui';
+
 
 const tmpl = `
   <div id="header">
@@ -55,8 +58,8 @@ class ControllerView extends View {
     this.playerSensorsTmpl = template(playerSensorsTmpl);
     this.playerLikelihoodsTmpl = template(playerLikelihoodsTmpl);
 
-    this.sensorsDisplayChains = new Map();
-    this.likelihoodsDisplayChains = new Map();
+    this.sensorsDisplayCollection = new Map();
+    this.likelihoodsDisplayCollection = new Map();
     this.likelihoodResetRequired = false;
 
     this.installEvents({
@@ -344,7 +347,7 @@ class ControllerView extends View {
     const selector = `#_${player.uuid}`;
     const $player = this.$el.querySelector(selector);
 
-    if (this.sensorsDisplayChains.has(player.index))
+    if (this.sensorsDisplayCollection.has(player.index))
       this._deleteSensorsStream(player.uuid, player.index);
 
     $player.remove();
@@ -362,201 +365,75 @@ class ControllerView extends View {
   }
 
   _updateSensorsStream(player) {
-    const lfoChain = this.sensorsDisplayChains.get(player.index);
+    const sensorsDisplay = this.sensorsDisplayCollection.get(player.index);
 
     if (player.params.streams.sensors === true) {
-      if (lfoChain && lfoChain.isStreaming === false) {
-        // reset stream
-        lfoChain.bpfDisplay.resetStream();
-        lfoChain.isStreaming = true;
-
-      } else if (!lfoChain) {
+      if (sensorsDisplay && sensorsDisplay.isStreaming === false) {
+        sensorsDisplay.reset();
+        sensorsDisplay.isStreaming = true;
+      } else if (!sensorsDisplay) {
         const $sensorsContainer = this.$el.querySelector(`#_${player.uuid} .sensors-display`);
-        const playerSensors = this.playerSensorsTmpl({});
-        $sensorsContainer.innerHTML = playerSensors;
+        const playerSensorsHtml = this.playerSensorsTmpl({});
+        $sensorsContainer.innerHTML = playerSensorsHtml;
 
-        const $canvasContainer = $sensorsContainer.querySelector('.canvas-container');
-        const $controllerContainer = $sensorsContainer.querySelector('.controllers');
-
-        const displayFilter = [1, 1, 1, 1, 1, 1, 1, 1];
-        // build lfo chain
-        const eventIn = new lfo.source.EventIn({
-          frameType: 'vector',
-          frameSize: 8,
-          frameRate: 0,
-        });
-
-        const filter = new lfo.operator.Multiplier({
-          factor: displayFilter,
-        });
-
-        const bpfDisplay = new lfo.sink.BpfDisplay({
-          min: -1,
-          max: 1,
-          width: 600,
-          height: 300,
-          duration: 10,
-          line: true,
-          radius: 0,
-          colors: [
-            '#da251c', '#f8cc11', // intensity
-            'steelblue', 'orange', 'green',
-            '#565656', '#fa8064', '#54b2a9',
-          ],
-          container: $canvasContainer,
-        });
-
-        eventIn.connect(filter);
-        filter.connect(bpfDisplay);
-        eventIn.start();
-
-        // controls
-        const intensityToggle = new controllers.Toggle({
-          label: 'intensity',
-          active: true,
-          container: $controllerContainer,
-          callback: active => {
-            const value = active === true ? 1 : 0;
-            displayFilter[0] = value;
-            displayFilter[1] = value;
-          }
-        });
-
-        const bandpassToggle = new controllers.Toggle({
-          label: 'bandpass',
-          active: true,
-          container: $controllerContainer,
-          callback: active => {
-            const value = active === true ? 1 : 0;
-            displayFilter[2] = value;
-            displayFilter[3] = value;
-            displayFilter[4] = value;
-          }
-        });
-
-        const orientationToggle = new controllers.Toggle({
-          label: 'orientation',
-          active: true,
-          container: $controllerContainer,
-          callback: active => {
-            const value = active === true ? 1 : 0;
-            displayFilter[5] = value;
-            displayFilter[6] = value;
-            displayFilter[7] = value;
-          }
-        });
-
-        const bpfTickness = new controllers.Slider({
-          label: 'tickness',
-          min: 0,
-          max: 10,
-          step: 1,
-          value: 0,
-          container: $controllerContainer,
-          callback: value => bpfDisplay.params.set('radius', value),
-        });
-
-        const lfoChain = {
-          eventIn,
-          filter,
-          bpfDisplay,
-          intensityToggle,
-          bandpassToggle,
-          orientationToggle,
-          bpfTickness,
-          isStreaming: true,
-        };
-
-        this.sensorsDisplayChains.set(player.index, lfoChain);
+        const sensorsDisplay = new SensorsDisplay($sensorsContainer);
+        this.sensorsDisplayCollection.set(player.index, sensorsDisplay);
       }
-    } else if (player.params.streams.sensors === false && lfoChain && lfoChain.isStreaming === true) {
-      lfoChain.isStreaming = false;
+    } else if (
+      player.params.streams.sensors === false &&
+      sensorsDisplay &&
+      sensorsDisplay.isStreaming === true
+    ) {
+      sensorsDisplay.isStreaming = false;
     }
   }
 
   _deleteSensorsStream(uuid, index) {
-    let lfoChain = this.sensorsDisplayChains.get(index);
+    let sensorsDisplay = this.sensorsDisplayCollection.get(index);
+    this.sensorsDisplayCollection.delete(index);
+    sensorsDisplay.destroy();
 
-    lfoChain.eventIn.finalizeStream();
-    lfoChain.eventIn.destroy();
-    lfoChain.filter.destroy();
-    lfoChain.bpfDisplay.destroy();
-
-    this.sensorsDisplayChains.delete(index);
-    lfoChain = null;
     // delete container
     const $container = this.$el.querySelector(`.players #_${uuid} .sensors-display`);
     $container.innerHTML = '';
   }
 
   processSensorsStream(playerIndex, data) {
-    const chain = this.sensorsDisplayChains.get(playerIndex);
+    const sensorsDisplay = this.sensorsDisplayCollection.get(playerIndex);
     // as everything is async, we cannot garantee that the chain still exists
-    if (chain)
-      chain.eventIn.process(null, data);
+    if (sensorsDisplay)
+      sensorsDisplay.process(data);
   }
 
   _updateLikelihoodsStream(player) {
-    const lfoChain = this.likelihoodsDisplayChains.get(player.index);
+    const likelihoodsDisplay = this.likelihoodsDisplayCollection.get(player.index);
 
     if (player.params.streams.decoding === true) {
-      if (lfoChain && lfoChain.isStreaming === false) {
-
-        lfoChain.barChartDisplay.resetStream();
-        lfoChain.isStreaming = true;
-
-      } else if (!lfoChain) {
+      if (likelihoodsDisplay && likelihoodsDisplay.isStreaming === false) {
+        likelihoodsDisplay.reset();
+        likelihoodsDisplay.isStreaming = true;
+      } else if (!likelihoodsDisplay) {
 
         const $likelihoodsContainer = this.$el.querySelector(`#_${player.uuid} .likelihoods-display`);
-        const playerLikelihoods = this.playerLikelihoodsTmpl({});
-        $likelihoodsContainer.innerHTML = playerLikelihoods;
+        const playerLikelihoodsHtml = this.playerLikelihoodsTmpl({});
+        $likelihoodsContainer.innerHTML = playerLikelihoodsHtml;
 
-        const $canvasContainer = $likelihoodsContainer.querySelector('.canvas-container');
-
-        const eventIn = new lfo.source.EventIn({
-          frameSize: 1, // dummy value
-          frameRate: 0, // dummy value
-          frameType: 'vector',
-        });
-
-        const barChartDisplay = new lfo.sink.BarChartDisplay({
-          container: $canvasContainer,
-          width: 600,
-          colors: [
-            '#ff0000',
-            '#00ff00',
-            '#3355ff',
-            '#999900',
-            '#990099',
-            '#009999',
-          ],
-        });
-
-        eventIn.connect(barChartDisplay);
-        eventIn.start();
-
-        const lfoChain = {
-          eventIn,
-          barChartDisplay,
-          isStreaming: true,
-        };
-
-        this.likelihoodsDisplayChains.set(player.index, lfoChain);
+        const likelihoodsDisplay = new LikelihoodsDisplay($likelihoodsContainer);
+        this.likelihoodsDisplayCollection.set(player.index, likelihoodsDisplay);
       }
-    } else if (player.params.streams.decoding === false && lfoChain && lfoChain.isStreaming === true) {
-      lfoChain.isStreaming = false;
+    } else if (
+      player.params.streams.decoding === false &&
+      likelihoodsDisplay &&
+      likelihoodsDisplay.isStreaming === true
+    ) {
+      likelihoodsDisplay.isStreaming = false;
     }
   }
 
   _deleteLikelihoodsStream(uuid, index) {
-    let lfoChain = this.likelihoodsDisplayChains.get(index);
-
-    lfoChain.eventIn.finalizeStream();
-    lfoChain.eventIn.destroy();
-    lfoChain.barChartDisplay.destroy();
-
-    this.likelihoodsDisplayChains.delete(index);
-    lfoChain = null;
+    let likelihoodsDisplay = this.likelihoodsDisplayCollection.get(index);
+    this.likelihoodsDisplayCollection.delete(index);
+    likelihoodsDisplay.destroy();
     // delete container
     const $container = this.$el.querySelector(`.players #_${uuid} .likelihoods-display`);
     $container.innerHTML = '';
@@ -565,17 +442,15 @@ class ControllerView extends View {
   }
 
   processLikelihoodsStream(playerIndex, data, reset) {
-    const chain = this.likelihoodsDisplayChains.get(playerIndex);
+    const likelihoodsDisplay = this.likelihoodsDisplayCollection.get(playerIndex);
 
-    if (chain) {
+    if (likelihoodsDisplay) {
       if (reset || this.likelihoodResetRequired) {
-        chain.eventIn.streamParams.frameSize = data.length;
-        chain.eventIn.propagateStreamParams();
-
+        likelihoodsDisplay.setFrameSize(data.length);
         this.likelihoodResetRequired = false;
       }
 
-      chain.eventIn.process(null, data);
+      likelihoodsDisplay.process(data);
     } else if (reset) {
       this.likelihoodResetRequired = true;
     }

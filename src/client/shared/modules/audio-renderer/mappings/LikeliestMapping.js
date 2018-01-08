@@ -3,16 +3,9 @@ import BaseMapping from './BaseMapping';
 import LoopSynth from '../../../audio/LoopSynth';
 import GranularSynth from '../../../audio/GranularSynth';
 
+import mappingManager from './mappingManager';
 
-const audioProcesses = [
-  {
-    type: 'energy-filter',
-    options: {},
-  },
-  // {
-  //   type: 'feedback-delay'
-  // }
-];
+const MAPPING_ID = 'likeliest-mapping';
 
 /**
  * Mapping that use the `likeliest` recognized label to control a synth.
@@ -21,10 +14,13 @@ const audioProcesses = [
  * @todo - allow to choose between LoopSynth and GranularSynth from configuration
  */
 class LikeliestMapping extends BaseMapping {
-  constructor() {
-    super(audioProcesses);
-    // this.synth = new LoopSynth();
-    this.synth = new GranularSynth();
+  constructor(synthConfig = {}, audioProcessesConfig = []) {
+    super(MAPPING_ID, audioProcessesConfig);
+
+    if (synthConfig.type === 'granular')
+      this.synth = new GranularSynth();
+    else
+      this.synth = new LoopSynth(); // default
 
     this.currentLabel = null;
     this.output = null;
@@ -88,5 +84,7 @@ class LikeliestMapping extends BaseMapping {
     super.processDecoderOutput(data);
   }
 }
+
+mappingManager.register(MAPPING_ID, LikeliestMapping);
 
 export default LikeliestMapping;

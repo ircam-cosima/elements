@@ -54,6 +54,17 @@ class Project {
         },
       },
       sensorsPreprocessing: {},
+      // @todo - move this from client configuration to project configuration
+      // mapping: {
+      //   type: 'likeliest-mapping',
+      //   synth: {
+      //     type: 'loop',
+      //   },
+      //   audioProcesses: {
+      //     type: 'energy-filter',
+      //     options: {},
+      //   }
+      // },
     }
   }
 
