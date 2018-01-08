@@ -36,18 +36,19 @@ class LikelihoodsDisplay {
     this.isStreaming = true;
   }
 
-  setFrameSize(frameSize) {
-    this.eventIn.streamParams.frameSize = frameSize;
-    this.eventIn.propagateStreamParams();
-  }
-
   process(data) {
-    if (this.initialized)
+    if (this.initialized) {
+      if (this.eventIn.streamParams.frameSize !== data.length) {
+        this.eventIn.streamParams.frameSize = data.length;
+        this.eventIn.propagateStreamParams();
+      }
+
       this.eventIn.process(null, data);
+    }
   }
 
   reset() {
-    this.barChartDisplay.resetStream()
+    this.barChartDisplay.resetStream();
   }
 
   destroy() {

@@ -60,7 +60,6 @@ class ControllerView extends View {
 
     this.sensorsDisplayCollection = new Map();
     this.likelihoodsDisplayCollection = new Map();
-    this.likelihoodResetRequired = false;
 
     this.installEvents({
       // ----------------------------------------------------------------
@@ -294,8 +293,6 @@ class ControllerView extends View {
 
   onResize(width, height, orientation) {}
 
-  // resetHeader() {}
-
   addProject(project) {
     this.model.projects.push(project);
 
@@ -437,23 +434,13 @@ class ControllerView extends View {
     // delete container
     const $container = this.$el.querySelector(`.players #_${uuid} .likelihoods-display`);
     $container.innerHTML = '';
-
-    this.likelihoodResetRequired = true;
   }
 
-  processLikelihoodsStream(playerIndex, data, reset) {
+  processLikelihoodsStream(playerIndex, data) {
     const likelihoodsDisplay = this.likelihoodsDisplayCollection.get(playerIndex);
 
-    if (likelihoodsDisplay) {
-      if (reset || this.likelihoodResetRequired) {
-        likelihoodsDisplay.setFrameSize(data.length);
-        this.likelihoodResetRequired = false;
-      }
-
+    if (likelihoodsDisplay)
       likelihoodsDisplay.process(data);
-    } else if (reset) {
-      this.likelihoodResetRequired = true;
-    }
   }
 
 }

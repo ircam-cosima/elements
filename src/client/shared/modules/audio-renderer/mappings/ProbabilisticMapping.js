@@ -46,13 +46,17 @@ class ProbabilisticEngine extends audio.GranularEngine {
     let label = this.labels[targetIndex];
 
     if (label === -1) {
-        if (!this.currentLabel)
-          return null; // just wait for next update to be readded to the scheduler
-        else
-          label = this.currentLabel;
+      if (!this.currentLabel)
+        return null; // just wait for next update to be readded to the scheduler
+      else
+        label = this.currentLabel;
     }
 
     this.currentLabel = label;
+
+    // sometime this is undefined for an undefined reason
+    if (!this.buffers[this.currentLabel])
+      return null;
 
     const buffer = this.buffers[this.currentLabel][0];
     const duration = buffer.duration;
@@ -81,6 +85,9 @@ class ProbabilisticGranularSynth {
   }
 
   set labels(labels) {
+    if (labels.length === 0 && this.engine.master)
+      scheduler.remove(this.engine);
+
     this.engine.labels = labels;
   }
 
@@ -162,8 +169,8 @@ class ProbabilisticMapping extends BaseMapping {
   }
 
   disablePreview() {
-    this.synth.labels = this.labels;
     this.synth.stop();
+    this.synth.labels = this.labels;
   }
 
   enableSensors() {

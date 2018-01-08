@@ -15,7 +15,7 @@ class ControllerExperience extends Experience {
     this.streams = false;
 
     this.sensorsBuffer = null;
-    this.likelihoodsBuffer = null;
+    // this.likelihoodsBuffer = null;
 
     for (let name in presets) {
       const preset = presets[name];
@@ -60,21 +60,11 @@ class ControllerExperience extends Experience {
         this.view.processSensorsStream(playerIndex, this.sensorsBuffer);
       });
 
-      this.rawSocket.receive('likelihoods', data => {
+      this.receive('decoding', (playerIndex, data) => {
+        const likelihoods = data.likelihoods;
         const bufferLength = data.length - 1;
-        let reset = false;
 
-        if (!this.likelihoodsBuffer || this.likelihoodsBuffer.length !== bufferLength) {
-          this.likelihoodsBuffer = new Float32Array(bufferLength);
-          reset = true;
-        }
-
-        const playerIndex = data[0];
-
-        for (let i = 0; i < bufferLength; i++)
-          this.likelihoodsBuffer[i] = data[i + 1];
-
-        this.view.processLikelihoodsStream(playerIndex, this.likelihoodsBuffer, reset);
+        this.view.processLikelihoodsStream(playerIndex, likelihoods);
       });
     }
 

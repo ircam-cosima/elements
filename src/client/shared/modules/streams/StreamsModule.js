@@ -83,40 +83,7 @@ class StreamsModule extends BaseModule {
   }
 
   processDecoding(results) {
-    const rawSocket = this.experience.rawSocket;
-
-    // -----------------------------------------------------------
-    // likelihoods
-    // -----------------------------------------------------------
-    const length = results.likelihoods.length;
-
-    if (!this.likelihoodsBuffer || this.likelihoodsBuffer.length - 1 !== length) {
-      this.likelihoodsBuffer = new Float32Array(length + 1);
-      this.likelihoodsBuffer[0] = client.index;
-    }
-
-    for (let i = 0; i < length; i++)
-      this.likelihoodsBuffer[i + 1] = results.likelihoods[i];
-
-    rawSocket.send('likelihoods', this.likelihoodsBuffer);
-
-    // -----------------------------------------------------------
-    // timeProgressions - only available when modelType === hhmm)
-    // -----------------------------------------------------------
-    if (results.timeProgressions) {
-      const length = results.timeProgressions.length;
-
-      if (!this.timeProgressionsBuffer || this.timeProgressionsBuffer.length - 1 !== length) {
-        this.timeProgressionsBuffer = new Float32Array(length + 1);
-        this.timeProgressionsBuffer[0] = client.index;
-      }
-
-      for (let i = 0; i < length; i++)
-        this.timeProgressionsBuffer[i + 1] = results.timeProgressions[i];
-
-      rawSocket.send('timeProgressions', this.timeProgressionsBuffer);
-    }
-
+    this.experience.send('decoding', client.index, results);
   }
 }
 
