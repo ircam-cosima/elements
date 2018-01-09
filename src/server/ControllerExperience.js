@@ -55,10 +55,15 @@ class ControllerExperience extends Experience {
         this.broadcast('controller', null, 'decoding', playerIndex, data);
 
         if (this.oscStreams) {
-          this.osc.send('/likelihoods', data.likelihoods);
+          const likelihoods = data.likelihoods.slice(0);
+          likelihoods.unshift(playerIndex);
+          this.osc.send('/likelihoods', likelihoods);
 
-          if (data.timeProgressions)
-            this.osc.send('/timeProgressions', data.timeProgressions);
+          if (data.timeProgressions) {
+            const timeProgressions = data.timeProgressions.slice(0);
+            timeProgressions.unshift(playerIndex);
+            this.osc.send('/timeProgressions', timeProgressions);
+          }
         }
       });
     }

@@ -151,6 +151,7 @@ select {
 
   .recording-control {
     height: 30px;
+    margin-bottom: 6px;
 
     .record-state {
       display: inline-block;
@@ -175,7 +176,6 @@ select {
   .stream-display {
     background-color: 1px solid #efefef;
     position: relative;
-    margin-top: 12px;
     overflow: auto;
 
     .close {

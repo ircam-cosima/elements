@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 632.0, 79.0, 474.0, 454.0 ],
+		"rect" : [ 1290.0, 225.0, 461.0, 426.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -43,7 +43,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 137.0, 334.0, 150.0, 20.0 ],
-					"presentation_rect" : [ 148.0, 369.0, 0.0, 0.0 ],
 					"style" : "",
 					"text" : "time progressions"
 				}
@@ -56,7 +55,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 76.0, 277.0, 150.0, 20.0 ],
-					"presentation_rect" : [ 85.0, 312.0, 0.0, 0.0 ],
 					"style" : "",
 					"text" : "likelihoods"
 				}
@@ -82,8 +80,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 137.0, 361.0, 141.0, 35.0 ],
-					"presentation_rect" : [ 149.0, 343.0, 0.0, 0.0 ],
+					"patching_rect" : [ 137.0, 361.0, 142.0, 35.0 ],
 					"style" : "",
 					"text" : "0.000013 0. 0. 0.006899 0."
 				}
@@ -97,9 +94,8 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 76.0, 304.0, 141.0, 22.0 ],
-					"presentation_rect" : [ 89.0, 255.0, 0.0, 0.0 ],
 					"style" : "",
-					"text" : "0. 0. 0. 1. 0."
+					"text" : "0.07599 0.92401"
 				}
 
 			}
@@ -111,7 +107,6 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
 					"patching_rect" : [ 175.333328, 98.0, 57.0, 22.0 ],
-					"presentation_rect" : [ 230.0, 120.0, 0.0, 0.0 ],
 					"style" : "",
 					"text" : "route 0"
 				}
@@ -125,7 +120,6 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
 					"patching_rect" : [ 98.666672, 98.0, 57.0, 22.0 ],
-					"presentation_rect" : [ 128.0, 118.0, 0.0, 0.0 ],
 					"style" : "",
 					"text" : "route 0"
 				}
@@ -134,12 +128,13 @@
 , 			{
 				"box" : 				{
 					"id" : "obj-8",
+					"linecount" : 2,
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 286.0, 73.0, 150.0, 20.0 ],
+					"patching_rect" : [ 286.0, 54.0, 124.0, 33.0 ],
 					"style" : "",
-					"text" : "Select player index"
+					"text" : "Select player index \n(cf. controller)"
 				}
 
 			}
@@ -1297,7 +1292,7 @@
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 22.000004, 209.0, 141.0, 62.0 ],
 					"style" : "",
-					"text" : "0.000288 0. -0.096933 -0.015232 -0.002687 0.283086 -0.154207 -0.946616"
+					"text" : "0. 0. -0.000086 -0.000013 -0.000972 0.004864 0.002385 -0.999985"
 				}
 
 			}

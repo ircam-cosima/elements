@@ -1,6 +1,7 @@
 import { View } from 'soundworks/client';
 import template from 'lodash.template';
 // templates
+import headerControlsTmpl from './templates/header-controls.tmpl';
 import projectTmpl from './templates/project.tmpl';
 import projectParamsTmpl from './templates/project-params.tmpl';
 import playerTmpl from './templates/player.tmpl';
@@ -27,6 +28,8 @@ const tmpl = `
       <input type="file" name="project" required />
       <input type="submit" class="btn normal" value="upload" />
     </form>
+
+    <div id="header-controls"></div>
   </div>
   <div id="projects"></div>
 `;
@@ -41,7 +44,6 @@ function createDOM(tmplFunction, data) {
 }
 
 const model = {
-  projectsOverview: [],
   projects: [],
   mlPresets: mlPresets,
   colors: colors,
@@ -57,6 +59,7 @@ class ControllerView extends View {
     this.playerParamsTmpl = template(playerParamsTmpl);
     this.playerSensorsTmpl = template(playerSensorsTmpl);
     this.playerLikelihoodsTmpl = template(playerLikelihoodsTmpl);
+    this.headerControlsTmpl = template(headerControlsTmpl);
 
     this.sensorsDisplayCollection = new Map();
     this.likelihoodsDisplayCollection = new Map();
@@ -92,6 +95,34 @@ class ControllerView extends View {
         request.send(data);
       },
 
+      'change #header-controls #duplicate-audio': e => {
+        e.preventDefault();
+        const $select = e.target;
+        const uuid = $select.value;
+
+        if (uuid !== '') {
+          // enable streaming for this client
+          const streamSensors = {
+            uuid: uuid,
+            name: 'streams.sensors',
+            value: true,
+          };
+
+          this.request('update-player-param', streamSensors);
+
+          const streamDecoding = {
+            uuid: uuid,
+            name: 'streams.decoding',
+            value: true,
+          };
+
+          this.request('update-player-param', streamDecoding);
+
+          // request synth and mapping duplication
+          // this.requestLocal('duplicate-audio', { uuid });
+        }
+      },
+
       'click .project .export-project': e => {
         e.preventDefault();
         const $btn = e.target;
@@ -100,6 +131,7 @@ class ControllerView extends View {
 
         window.open(`./download?uuid=${uuid}`);
       },
+
       'click .project .toggle-params': e => {
         e.preventDefault();
         const $btn = e.target;
@@ -293,6 +325,20 @@ class ControllerView extends View {
 
   onResize(width, height, orientation) {}
 
+  updateHeader() {
+    console.log('update header');
+    const players = [];
+
+    this.model.projects.forEach(project => {
+      project.players.forEach(player => players.push(player));
+    });
+
+    const $headerControlsContainer = this.$header.querySelector('#header-controls');
+    const headerControls = this.headerControlsTmpl({ players: players });
+
+    $headerControlsContainer.innerHTML = headerControls;
+  }
+
   addProject(project) {
     this.model.projects.push(project);
 
@@ -305,13 +351,14 @@ class ControllerView extends View {
 
   deleteProject(project) {
     const uuid = project.uuid;
-    const index = this.model.projects.indexOf(project);
+    const index = this.model.projects.findIndex(p => p.uuid === project.uuid);
 
-    if (index !== -1)
+    if (index !== -1) {
       this.model.projects.splice(index, 1);
 
-    const $project = this.$el.querySelector(`#_${uuid}`);
-    $project.remove();
+      const $project = this.$el.querySelector(`#_${uuid}`);
+      $project.remove();
+    }
   }
 
   updateProject(project) {
@@ -337,17 +384,25 @@ class ControllerView extends View {
     const $container = this.$projects.querySelector(selector);
     $container.appendChild($player);
 
+    // update project reference
+    const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
+    this.model.projects[projectIndex] = project;
+
     this.updatePlayer(player);
+    this.updateHeader();
   }
 
   removePlayerFromProject(player, project) {
     const selector = `#_${player.uuid}`;
     const $player = this.$el.querySelector(selector);
+    const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
+    this.model.projects[projectIndex] = project;
 
     if (this.sensorsDisplayCollection.has(player.index))
       this._deleteSensorsStream(player.uuid, player.index);
 
     $player.remove();
+    this.updateHeader();
   }
 
   updatePlayer(player) {
