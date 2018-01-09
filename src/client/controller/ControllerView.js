@@ -100,6 +100,7 @@ class ControllerView extends View {
         const $select = e.target;
         const uuid = $select.value;
 
+        // @todo - handle stop duplication
         if (uuid !== '') {
           // enable streaming for this client
           const streamSensors = {
@@ -118,8 +119,22 @@ class ControllerView extends View {
 
           this.request('update-player-param', streamDecoding);
 
+          // find player and project -> this is ugly and should be maintained in
+          // the experience
+          const projects = this.model.projects;
+          let player = null;
+          let project = null;
+
+          projects.forEach(_project => {
+            _project.players.forEach(_player => {
+              if (_player.uuid = uuid)
+                player = _player;
+                project = _project;
+            });
+          });
+
           // request synth and mapping duplication
-          // this.requestLocal('duplicate-audio', { uuid });
+          this.requestLocal('duplicate-audio', { player, project });
         }
       },
 
@@ -326,7 +341,6 @@ class ControllerView extends View {
   onResize(width, height, orientation) {}
 
   updateHeader() {
-    console.log('update header');
     const players = [];
 
     this.model.projects.forEach(project => {
@@ -362,11 +376,14 @@ class ControllerView extends View {
   }
 
   updateProject(project) {
+    // update project reference
+    const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
+    this.model.projects[projectIndex] = project;
+
     // update project name
     const nameSelector = `#_${project.uuid} .header .name`;
     const $name = this.$projects.querySelector(nameSelector);
     $name.textContent = project.params.name;
-
     // update params
     const paramsSelector = `#_${project.uuid} .header .params`;
     const $paramsContainer = this.$projects.querySelector(paramsSelector);
@@ -377,26 +394,26 @@ class ControllerView extends View {
   }
 
   addPlayerToProject(player, project) {
-    const data = { player: player, global: this.model };
-    const $player = createDOM(this.playerTmpl, data);
-
-    const selector = `#_${player.project.uuid} > .players`;
-    const $container = this.$projects.querySelector(selector);
-    $container.appendChild($player);
-
     // update project reference
     const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
     this.model.projects[projectIndex] = project;
+
+    const data = { player: player, global: this.model };
+    const $player = createDOM(this.playerTmpl, data);
+    const selector = `#_${player.project.uuid} > .players`;
+    const $container = this.$projects.querySelector(selector);
+    $container.appendChild($player);
 
     this.updatePlayer(player);
     this.updateHeader();
   }
 
   removePlayerFromProject(player, project) {
-    const selector = `#_${player.uuid}`;
-    const $player = this.$el.querySelector(selector);
     const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
     this.model.projects[projectIndex] = project;
+
+    const selector = `#_${player.uuid}`;
+    const $player = this.$el.querySelector(selector);
 
     if (this.sensorsDisplayCollection.has(player.index))
       this._deleteSensorsStream(player.uuid, player.index);

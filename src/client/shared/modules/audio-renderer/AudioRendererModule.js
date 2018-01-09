@@ -93,10 +93,11 @@ class AudioRendererModule extends BaseModule {
         break;
       }
       case 'add-player-to-project': {
+        const { player, project } = payload;
         const audioBufferManager = this.experience.audioBufferManager;
         const uuid = payload.project.uuid;
-        const audioFiles = payload.project.params.audioFiles;
-        const audioParams = payload.player.params.audioRendering;
+        const audioFiles = project.params.audioFiles;
+        const audioParams = player.params.audioRendering;
 
         if (this.view) {
           merge(this.view.model, audioParams);
@@ -107,7 +108,7 @@ class AudioRendererModule extends BaseModule {
         audioBufferManager
           .load({ [uuid]: audioFiles })
           .then(buffers => {
-            const model = payload.project.model;
+            const model = project.model;
             const labels = model.payload.models.map(mod => mod.label);
             const audioOutput = this.experience.getAudioOutput();
 

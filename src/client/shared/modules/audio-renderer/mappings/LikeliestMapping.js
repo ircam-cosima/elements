@@ -23,7 +23,6 @@ class LikeliestMapping extends BaseMapping {
       this.synth = new LoopSynth(); // default
 
     this.currentLabel = null;
-    this.output = null;
     this.labels = null;
     this.buffers = null;
   }

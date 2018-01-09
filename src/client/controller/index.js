@@ -2,6 +2,9 @@ import * as soundworks from 'soundworks/client';
 import ControllerExperience from './ControllerExperience';
 import serviceViews from '../shared/serviceViews';
 
+// import shared modules
+import * as modules from '../shared/modules/index';
+
 function bootstrap() {
   // initialize the client with configuration received
   // from the server through the `index.html`

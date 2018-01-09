@@ -20,6 +20,8 @@ class BaseMapping {
     });
   }
 
+  stop() {}
+
   stopProcesses() {
     this.processes.forEach(proc => proc.disconnect());
   }

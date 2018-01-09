@@ -12,8 +12,8 @@ class Player {
     this.params = {
       audioRendering: {
         sensors: false,
-        intensity: false,
         volume: 0, // in dB
+        mute: true,
       },
       record: {
         state: 'idle',

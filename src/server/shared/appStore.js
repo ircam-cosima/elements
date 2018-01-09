@@ -155,7 +155,6 @@ const appStore = {
           } else {
             ref[key] = value;
           }
-
         }
       } else {
         throw new Error(`Invalid param name "${name}"`);

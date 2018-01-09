@@ -83,9 +83,10 @@ const clientPresets = {
     'audio-renderer': {
       mapping: {
         type: 'probabilistic-mapping',
-        // synth: { // only exists with `likeliest-mapping`
-        //   type: 'loop', // or granular
-        // },
+        // type: 'likeliest-mapping',
+        synth: { // only exists with `likeliest-mapping`
+          type: 'granular', // or granular
+        },
         audioProcesses: [
           {
             type: 'energy-filter',

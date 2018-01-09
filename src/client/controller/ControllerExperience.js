@@ -1,21 +1,20 @@
 import { Experience } from 'soundworks/client';
 import ControllerView from './ControllerView';
+import AudioRendererHook from './AudioRendererHook';
 
 
 class ControllerExperience extends Experience {
   constructor(config) {
     super();
 
+    this.audioBufferManager = this.require('audio-buffer-manager');
     this.config = config;
 
     this.dispatch = this.dispatch.bind(this);
-
     // define if we need the `rawSocket` service
     const presets = config.presets;
     this.streams = false;
-
     this.sensorsBuffer = null;
-    // this.likelihoodsBuffer = null;
 
     for (let name in presets) {
       const preset = presets[name];
@@ -31,6 +30,9 @@ class ControllerExperience extends Experience {
   start() {
     super.start();
 
+    this.audioRendererHook = new AudioRendererHook(this.audioBufferManager, this.config);
+
+    // initialize the whole thing
     this.receive('dispatch', this.dispatch);
 
     const action = {
@@ -42,9 +44,15 @@ class ControllerExperience extends Experience {
 
     // initialize the view / allow for canvas rendering
     this.view = new ControllerView();
+    // request server action
     this.view.request = (type, payload) => {
       const action = { type, payload };
       this.request(action);
+    };
+
+    // request local action
+    this.view.requestLocal = (type, payload) => {
+      this.requestLocal({ type, payload });
     };
 
     if (this.streams) {
@@ -58,13 +66,15 @@ class ControllerExperience extends Experience {
           this.sensorsBuffer[i] = data[i + 1];
 
         this.view.processSensorsStream(playerIndex, this.sensorsBuffer);
+        //forward to audioRenderer
+        this.audioRendererHook.processSensorsData(playerIndex, this.sensorsBuffer);
       });
 
       this.receive('decoding', (playerIndex, data) => {
         const likelihoods = data.likelihoods;
-        const bufferLength = data.length - 1;
-
         this.view.processLikelihoodsStream(playerIndex, likelihoods);
+        //forward to audioRenderer
+        this.audioRendererHook.processDecoderOutput(playerIndex, data);
       });
     }
 
@@ -72,6 +82,20 @@ class ControllerExperience extends Experience {
   }
 
   stop() {}
+
+  // action that shall not be dispatched to the server
+  requestLocal(action) {
+    const { type, payload } = action;
+
+    console.log(type, payload);
+    // handle stop duplication
+    switch (type) {
+      case 'duplicate-audio':
+        const { player, project } = payload;
+        this.audioRendererHook.init(player, project);
+        break;
+    }
+  }
 
   request(action) {
     this.send('request', action);
@@ -104,6 +128,22 @@ class ControllerExperience extends Experience {
         });
         break;
       }
+      case 'create-project': {
+        const project = payload;
+        this.view.addProject(project);
+        break;
+      }
+      case 'delete-project': {
+        const project = payload;
+        this.view.deleteProject(project);
+        break;
+      }
+      // case 'update-model':
+      case 'update-project-param': {
+        const project = payload;
+        this.view.updateProject(project);
+        break;
+      }
       case 'add-player-to-project': {
         const { player, project } = payload;
         this.view.addPlayerToProject(player, project);
@@ -119,24 +159,21 @@ class ControllerExperience extends Experience {
         this.view.updatePlayer(player);
         break;
       }
-      case 'update-model':
-      case 'update-project-param': {
-        const project = payload;
-        this.view.updateProject(project);
-        break;
-      }
-      case 'create-project': {
-        const project = payload;
-        this.view.addProject(project);
-        break;
-      }
-      case 'delete-project': {
-        const project = payload;
-        this.view.deleteProject(project);
-        break;
-      }
+
       default: {
         throw new Error(`Invalid action ${type}`);
+        break;
+      }
+    }
+
+    // handle audio duplication
+    switch (type) {
+      case 'update-player-param': {
+        this.audioRendererHook.updatePlayerParams(payload.params.audioRendering);
+        break;
+      }
+      case 'update-project-param': {
+        this.audioRendererHook.updateProject(payload);
         break;
       }
     }

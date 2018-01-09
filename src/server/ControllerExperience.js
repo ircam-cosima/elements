@@ -6,6 +6,8 @@ class ControllerExperience extends Experience {
   constructor(clientType, config, presets, comm) {
     super(clientType);
 
+    this.audioBufferManager = this.require('audio-buffer-manager');
+
     this.config = config;
     this.comm = comm;
 
