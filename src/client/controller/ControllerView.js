@@ -101,7 +101,9 @@ class ControllerView extends View {
         const uuid = $select.value;
 
         // @todo - handle stop duplication
-        if (uuid !== '') {
+        if (uuid === '') {
+          this.requestLocal('stop-duplicate-audio', {});
+        } else {
           // enable streaming for this client
           const streamSensors = {
             uuid: uuid,

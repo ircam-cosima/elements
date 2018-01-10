@@ -87,13 +87,17 @@ class ControllerExperience extends Experience {
   requestLocal(action) {
     const { type, payload } = action;
 
-    console.log(type, payload);
     // handle stop duplication
     switch (type) {
-      case 'duplicate-audio':
+      case 'duplicate-audio': {
         const { player, project } = payload;
         this.audioRendererHook.init(player, project);
         break;
+      }
+      case 'stop-duplicate-audio': {
+        this.audioRendererHook.stop();
+        break;
+      }
     }
   }
 
