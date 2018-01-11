@@ -77,7 +77,7 @@ const clientPresets = {
       enableChange: true,
       enableCreation: true,
       projectList: 'buttons', // 'none' | 'select' | 'buttons'
-      forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
+      // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
     },
     'gesture-recognition': {},
     'audio-renderer': {
@@ -85,16 +85,28 @@ const clientPresets = {
         type: 'probabilistic-mapping',
         // type: 'likeliest-mapping',
         synth: { // only exists with `likeliest-mapping`
-          type: 'granular', // or granular
+          type: 'granular', // or loop / granular
         },
         audioProcesses: [
           {
             type: 'energy-filter',
-            options: {},
+            options: {
+              // default options
+              // energyAvgOrder: 20,
+              // energyExp: 1/2,
+              // minCutoffFreq: 50,
+              // maxCutoffFreq: audioContext.sampleRate / 2,
+              // filterType: 'lowpass',
+              // energyIndex: 1,
+            },
           },
           {
             type: 'feedback-delay',
-            options: {},
+            options: {
+              // default options
+              // delayTime: 0.1,
+              // feedback: 0.9,
+            },
           },
         ],
       },

@@ -1,7 +1,7 @@
 import { audioContext } from 'soundworks/client';
 import mappingManager from '../shared/modules/audio-renderer/mappings/mappingManager';
 /**
- * Mimic for AudioRendererModule
+ * mimic AudioRendererModule behavior
  */
 class AudioRendererHook {
   constructor(audioBufferManager, config) {
@@ -54,6 +54,7 @@ class AudioRendererHook {
   stop() {
     this.mapping.stop();
     this.player = null;
+    this.project = null;
   }
 
   updatePlayerParams(params) {

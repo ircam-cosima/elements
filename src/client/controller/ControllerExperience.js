@@ -180,6 +180,12 @@ class ControllerExperience extends Experience {
         this.audioRendererHook.updateProject(payload);
         break;
       }
+      case 'remove-player-from-project': {
+        const { player, project } = payload;
+
+        if (player.uuid === this.audioRendererHook.player.uuid)
+          this.audioRendererHook.stop();
+      }
     }
   }
 }
