@@ -90,18 +90,27 @@ const clientPresets = {
         },
         audioProcesses: [
           {
-            type: 'energy-filter',
+            type: 'energy-gain',
             options: {
               //default options
               energyAvgOrder: 20,
-              energyExp: 1/4, //1/2
-              minCutoffFreq: 500,  //50
-              //maxCutoffFreq: audioContext.sampleRate / 2,
-              maxCutoffFreq: 44100 / 2,
-              filterType: 'lowpass',
+              energyExp: 2, // default 1
               energyIndex: 1,
             },
           },
+          // {
+          //   type: 'energy-filter',
+          //   options: {
+          //     //default options
+          //     energyAvgOrder: 20,
+          //     energyExp: 1/4, //1/2
+          //     minCutoffFreq: 500,  //50
+          //     //maxCutoffFreq: audioContext.sampleRate / 2,
+          //     maxCutoffFreq: 44100 / 2,
+          //     filterType: 'lowpass',
+          //     energyIndex: 1,
+          //   },
+          // },
           // {
           //   type: 'feedback-delay',
           //   options: {

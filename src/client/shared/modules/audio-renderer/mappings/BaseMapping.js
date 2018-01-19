@@ -1,7 +1,9 @@
+import EnergyGain from '../audio-processing/EnergyGain';
 import EnergyFilter from '../audio-processing/EnergyFilter';
 import FeedbackDelay from '../audio-processing/FeedbackDelay';
 
 const processsesTypes = {
+  'energy-gain': EnergyGain,
   'energy-filter': EnergyFilter,
   'feedback-delay': FeedbackDelay,
 };
