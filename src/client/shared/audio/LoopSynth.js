@@ -3,7 +3,7 @@ import { audioContext } from 'soundworks/client';
 class LoopSynth {
   constructor() {
     this.buffers = null;
-    this.fadeDuration = 0.1;
+    this.fadeDuration = 1; // 0.1
 
     this._current = {};
 
@@ -16,7 +16,7 @@ class LoopSynth {
 
   set gain(value) {
     const now = audioContext.currentTime;
-    this.output.gain.setValueAtTime(value, now + 0.005);
+    this.output.gain.setValueAtTime(value, now + 0.005);   
   }
 
   connect(destination) {

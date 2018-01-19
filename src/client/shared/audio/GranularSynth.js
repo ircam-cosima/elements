@@ -47,7 +47,6 @@ class ProbabilisticGranularSynth {
   stop(callback = null) {
     if (this.engine.master)
       scheduler.remove(this.engine);
-
     if (callback)
       callback();
   }

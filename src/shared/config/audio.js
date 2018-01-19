@@ -79,4 +79,39 @@ export const labels = {
   bowed_piano_01: [
     'sounds/labels/bowed_piano_01.mp3',
   ],
+  train_perc: [
+    'sounds/labels/train_perc.mp3',
+  ],
+  train_reverse_chord: [
+    'sounds/labels/train_reverse_chord.mp3',
+  ],
+  train_chord: [
+    'sounds/labels/train_chord.mp3',
+  ],
+  train_train: [
+    'sounds/labels/train_train.mp3',
+  ],
+  train_hat: [
+    'sounds/labels/train_hat.mp3',
+  ],
+  train: [
+    'sounds/labels/train.mp3',
+  ],
+  trainpianoreverse: [
+    'sounds/labels/trainpianoreverse.mp3',
+  ],
+  trainpiano: [
+    'sounds/labels/trainpiano.mp3',
+  ],
+
+// 133_ambient_train_piano_reverse.aiff
+// 133_ambient_train_all3.aiff
+// 133_ambient_train_all2.aiff
+// 133_ambient_train_all.wav
+// 133_ambient_train_hat.wav
+// 133_ambient_train_kick.wav
+// 133_ambient_train_noise.wav
+// 133_ambient_train_piano.wav
+// 133_ambient_train_snare.wav
+// 133_ambient_train_train.wav
 };
