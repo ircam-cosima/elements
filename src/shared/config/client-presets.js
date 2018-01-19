@@ -85,7 +85,8 @@ const clientPresets = {
         type: 'likeliest-mapping',
         // type: 'likeliest-mapping', 'probabilistic-mapping'
         synth: { // only exists with `likeliest-mapping`
-          type: 'loop', // or loop / granular
+          // type: 'loop', // or loop / granular
+          type: 'granular', // or loop / granular
         },
         audioProcesses: [
           {
@@ -234,7 +235,7 @@ designgran: {
 
 
 
-// granular player  
+// granular player
  gran: {
     'project-manager': {
       // enableChange: false,
@@ -281,7 +282,7 @@ designgran: {
     'audio-trigger': {},
   },
 
-// probabilist granular player  
+// probabilist granular player
  probgran: {
     'project-manager': {
       // enableChange: false,

@@ -18,9 +18,9 @@ class GranularSynth {
     const now = audioContext.currentTime;
     // we need to swap between 2 granular engine to create the cross fade
     for (let i = 0; i < 2; i++) {
-      const env = new audioContext.createGain();
+      const env = audioContext.createGain();
       env.connect(this.output);
-      env.gain.value = 1;
+      env.gain.value = 0;
       env.gain.setValueAtTime(0, now);
 
       const granular = new audio.GranularEngine();
@@ -57,15 +57,15 @@ class GranularSynth {
     const currentEngine = this.engines[currentEngineIndex];
 
     if (currentEngine.granular.master) {
-      currentEngine.env.gain.cancelScehduledValues();
-      currentEngine.env.gain.setValueAtTime(currentEngine.env.value, now);
+      currentEngine.env.gain.cancelScheduledValues(now);
+      currentEngine.env.gain.setValueAtTime(currentEngine.env.gain.value, now);
       currentEngine.env.gain.linearRampToValueAtTime(0, now + this.fadeDuration);
 
       setTimeout(() => {
         // if engine has not been readded since last stop, remove from scheduler
         if (this.currentEngineIndex !== currentEngineIndex && currentEngine.granular.master)
           scheduler.remove(currentEngine.granular);
-      }, this.fadeDuration);
+      }, this.fadeDuration * 1000);
     }
 
     // fade in new engine
@@ -75,7 +75,7 @@ class GranularSynth {
     const duration = buffer.duration;
     const newEngine = this.engines[this.currentEngineIndex];
 
-    newEngine.env.gain.cancelScehduledValues();
+    newEngine.env.gain.cancelScheduledValues(now);
     newEngine.env.gain.setValueAtTime(newEngine.env.gain.value, now);
     newEngine.env.gain.linearRampToValueAtTime(1, now + this.fadeDuration);
     newEngine.granular.buffer = buffer;
@@ -94,16 +94,17 @@ class GranularSynth {
     if (currentEngine.granular.master) {
       const { granular, env } = currentEngine;
       const now = audioContext.currentTime;
-      env.gain.cancelScehduledValues();
+      env.gain.cancelScheduledValues(now);
       env.gain.setValueAtTime(env.gain.value, now);
       env.gain.linearRampToValueAtTime(0, now + this.fadeDuration);
 
       setTimeout(() => {
-        scheduler.remove(currentEngine);
+        if (granular.master)
+          scheduler.remove(granular);
 
         if (callback)
           callback();
-      }, this.fadeDuration);
+      }, this.fadeDuration * 1000);
     } else if (callback !== null) {
       callback();
     }
