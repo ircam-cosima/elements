@@ -7,7 +7,7 @@ class ControllerExperience extends Experience {
     super(clientType);
 
     this.audioBufferManager = this.require('audio-buffer-manager');
-    if (config.env === 'como') {
+    if (config.env === 'production') {
       this.auth = this.require('auth');
     }
 
