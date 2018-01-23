@@ -1,344 +1,382 @@
 import * as mano from 'mano-js/common';
-import projectDbMapper from './projectDbMapper';
-import xmmDbMapper from './xmmDbMapper';
-import uuidv4 from 'uuid/v4';
-import config from '../config/default';
+import merge from 'lodash.merge';
+import projectDbMapper from './utils/projectDbMapper';
+// entities
+import mlPresets from '../../shared/config/ml-presets';
+import Project from './entities/Project';
+import ProjectCollection from './entities/ProjectCollection';
+import Player from './entities/Player';
+import PlayerCollection from './entities/PlayerCollection';
+import xmm from 'xmm-node';
+import rapidMixAdapters from 'rapid-mix-adapters';
 
 const appStore = {
   init() {
-    this.projects = projectDbMapper.getList();
+    this.projects = new ProjectCollection();
+    this.players = new PlayerCollection();
 
-    this.projectClientsMap = new Map();
-    this.projectDataMap = new Map();
+    this._listeners = new Set();
 
-    this.uuidClientMap = new Map();
-    this.clients = new Set();
+    this.xmmInstances = {
+      'gmm': new xmm('gmm'),
+      'hhmm': new xmm('hhmm'),
+    };
 
-    this._listeners = new Map();
+    // load persisted projects in memory
+    return projectDbMapper.getList().then(projectsData => {
+      projectsData.forEach(projectData => {
+        const project = Project.fromData(projectData);
+        this.projects.add(project);
+        this._updateModel(project);
+      });
 
-    // initialize projects with default values
-    this.projects.forEach(project => {
-      // maybe `params` could be renamed to `clientParams`
-      project.params = this._getProjectDefaultParams();
-      // leave config as loaded from drive :
-      // project.config = this._getProjectDefaultConfig();
-      // this.projectUsersMap.set(project, this._getEmptyUserMap());
-
-      this.projectClientsMap.set(project, new Set());
-
-      const tc = this._getNewTrainingClasses();
-      const trainingSet = xmmDbMapper.getTrainingSet(project);
-      const config = xmmDbMapper.getConfig(project);
-
-      if (trainingSet)
-        tc.data.setTrainingSet(trainingSet);
-      else
-        xmmDbMapper.persistTrainingSet(project, tc.data.getTrainingSet());
-
-      if (config)
-        tc.algo.setConfig(config);
-      else
-        xmmDbMapper.persistConfig(project, tc.algo.getConfig());
-
-      this.projectDataMap.set(project, tc);
+      return Promise.resolve();
     });
   },
 
-  // maybe this could be split properly between players and designers
-  _getClientDefaultParams() {
-    return {
-      mute: false,
-      intensity: false,
-      recordState: 'idle', // in ['idle', 'armed', 'recording', 'pending', 'cancelled', 'confirmed']
-      streamSensors: false, // only one client can have this to `true`
-      currentLabel: '',
-    };
+  addListener(callback) {
+    this._listeners.add(callback);
   },
 
-  // project params are parameters that mimic client parameters
-  // and override them if needed, this object should never contain a key
-  // that is not part of `ClientDefaultParams`
-  _getProjectDefaultParams() {
-    return {
-      mute: false,
-      intensity: false,
-    };
+  removeListener(callback) {
+    this._listeners.remove(callback);
   },
 
-  // project config are parameters that are relative to the project itself
-  _getProjectDefaultConfig() {
-    return config.defaultProjectConfig;
-  },
-
-  _getEmptyUserMap() {
-    return {
-      designer: null,
-      players: new Set(),
-    };
-  },
-
-  _getNewTrainingClasses() {
-    return {
-      data: new mano.TrainingData(),
-      algo: new mano.XmmProcessor({
-        // we assume the api simulation will run on the localhost (see server/index.js)
-        url: `http://localhost:${config.port}${config.trainUrl}`
-      }),
-    };
-  },
-
-  addListener(channel, callback) {
-    if (!this._listeners.has(channel))
-      this._listeners.set(channel, new Set());
-
-    const listeners = this._listeners.get(channel);
-    listeners.add(callback);
-  },
-
-  removeListener(channel, callback) {
-    if (this._listeners.has(channel)) {
-      const listeners = this._listeners.get(channel);
-      listeners.delete(callback);
-    }
-  },
-
-  _emit(channel, ...args) {
-    const listeners = this._listeners.get(channel);
-
-    if (listeners)
-      listeners.forEach(listener => listener(...args));
-  },
-
-  // easy acces to clients by uuid
-  registerClient(client) {
-    const params = this._getClientDefaultParams();
-    client.params = params;
-
-    this.uuidClientMap.set(client.uuid, client);
-    this.clients.add(client);
-  },
-
-  unregisterClient(client) {
-    this.uuidClientMap.delete(client.uuid);
-    this.clients.delete(client);
-  },
-
-  // create / delete project
-  createProject(name) {
-    const project = {
-      name: name,
-      uuid: uuidv4(),
-      params: this._getProjectDefaultParams(),
-      config: this._getProjectDefaultConfig(),
-    };
-
-    this.projects.add(project);
-    // this.projectUsersMap.set(project, this._getEmptyUserMap());
-    this.projectClientsMap.set(project, new Set());
-    this.projectDataMap.set(project, this._getNewTrainingClasses());
-
-    projectDbMapper.persist(this.projects);
-
-    const tc = this.projectDataMap.get(project);
-    xmmDbMapper.persistTrainingSet(project, tc.data.getTrainingSet());
-    xmmDbMapper.persistConfig(project, tc.algo.getConfig());
-
-    this._emit('create-project', project);
-
-    return project;
+  emit(channel, ...args) {
+    this._listeners.forEach(listener => listener(channel, ...args));
   },
 
   /**
-   * @todo - check what to do on delete
+   *
    */
-  deleteProject(project) {
-    // @todo - check if users
-    // this.projectUsersMap.delete(project);
-    this.projectClientsMap.delete(project);
-    this.projectDataMap.delete(project);
-    this.projects.delete(project);
+  createProject(name, params = null) {
+    const project = Project.create(name);
 
-    xmmDbMapper.deleteTrainingSet(project);
-    xmmDbMapper.deleteConfig(project);
-    xmmDbMapper.deleteModel(project);
-
-    projectDbMapper.persist(this.projects);
-
-    this._emit('delete-project', project);
-  },
-
-  setProjectConfig(project, name, value) {
-    // sanitize values
-    switch (name) {
-      case 'highThreshold':
-      case 'lowThreshold':
-        value = Math.min(1, Math.max(0, value));
-        break;
-      case 'offDelay':
-        value = Math.max(20, value);
-        break;
+    if (params !== null) {
+      merge(project.params, params);
+      // update training instances
+      const { trainingSet, config } = project.params.learning;
+      project.trainingSet.setTrainingSet(trainingSet);
+      project.processor.setConfig(config);
     }
 
-    project.config[name] = value;
-    projectDbMapper.persist(this.projects);
+    const promise = this._persistProject(project)
+      .then(() => this._updateModel(project, true))
+      .then(() => {
+        this.projects.add(project);
+        this.emit('create-project', project);
 
-    this._emit('set-project-config', project);
-  },
-
-  // params handling project params are project level
-  // overrides of the client params
-  setProjectParam(project, name, value) {
-    project.params[name] = value;
-
-    const clients = this.projectClientsMap.get(project);
-    clients.forEach(client => this.setClientParam(client, name, value, false));
-
-    this._emit('set-project-param', project);
-  },
-
-  setClientParam(client, name, value, _triggerProject = true) {
-    const project = client.project;
-    client.params[name] = value;
-
-    if (_triggerProject === true)
-      this._emit('set-project-param', project);
-
-    this._emit('set-client-param', project, client);
-  },
-
-  /////////// USERS ///////////
-
-  addClientToProject(client, project) {
-    const clients = this.projectClientsMap.get(project);
-
-    for (let name in project.params)
-      client.params[name] = project.params[name];
-
-    clients.add(client);
-    client.project = project;
-
-    this._emit('add-client-to-project', project);
-  },
-
-  removeClientFromProject(client) {
-    const project = client.project;
-    const clients = this.projectClientsMap.get(project);
-
-    if (clients) {
-      clients.delete(client);
-      client.project = null;
-
-      this._emit('remove-client-from-project', project);
-    }
-  },
-
-  ////////// PHRASES //////////
-
-  addExampleToProject(project, phrase) {
-    const trainingData = this.projectDataMap.get(project).data;
-    trainingData.addExample(phrase);
-    xmmDbMapper.persistTrainingSet(project, trainingData.getTrainingSet());
-
-    this.trainProject(project);
-  },
-
-  removeExamplesFromProject(project, label) {
-    const trainingData = this.projectDataMap.get(project).data;
-    trainingData.removeExamplesByLabel(label);
-    xmmDbMapper.persistTrainingSet(project, trainingData.getTrainingSet());
-
-    this.trainProject(project);
-  },
-
-  removeAllExamplesFromProject(project) {
-    const trainingData = this.projectDataMap.get(project).data;
-    trainingData.clear();
-    xmmDbMapper.persistTrainingSet(project, trainingData.getTrainingSet());
-
-    this.trainProject(project);
-  },
-
-  /////////// TRAIN ///////////
-
-  trainProject(project) {
-    const trainingConfig = this.projectDataMap.get(project);
-    trainingConfig.algo.train(xmmDbMapper.getTrainingSet(project))
-      .then(response => {
-        this.setProjectModel(project, response.model);
+        return Promise.resolve(project);
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error(err.stack));
+
+    return promise;
   },
 
-  ////////// SETTERS //////////
+  deleteProject(project) {
+    const players = project.players;
+    players.forEach(player => this.removePlayerFromProject(player, project));
 
-  setProjectTrainingConfig(project, config) {
-    const trainingConfig = this.projectDataMap.get(project);
-    trainingConfig.algo.setConfig(config);
-    config = trainingConfig.algo.getConfig();
-    xmmDbMapper.persistConfig(project, config);
+    this.projects.remove(project);
 
-    this._emit('set-project-training-config', project, config);
+    const promise = projectDbMapper.delete(project)
+      .then(() => this.emit('delete-project', project))
+      .catch(err => console.error(err.stack));
 
-    this.trainProject(project);
+    return promise;
   },
 
-  setProjectModel(project, model) {
-    xmmDbMapper.persistModel(project, model);
-
-    this._emit('set-project-model', project, model);
+  /**
+   * `registerPlayer` and `unregisterPlayer` are the only places where
+   * the appStore should deal with the `client`, after that it should only
+   * know `player` entities.
+   */
+  registerPlayer(client, preset) {
+    const player = new Player(client, preset);
+    this.players.add(player);
   },
 
-  ////////// GETTERS //////////
+  unregisterPlayer(client) {
+    const player = this.players.get(client.uuid);
+    const project = player.project;
 
-  getProjectTrainingSet(project) {
-    return xmmDbMapper.getTrainingSet(project);
+    this.removePlayerFromProject(player, project);
+    this.players.remove(player);
   },
 
-  getProjectTrainingConfig(project) {
-    return xmmDbMapper.getConfig(project);
+  /** Used by the `ProjectManager` service */
+  addPlayerToProject(player, project) {
+    if (!project)
+      throw new Error('Cannot add player to invalid project, check your presets (`forceProject`)');
+
+    merge(player.params, project.params.clientDefaults);
+
+    project.addPlayer(player);
+    this.emit('add-player-to-project', player, project);
   },
 
-  getProjectModel(project) {
-    return xmmDbMapper.getModel(project);
+  /** Used by the `ProjectManager` service */
+  removePlayerFromProject(player, project) {
+    if (project !== null) {
+      project.removePlayer(player);
+      this.emit('remove-player-from-project', player, project);
+    }
   },
 
-  getProjectTrainingData(project) {
-    const trainingSet = xmmDbMapper.getTrainingSet(project);
-    const config = xmmDbMapper.getConfig(project);
+  // ...
+  updatePlayerParam(player, name, value) {
+    const path = name.split('.');
+    const depth = path.length;
+    let ref = player.params;
 
-    return { config, trainingSet };
+    // @todo - move to
+    for (let i = 0; i < depth; i++) {
+      const key = path[i];
+
+      if (key in ref) {
+        if (i < depth - 1) {
+          ref = ref[key];
+        } else {
+
+          if (name === 'record.state') {
+            const currentState = ref.state;
+
+            if (currentState === 'idle' && value === 'arm')
+              ref.state = 'armed';
+            else if ((currentState === 'idle' || currentState === 'armed') && value === 'record')
+              ref.state = 'recording';
+            else if (currentState === 'recording' && value === 'stop')
+              ref.state = 'pending';
+            else if (currentState === 'pending' && (value === 'confirm' || value === 'cancel'))
+              ref.state = value;
+            else if ((currentState === 'confirm' || currentState === 'cancel') && value === 'idle')
+              ref.state = 'idle';
+
+          } else {
+            ref[key] = value;
+          }
+        }
+      } else {
+        throw new Error(`Invalid param name "${name}"`);
+      }
+    }
+
+    this.emit('update-player-param', player, name, value);
   },
 
-  getProjectByUuid(uuid) {
-    let _project = null;
+  updateProjectParam(project, name, value) {
+    const path = name.split('.');
+    const depth = path.length;
+    let ref = project.params;
 
-    this.projects.forEach(project => {
-      if (project.uuid === uuid)
-        _project = project;
+    for (let i = 0; i < depth; i++) {
+      const key = path[i];
+
+      if (key in ref) {
+        if (i < depth - 1) {
+          ref = ref[key];
+        } else {
+          // sanitize learning values
+          if (/^learning\.config/.test(name)) {
+            switch (key) {
+              case 'gaussians':
+              case 'states':
+                value = parseInt(value, 10);
+                break;
+              case 'absoluteRegularization':
+              case 'relativeRegularization':
+                value = parseFloat(value);
+                value = Math.min(1, Math.max(0, value));
+                break;
+            }
+          }
+
+          // sanitize recording options
+          if (/^recording/.test(name)) {
+            switch (key) {
+              case 'highThreshold':
+              case 'lowThreshold':
+              case 'offDelay':
+                value = parseFloat(value);
+                break;
+            }
+          }
+
+          // override clients parameters
+          if (/^clientDefaults/.test(name)) {
+            const players = project.players;
+            const playerParam = name.replace(/^clientDefaults\./, '');
+
+            players.forEach(player => {
+              this.updatePlayerParam(player, playerParam, value);
+            });
+          }
+
+          ref[key] = value;
+        }
+      } else {
+        throw new Error(`Invalid param name "${name}"`);
+      }
+    }
+
+    this.emit('update-project-param', project, name, value);
+
+    if (path[0] === 'learning') {
+      project.processor.setConfig(project.params.learning.config);
+      project.params.learning.config = project.processor.getConfig();
+      this._updateModel(project);
+    }
+
+    this._persistProject(project);
+  },
+
+  updateProjectMLPreset(project, name) {
+    const presetParams = mlPresets[name].params;
+    const config = project.params.learning.config;
+
+    merge(config, presetParams);
+
+    this.emit('update-project-param', project);
+
+    project.processor.setConfig(project.params.learning.config);
+    project.params.learning.config = project.processor.getConfig();
+
+    this._persistProject(project)
+      .then(() => this._updateModel(project))
+      .catch(err => console.error(err.stack));
+  },
+
+  addExampleToProject(example, project) {
+    try {
+      project.trainingSet.addExample(example);
+      project.params.learning.trainingSet = project.trainingSet.toJSON();
+
+      this._persistProject(project)
+        .then(() => this._updateModel(project))
+        .catch(err => console.error(err.stack));
+    } catch(err) {
+      console.error(`Cannot add invalid example to trainingSet`);
+    }
+  },
+
+  clearExamplesFromProject(label, project) {
+    project.trainingSet.removeExamplesByLabel(label);
+    project.params.learning.trainingSet = project.trainingSet.toJSON();
+
+    this._persistProject(project)
+      .then(() => this._updateModel(project))
+      .catch(err => console.error(err.stack));
+  },
+
+  clearAllExamplesFromProject(project) {
+    project.trainingSet.clear();
+    project.params.learning.trainingSet = project.trainingSet.toJSON();
+
+    this._persistProject(project)
+      .then(() => this._updateModel(project))
+      .catch(err => console.error(err.stack));
+  },
+
+  _persistProject(project) {
+    const projectData = Project.toData(project);
+
+    return projectDbMapper.persist(projectData)
+      .catch(err => console.error(err.stack));
+  },
+
+  // update xmm model
+  _updateModel(project, silent = false) {
+    const config = project.processor.getConfig();
+    const trainingSet = project.trainingSet.toJSON();
+
+    let trainedTraniningSet = trainingSet;
+
+    // if one of the input is false, recreate a new trainingSet from raw data
+    const inputs = project.params.learning.inputs;
+
+    if (!inputs.intensity || !inputs.bandpass || !inputs.orientation) {
+      const data = trainingSet.payload.data;
+      let inputDimension = 0;
+
+      const filteredTrainingSet = {
+        docType: 'rapid-mix:ml-training-set',
+        docVersion: '1.0.0',
+        payload: {
+          inputDimension: 0,
+          outputDimension: 0,
+          data: [],
+        }
+      }
+      // // loop throught each example
+      for (let i = 0; i < data.length; i++) {
+        const srcExample = data[i];
+        const destExample = {
+          label: srcExample.label,
+          input: [],
+        };
+
+        // create filtered copy of each input in example
+        for (let j = 0; j < srcExample.input.length; j++) {
+          const srcDatum = srcExample.input[j];
+          const datum = [];
+          let index = 0;
+
+          if (inputs.intensity) {
+            for (let k = 0; k < 2; k++) {
+              datum[index] = srcDatum[k];
+              index += 1;
+            }
+          }
+
+          if (inputs.bandpass) {
+            for (let k = 2; k < 5; k++) {
+              datum[index] = srcDatum[k];
+              index += 1;
+            }
+          }
+
+          if (inputs.orientation) {
+            for (let k = 5; k < 8; k++) {
+              datum[index] = srcDatum[k];
+              index += 1;
+            }
+          }
+
+          filteredTrainingSet.payload.inputDimension = index;
+          destExample.input.push(datum);
+        }
+
+        filteredTrainingSet.payload.data.push(destExample);
+      }
+
+      // don't use filtered input if no dimensions, as it crashes xmm
+      if (filteredTrainingSet.payload.inputDimension !== 0)
+        trainedTraniningSet = filteredTrainingSet;
+    }
+
+    const xmmTrainingSet = rapidMixAdapters.rapidMixToXmmTrainingSet(trainedTraniningSet);
+    const xmmConfig = rapidMixAdapters.rapidMixToXmmModel(config);
+
+    const target = config.payload.modelType;
+    const xmm = this.xmmInstances[target];
+
+    return new Promise((resolve, reject) => {
+      xmm.setConfig(xmmConfig);
+      xmm.setTrainingSet(xmmTrainingSet);
+      xmm.train((err, model) => {
+        if (err)
+          console.log(err.stack);
+
+        const rapidMixModel = rapidMixAdapters.xmmToRapidMixModel(model);
+        project.model = rapidMixModel;
+
+        if (!silent)
+          this.emit('update-model', project, rapidMixModel);
+
+        resolve(project);
+      });
     });
-
-    return _project;
-  },
-
-  getProjectByName(projectName) {
-    let _project = null;
-
-    this.projects.forEach(project => {
-      if (project.name === projectName)
-        _project = project;
-    });
-
-    return _project;
-  },
-
-  getClientByUuid(uuid) {
-    return this.uuidClientMap.get(uuid);
-  },
-
-  getProjectClients(project) {
-    return this.projectClientsMap.get(project);
   },
 };
 
 export default appStore;
-

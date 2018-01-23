@@ -1,7 +1,7 @@
 export const sounds = {
   startRecord: 'sounds/ui/tik.mp3',
   stopRecord: 'sounds/ui/tik.mp3',
-  ping: 'sounds/ui/noise-100ms.mp3',
+  noise: 'sounds/ui/pink-noise-100ms.wav',
 };
 
 // from : http://clrs.cc/a11y/ backgrounds

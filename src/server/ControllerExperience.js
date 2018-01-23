@@ -1,271 +1,244 @@
-import * as soundworks from 'soundworks/server';
+import { Experience } from 'soundworks/server';
 import appStore from './shared/appStore';
-import chalk from 'chalk';
-import xmm from 'xmm-node';
-import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'mano-js/common';
-import { triggers as audioTriggers } from '../shared/config/audio';
-
-// xmm instances for the controller
-const gx = new xmm('gmm');
-const hx = new xmm('hhmm');
 
 
-class ControllerExperience extends soundworks.Experience {
-  constructor(clientType, comm, oscConfig) {
+class ControllerExperience extends Experience {
+  constructor(clientType, config, presets, comm) {
     super(clientType);
 
+    this.audioBufferManager = this.require('audio-buffer-manager');
+
+    this.config = config;
     this.comm = comm;
-    this.oscConfig = oscConfig;
 
-    this.rawSocket = this.require('raw-socket', {
-      protocol: { channel: 'sensors', type: 'Float32' },
-    });
+    // define if we need the `rawSocket` service
+    this.streams = false;
+    this.oscStreams = false;
 
-    this.osc = this.require('osc');
+    for (let name in presets) {
+      const preset = presets[name];
+      const moduleIds = Object.keys(preset);
+
+      if (moduleIds.indexOf('streams') !== -1) {
+        this.streams = true;
+
+        this.rawSocket = this.require('raw-socket', {
+          protocol: { channel: 'sensors', type: 'Float32' },
+        });
+
+        const streamsConfig = preset['streams'];
+
+        if (streamsConfig.osc) {
+          if (streamsConfig.osc.sendAddress)
+            this.config.osc.sendAddress = streamsConfig.osc.sendAddress;
+
+          if (streamsConfig.osc.sendPort)
+            this.config.osc.sendPort = streamsConfig.osc.sendPort;
+
+          this.oscStreams = true;
+          this.osc = this.require('osc');
+        }
+      }
+    }
   }
 
   start() {
     super.start();
 
-    // @todo - make sure that we have some clients before doing the work
-    appStore.addListener('create-project', project => {
-      const projectsOverview = Array.from(appStore.projects);
-      const serializedProject = this._serializeProject(project);
-      this.broadcast('controller', null, 'project:create', serializedProject);
-      this.broadcast('controller', null, 'project:overview', projectsOverview);
+    if (this.streams) {
+      this.comm.addListener('sensors', data => {
+        this.rawSocket.broadcast('controller', null, 'sensors', data);
+
+        if (this.oscStreams)
+          this.osc.send('/sensors', Array.from(data));
+      });
+
+      this.comm.addListener('decoding', (playerIndex, data) => {
+        this.broadcast('controller', null, 'decoding', playerIndex, data);
+
+        if (this.oscStreams) {
+          const likelihoods = data.likelihoods.slice(0);
+          likelihoods.unshift(playerIndex);
+          this.osc.send('/likelihoods', likelihoods);
+
+          if (data.timeProgressions) {
+            const timeProgressions = data.timeProgressions.slice(0);
+            timeProgressions.unshift(playerIndex);
+            this.osc.send('/timeProgressions', timeProgressions);
+          }
+        }
+      });
+    }
+
+    appStore.addListener((channel, ...args) => {
+      switch (channel) {
+        case 'add-player-to-project':
+        case 'remove-player-from-project': {
+          const [player, project] = args;
+          const action = {
+            type: channel,
+            payload: {
+              player: player.serialize(),
+              project: project.serialize(),
+            },
+          };
+
+          this.dispatch(action, this.clients);
+          break;
+        }
+        case 'create-project': {
+          const [project] = args;
+          const createProjectAction = {
+            type: 'create-project',
+            payload: project.serialize(),
+          };
+
+          this.dispatch(createProjectAction, this.clients);
+
+          const projectsDetails = appStore.projects.serialize();
+          const projectsOverview = appStore.projects.overview();
+          const listProjectOverviewAction = {
+            type: 'list-project',
+            payload: { projectsDetails, projectsOverview },
+          };
+
+          this.dispatch(listProjectOverviewAction, this.clients);
+          break;
+        }
+        case 'delete-project': {
+          const [project] = args;
+          const deleteProjectAction = {
+            type: 'delete-project',
+            payload: project.serialize(),
+          };
+
+          this.dispatch(deleteProjectAction, this.clients);
+
+          const projectsDetails = appStore.projects.serialize();
+          const projectsOverview = appStore.projects.overview();
+          const listProjectOverviewAction = {
+            type: 'list-project',
+            payload: { projectsDetails, projectsOverview },
+          };
+
+          this.dispatch(listProjectOverviewAction, this.clients);
+          break;
+        }
+        case 'update-player-param': {
+          const [player] = args;
+          const action = {
+            type: 'update-player-param',
+            payload: player.serialize(),
+          }
+
+          this.dispatch(action, this.clients);
+          break;
+        }
+        case 'update-model':
+        case 'update-project-param': {
+          const [project] = args;
+          const action = {
+            type: 'update-project-param',
+            payload: project.serialize(),
+          };
+
+          this.dispatch(action, this.clients);
+          break;
+        }
+      }
     });
-    // cannot use the broadcast method as serialize will crash...
-    appStore.addListener('delete-project', project => {
-      const projectsOverview = Array.from(appStore.projects);
-      this.broadcast('controller', null, 'project:delete', project);
-      this.broadcast('controller', null, 'project:overview', projectsOverview);
-    });
-
-    const broadcast = (channel, project) => {
-      const serializedProject = this._serializeProject(project);
-      this.broadcast('controller', null, channel, serializedProject);
-    };
-
-    // appStore.addListener('set-client-param', )
-    appStore.addListener('set-project-param', project => broadcast('project:update', project));
-    appStore.addListener('set-project-config', project => broadcast('project:update', project));
-    appStore.addListener('set-project-model', project => broadcast('project:update', project));
-
-    appStore.addListener('add-client-to-project', project => broadcast('project:update', project));
-    appStore.addListener('remove-client-from-project', project => broadcast('project:update', project));
-
-    this.comm.addListener('sensors', data => {
-      const features = new Float32Array(8) // nb of features to extract
-
-      for (let i = 0; i < 8; i++)
-        features[i] = data[i];
-
-      this.rawSocket.broadcast('controller', null, 'sensors', features);
-      this.osc.send('/sensors', Array.from(data));
-    });
-
-    console.log(chalk.yellow(`[OSC] Phone sent on port ${this.oscConfig.sendPort}`));
   }
 
   enter(client) {
     super.enter(client);
 
-    // send init informations
-    const projects = appStore.projects;
-    const projectsOverview = Array.from(projects);
-    const serializedProjectList = [];
-
-    projects.forEach((project) => {
-      const serializedProject = this._serializeProject(project);
-      serializedProjectList.push(serializedProject);
-    });
-
-    this.send(client, 'project:list', serializedProjectList);
-    this.send(client, 'project:overview', projectsOverview);
-
-    this.receive(client, 'audio:trigger', this._audioTrigger(client));
-    this.receive(client, 'project:delete', this._onProjectDeleteRequest(client));
-    this.receive(client, 'designer:disconnect', this._onDesignerDisconnectRequest(client));
-    this.receive(client, 'project:clearModel', this._clearModelRequest(client));
-    this.receive(client, 'project:clearLabel', this._clearLabelRequest(client));
-    this.receive(client, 'param:project:update', this._onUpdateProjectParam(client));
-    this.receive(client, 'config:project:update', this._onUpdateProjectConfig(client));
-    this.receive(client, 'param:client:update', this._onUpdateClientParam(client));
-    this.receive(client, 'exclusive:param:client:update', this._onUpdateClientExclusiveParam(client));
-    this.receive(client, 'command:trigger', this._onTriggerClientCommmand(client));
+    this.receive(client, 'request', this.request(client));
   }
 
   exit(client) {
     super.exit(client);
   }
 
-  /**
-   * Given a project, returns a serialize version of all it clients
-   */
-  _serializeProject(project) {
-    const config = appStore.getProjectTrainingConfig(project);
-    const serialized = {
-      name: project.name,
-      uuid: project.uuid,
-      params: project.params,
-      config: project.config,
-      hasDesigner: false,
-      clients: [],
-      // this could probably be cleaner...
-      modelType: (config !== null ? config.target.name.split(':')[1] : 'gmm'),
-      gaussians: (config !== null ? config.payload.gaussians : 1),
-      relativeRegularization: (config !== null ? config.payload.relativeRegularization : 0.1),
-      absoluteRegularization: (config !== null ? config.payload.absoluteRegularization : 0.1),
-      covarianceMode: (config !== null ? config.payload.covarianceMode : 'full'),
-      hierarchical: (config !== null ? config.payload.hierarchical : true),
-      states: (config !== null ? config.payload.states : 1),
-      transitionMode: (config !== null ? config.payload.transitionMode : 'leftright'),
-      regressionEstimator: (config !== null ? config.payload.regressionEstimator : 'full'),
-    };
+  dispatch(action, clients) {
+    const actionType = action.type;
 
-    const clients = appStore.getProjectClients(project);
-
-    if (clients.size > 0)
-      serialized.hasDesigner = true;
-
-    clients.forEach(client => {
-      const c = {
-        type: 'designer',
-        uuid: client.uuid,
-        params: client.params,
-        index: client.index,
-      };
-
-      serialized.clients.push(c);
-    });
-
-    return serialized;
+    if (typeof clients.forEach === 'function') {
+      clients.forEach(client => this.send(client, `dispatch`, action));
+    } else {
+      const client = clients;
+      this.send(client, `dispatch`, action);
+    }
   }
 
+  request(client) {
+    return action => {
+      const { type, payload } = action;
 
-  _audioTrigger(client) {
-    return (action, label, uuid = null) => {
-      if (uuid !== null) {
-        const client = appStore.getClientByUuid(uuid);
-        this.send(client, 'audio:trigger', action, label);
-      } else {
-        if (label) {
-          const config = audioTriggers[label];
-          const targets = config.targets;
-
-          targets.forEach( (target) => {
-            this.broadcast(target, null, 'audio:trigger', action, label);
-          });
-        } else {
-          this.broadcast(null, null, 'audio:trigger', action, label);
+      switch (type) {
+        case 'init-list-project': {
+          const projectsDetails = appStore.projects.serialize();
+          const projectsOverview = appStore.projects.overview();
+          action.payload = { projectsDetails, projectsOverview };
+          this.dispatch(action, client);
+          break;
         }
-      }
-    };
-  }
-  _onProjectDeleteRequest(client) {
-    return uuid => {
-      const project = appStore.getProjectByUuid(uuid);
+        case 'create-project': {
+          const name = payload.name;
+          const project = appStore.projects.getByName(name);
 
-      if (project !== null)
-        appStore.deleteProject(project);
-    }
-  }
+          if (project === null)
+            appStore.createProject(name);
 
-  _onDesignerDisconnectRequest(client) {
-    return uuid => {
-      const designer = appStore.getClientByUuid(uuid);
-      this.send(designer, 'force:disconnect');
-    }
-  }
-
-  _clearModelRequest(client) {
-    return uuid => {
-      const project = appStore.getProjectByUuid(uuid);
-      appStore.removeAllExamplesFromProject(project);
-
-    };
-  }
-
-  _clearLabelRequest(client) {
-    return (uuid, label) => {
-      const project = appStore.getProjectByUuid(uuid);
-      appStore.removeExamplesFromProject(project, label);
-
-    };
-  }
-
-  _onUpdateProjectParam(client) {
-    return (uuid, paramName, value) => {
-      const project = appStore.getProjectByUuid(uuid);
-      appStore.setProjectParam(project, paramName, value);
-    }
-  }
-
-  _onUpdateClientParam(client) {
-    return (uuid, paramName, value) => {
-      const user = appStore.getClientByUuid(uuid);
-      appStore.setClientParam(user, paramName, value);
-    }
-  }
-
-  // exclusive params are params that can't be true on 2 users
-  _onUpdateClientExclusiveParam(client) {
-    return (uuid, paramName, value) => {
-      const user = appStore.getClientByUuid(uuid);
-
-      if (value === true) {
-        const clients = appStore.clients;
-
-        clients.forEach(client => {
-          if (client.params[paramName] === true)
-            appStore.setClientParam(client, paramName, false);
-        });
-      }
-
-      this.broadcast('controller', null, 'sensors-display', value);
-      appStore.setClientParam(user, paramName, value);
-    }
-  }
-
-  // absolute and relative regularization
-  _onUpdateProjectConfig(client) {
-    return (uuid, name, value) => {
-      const project = appStore.getProjectByUuid(uuid);
-
-      if (name in project.config) {
-        // this is part of the project configuration
-        appStore.setProjectConfig(project, name, value);
-      } else {
-        // this is an xmm parameter, for now we only deal with regularization
-
-        // appStore should be the one that handles this
-        switch(name) {
-          case 'absoluteRegularization':
-          case 'relativeRegularization':
-            value = Math.min(1, Math.max(0.01, value));
-            break;
-
-          default:
-            break;
+          break;
+        }
+        case 'delete-project': {
+          const uuid = payload.uuid;
+          const project = appStore.projects.get(uuid);
+          appStore.deleteProject(project);
+          break;
+        }
+        case 'add-player-to-project': {
+          const player = appStore.players.get(payload.playerUuid);
+          const project = appStore.projects.get(payload.projectUuid);
+          appStore.removePlayerFromProject(player, player.project);
+          appStore.addPlayerToProject(player, project);
+          break;
+        }
+        case 'update-player-param': {
+          const { uuid, name, value } = payload;
+          const player = appStore.players.get(uuid);
+          appStore.updatePlayerParam(player, name, value);
+          break;
+        }
+        case 'update-project-param': {
+          const { uuid, name, value } = payload;
+          const project = appStore.projects.get(uuid);
+          appStore.updateProjectParam(project, name, value);
+          break;
+        }
+        case 'update-project-ml-preset': {
+          const { uuid, name } = payload;
+          const project = appStore.projects.get(uuid);
+          appStore.updateProjectMLPreset(project, name);
+          break;
+        }
+        case 'clear-examples': {
+          const { uuid, label } = payload;
+          const project = appStore.projects.get(uuid);
+          appStore.clearExamplesFromProject(label, project);
+          break;
+        }
+        case 'clear-all-examples': {
+          const { uuid } = payload;
+          const project = appStore.projects.get(uuid);
+          appStore.clearAllExamplesFromProject(project);
+          break;
+        }
+        case 'trigger-audio': {
+          this.comm.emit('trigger-audio', action);
         }
 
-        // flatten rapidmix config
-        let config = appStore.getProjectTrainingConfig(project);
-        const modelType = config.target.name.split(':')[1];
-        config = config.payload;
-        config.modelType = modelType;
-
-        // update desired param
-        config[name] = value;
-
-        appStore.setProjectTrainingConfig(project, config);
       }
-    }
-  }
-
-  _onTriggerClientCommmand(client) {
-    return (uuid, cmd, ...args) => {
-      this.comm.emit('command:trigger', uuid, cmd, ...args);
     }
   }
 }

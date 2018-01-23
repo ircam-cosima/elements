@@ -6,18 +6,108 @@
 
 > if some source file is changed (to add an audio file, etc.), restart the server.
 
-## Clients
+## data structures
 
-- '/' - simple player
-- `/designer` - gesture designer
-- `/designer#stream` - stream sensors to `visualizer` and Max
-- `/visualizer` - display designer sensors if streamed, and R-ioT from Max
+### Entities
 
-> a minimal example patch is in `/max/comm.maxpat`
+Player {
+  uuid: soundworks.client.uuid
+  index: soundworks.client.index
+  client: soundworks.client
+  params: {
+    audio: {
+      mute: Boolean,
+      intensity: Boolean,
+      // preview: Boolean,
+    }
+    record: {
+      state: Enum('idle', 'armed', 'recording', 'pending', 'cancelled', 'confirmed'),
+      label: String, // current audio file + ml label
+    }
+    sensors: {
+      stream: Boolean,
+    }
+    <!-- ui: {
+      // to be defined
+    } -->
+  }
+}
 
-## Todos
+Project {
+  name: String,
+  uuid: String,
+  params: {
+    clientDefaults: {
+      // override and default of `clientParams`
+    },
+    audio: Object<String, Array>  // audio files of the project
+    learning: {
+      config: RapidMix JSON Config
+      trainingSet: RapidMix JSON TrainingSet
+      model: RapidMix JSON Model
+    },
+    sensorPreprocesssing: {
+      <!-- tbd -->
 
-- 2 alternative login services:
-  * simple login, only check unique username
-  * online service - use como.ircam.fr/user
-    implement REST API for user gestion
+    },
+  },
+
+  trainingData: mano.TrainingData
+  processor: mano.XmmProcessor
+}
+
+## Player Modules
+
+CommonViews
+
+
+modules
+
+ProjectChooser
+  - switch project
+
+ProjectControl
+  - create project
+  - machine-learning config
+  - preprocessing config
+ 
+RecordingControl
+  - record
+  - label choice
+  - clear (label, model)
+
+AudioControl
+  - mute
+  - intensity
+  - preview
+
+GUIs
+  - background-color renderer
+  - likelihoods renderer
+
+
+## notes
+
+- remove designer
+  use 127.0.0.1/#designer and a set of clients presets
+
+- remove ProjectManager service
+
+
+
+
+
+
+## Modules
+
+audio-control
+- user has control audio parameters (mute, intensity)
+
+
+
+
+
+
+
+
+

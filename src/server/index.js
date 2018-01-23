@@ -1,23 +1,20 @@
 import 'source-map-support/register'; // enable sourcemaps in node
 import { EventEmitter } from 'events';
 import path from 'path';
+import fileUpload from 'express-fileupload';
 import * as soundworks from 'soundworks/server';
-import { rapidMixToXmmTrainingSet, xmmToRapidMixModel } from 'mano-js/common';
-import xmm from 'xmm-node';
-import bodyParser from 'body-parser';
 
-import ControllerExperience from './ControllerExperience';
-import ClientExperience from './ClientExperience';
-import AmbienceExperience from './AmbienceExperience';
-
-// services
-import ProjectManager from './shared/services/ProjectManager';
-import ClientRegister from './shared/services/ClientRegister';
 import appStore from './shared/appStore';
+import ControllerExperience from './ControllerExperience';
+import PlayerExperience from './PlayerExperience';
 
+import projectDbMapper from './shared/utils/projectDbMapper';
+import clientPresets from '../shared/config/client-presets';
+
+const server = soundworks.server;
+// process config file
 const configName = process.env.ENV || 'default';
 const configPath = path.join(__dirname, 'config', configName);
-const server = soundworks.server;
 let config = null;
 
 // rely on node `require` for synchronicity
@@ -28,75 +25,67 @@ try {
   process.exit(1);
 }
 
-if(process.env && process.env.PORT) {
+if (process.env && process.env.PORT) {
   config.port = process.env.PORT;
 }
 // configure express environment ('production' enables cache systems)
 process.env.NODE_ENV = config.env;
-// initialize application with configuration options
-server.init(config);
-appStore.init();
 
-// define the configuration object to be passed to the `.ejs` template
-server.setClientConfigDefinition((clientType, config, httpRequest) => {
-  return {
-    clientType: clientType,
-    env: config.env,
-    port: config.port,
-    trainUrl: config.trainUrl,
-    defaultProjectConfig: config.defaultProjectConfig,
-    appName: config.appName,
-    websockets: config.websockets,
-    version: config.version,
-    defaultType: config.defaultClient,
-    assetsDomain: config.assetsDomain,
-  };
-});
+if (process.env.PORT)
+  config.port = process.env.PORT;
 
-const sharedParams = soundworks.server.require('shared-params');
-sharedParams.addNumber('sensitivity', 'Sensitivity', 0, 2, 0.01, 1);
-sharedParams.addNumber('intensityFeedback', 'Intensity feedback', 0, 0.99, 0.01, 0.8);
-sharedParams.addNumber('intensityGain', 'Intensity gain', 0, 1, 0.01, 0.1);
-sharedParams.addNumber('intensityPower', 'Intensity power', 0.01, 1, 0.01, 0.25);
-sharedParams.addNumber('intensityLowClip', 'Intensity low clip', 0, 0.99, 0.01, 0.15);
-sharedParams.addNumber('bandpassGain', 'Bandpass gain', 0, 2, 0.01, 1);
+appStore.init()
+  .then(() => {
+    server.init(config);
 
-const comm = new EventEmitter();
+    server.router.use(fileUpload());
+    // define the configuration object to be passed to the `.ejs` template
+    server.setClientConfigDefinition((clientType, config, httpRequest) => {
+      return {
+        clientType: clientType,
+        preset: clientPresets[clientType],
+        presets: clientPresets,
+        env: config.env,
+        appName: config.appName,
+        websockets: config.websockets,
+        version: config.version,
+        defaultType: config.defaultClient,
+        assetsDomain: config.assetsDomain,
+      };
+    });
 
-const controller = new ControllerExperience('controller', comm, config.osc);
-const client = new ClientExperience(['player', 'designer'], config, comm);
-const ambience = new AmbienceExperience(['ambience'], config, comm);
+    const comm = new EventEmitter();
+    const clientTypes = Object.keys(clientPresets);
 
-const parameters = new soundworks.ControllerExperience('parameters', { auth: true });
+    const player = new PlayerExperience(clientTypes, config, clientPresets, comm);
+    const controller = new ControllerExperience('controller', config, clientPresets, comm);
 
-server.start();
+    // updload and download files
+    server.router.get('/download', (req, res) => {
+      const uuid = req.query.uuid;
+      const filename = projectDbMapper.getFilename(uuid);
+      res.download(filename);
+    });
 
-// -------------------------------------------------------
-// REST API SIMULATION
-// -------------------------------------------------------
+    server.router.post('/upload', (req, res) => {
+      if (!req.files)
+        return res.status(400).send('No files were uploaded.');
 
-server.router.use(bodyParser.json({ limit: '50mb' }));
-server.router.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+      const file = req.files.project;
+      let json = null;
 
-const gx = new xmm('gmm');
-const hx = new xmm('hhmm');
+      try {
+        json = JSON.parse(file.data.toString());
+      } catch(err) {
+        return res.status(500).send(err);
+      }
 
-server.router.post('/train', (req, res, next) => {
-  const body = req.body;
-  const config = body.configuration;
-  const algo = config.target.name.split(':')[1];
-  const trainingSet = rapidMixToXmmTrainingSet(body.trainingSet);
-  let x = (algo === 'hhmm') ? hx : gx;
+      appStore
+        .createProject(json.params.name, json.params)
+        .then(() => res.send('project restored'))
+        .catch(err => res.status(500).send(err))
+    });
 
-  x.setConfig(config.payload);
-  x.setTrainingSet(trainingSet);
-  x.train((err, model) => {
-    if (err)
-      console.error(err.stack);
-
-    const rapidModel = xmmToRapidMixModel(model);
-    res.setHeader('Content-Type', 'application/json');
-    // simulate RapidMix API JSON format
-    res.end(JSON.stringify({ model: rapidModel }));
-  });
-});
+    server.start();
+  })
+  .catch(err => console.error(err.stack));

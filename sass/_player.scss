@@ -1,28 +1,209 @@
-#player {
-  font-size: 1.4em;
-  padding: 10px;
-  box-sizing: border-box;
+/* COMMON --------------------------------- */
 
-  #project-name {
-    position: relative;
-    height: 40px;
-    margin-bottom: 20px;
+#player {
+  * {
+    font-size: 1rem;
+  }
+
+  .content {
+    overflow: auto;
+  }
+}
+
+/* MODULES --------------------------------- */
+
+.module-container {
+  position: relative;
+  padding: 0 12px;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+
+  &:first-child {
+    margin-top: 12px;
+  }
+}
+
+#gesture-recognition,
+#canvas-renderer,
+#streams,
+#audio-trigger {
+  margin-bottom: 0;
+}
+
+#project-manager {
+  .expanded {
+    .overlay {
+      background-color: $backgroundColor;
+    }
 
     p {
-      line-height: 40px;
-      font-weight: bold;
       font-size: 1.2rem;
     }
 
+    select,
+    input[type=text],
     .btn {
-      z-index: 1;
-      width: auto;
-      position: absolute;
-      top: 0;
-      right: 0;
-      margin-bottom: 0;
-      padding: 0 20px;
+      width: 80%;
     }
 
+    input[type=text] {
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      margin: 0 auto 20px auto;
+    }
+  }
+
+  .reduced {
+    h1 {
+      height: 36px;
+      line-height: 36px;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+    }
+
+    .btn {
+      width: 140px;
+      position: absolute;
+      top: 0;
+      right: 12px;
+      margin-bottom: 0;
+    }
+  }
+}
+
+#audio-renderer {
+  .checkbox {
+    width: 50%;
+
+    &:not(:last-child) {
+      margin-bottom: 6px;
+    }
+  }
+}
+
+#recording-control {
+  .label-choice {
+    position: relative;
+    height: 30px;
+    margin-bottom: 8px;
+
+    span {
+      display: inline-block;
+      height: 30px;
+      line-height: 30px;
+    }
+
+    select {
+      position: absolute;
+      right: 0;
+    }
+  }
+
+  .btn.clear {
+    margin-top: 8px;
+    margin-bottom: 8px;
+
+    &[data-type=clear-examples] {
+      border-color: #eea236;
+    }
+
+    &[data-type=clear-all-examples] {
+      border-color: #d43f3a;
+    }
+  }
+
+  .record-btn {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 12px auto 0;
+    display: block;
+    border: 1px solid #cdcdcd;
+    font-size: 1.4rem;
+    color: #ffffff;
+
+    &:focus {
+      outline: none;
+    }
+
+    &.idle {
+      background-color: #2dc937;
+    }
+
+    &.armed {
+      background-color: #db7b2b;
+    }
+
+    &.recording {
+      background-color: #cc3232;
+    }
+
+    &.pending {
+      background-color: #787878;
+    }
+  }
+}
+
+#project-params-control {
+  &:first-child {
+    margin-top: 0;
+  }
+
+  $headerHeight: 42px;
+  padding: 0;
+  height: $headerHeight;
+
+  .burger {
+    height: $headerHeight;
+    position: relative;
+    z-index: 6;
+    background-image: url(../img/burger.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: 50% 50%;
+    background-color: #565656;
+  }
+
+  .params {
+    padding: $headerHeight + 12 12px 12px;
+    background-color: #efefef;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    z-index: 5;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    cursor: pointer;
+  }
+
+  .params-content {
+    color: #000000;
+
+    h2 {
+      font-size: 1.2rem;
+      padding: 0 0 6px 0;
+      margin: 12px 0 6px;
+      border-bottom: 1px solid #454545;
+    }
+
+    h3 {
+      font-size: 1rem;
+      padding: 0 0 6px 0;
+      margin: 12px 0 6px;
+      // border-bottom: 1px solid #454545;
+      color: #454545;
+    }
+
+    .preset {
+
+    }
+
+    .param {
+      margin-bottom: 6px;
+      display: block;
+    }
   }
 }

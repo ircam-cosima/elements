@@ -10,53 +10,24 @@ const cwd = process.cwd();
 export default {
   // name of the application, used in the `.ejs` template and by default in
   // the `platform` service to populate its view
-  appName: 'elements',
+  appName: 'Elements',
 
   // name of the environnement ('production' enable cache in express application)
   env: 'development',
 
-  // url of the rest api for model training
-  trainUrl: '/train',
-
-  // default project config
-  defaultProjectConfig: {
-    highThreshold: 0.2,
-    lowThreshold: 0.05,
-    offDelay: 200,
-  },
-
-  // defaultProjectConfig: {
-  //   recording: {
-  //     highThreshold: 0.2,
-  //     lowThreshold: 0.05,
-  //     offDelay: 200,
-  //   },
-  //   training: {
-  //     modelType: 'gmm',
-  //     absoluteRegularization: 0.1,
-  //     relativeRegularization: 0.1,
-  //     gaussians: 1,
-  //     covarianceMode: 'full',
-  //     hierarchical: true,
-  //     states: 1,
-  //     transitionMode: 'leftright',
-  //     regressionEstimator: 'full',
-  //   }
-  // },
-
+  someArray: [0, 1, 2],
   // version of application, can be used to force reload css and js files
   // from server (cf. `html/default.ejs`)
   version: '0.0.1',
 
   // name of the default client type, i.e. the client that can access the
   // application at its root URL
-  defaultClient: 'player',
+  defaultClient: 'default',
 
   // define from where the assets (static files) should be loaded, these value
   // could also refer to a separate server for scalability reasons. This value
   // should also be used client-side to configure the `audio-buffer-manager` service.
   assetsDomain: '/',
-  // assetsDomain: '/apps/elements/',
 
   // port used to open the http server, in production this value is typically 80
   port: 8000,
@@ -87,10 +58,9 @@ export default {
 
   // socket.io configuration
   websockets: {
-    // url: '',
+    url: '',
     transports: ['websocket'],
-    path: ''
-    // path: '/apps/elements/socket.io',
+    path: '',
     // @note: EngineIO defaults
     // pingTimeout: 3000,
     // pingInterval: 1000,
@@ -120,7 +90,7 @@ export default {
   },
 
   // password to be used by the `auth` service
-  password: 'azerty',
+  password: '',
 
   // configuration of the `osc` service
   osc: {
@@ -137,8 +107,7 @@ export default {
   // configuration of the `raw-socket` service
   rawSocket: {
     // port used for socket connection
-    // port: 8080
-    port: 9000
+    port: 8080
   },
 
   // bunyan configuration

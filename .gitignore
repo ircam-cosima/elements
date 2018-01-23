@@ -1,26 +1,8 @@
-/public/exports/models/*
-!/public/exports/models/exampleModel.json
-/public/exports/sets/*
-!/public/exports/sets/exampleTrainingSet.json
-/public/exports/configs/*
-!/public/exports/configs/exampleModelConfig.json
-
-/src/client/comodesigner
-/src/client/services/*
-!/src/client/services/Login.js
-
-/src/server/ComoDesignerExperience.js
-/src/server/services/*
-!/src/server/services/Login.js
-
-# /src/client/shared/GranularAudioEngine.js
-
-scratch/
-
 # Transpiled files and dependencies
 /node_modules
 /public/js
 /public/css
+/public/sounds/tmp
 /dist
 
 # ignore all config except default
@@ -38,7 +20,3 @@ Thumbs.db
 *.log
 package-lock.json
 
-# Work in progress sounds
-/public/sounds/tmp
-
-_src

@@ -1,465 +1,522 @@
-import * as soundworks from 'soundworks/client';
+import { View } from 'soundworks/client';
 import template from 'lodash.template';
-import { presets as mlPresets } from '../../shared/config/ml-presets';
-import { labels as audioLabels, triggers as audioTriggers } from '../../shared/config/audio';
-import { colors as uiColors } from '../../shared/config/ui';
+// templates
+import headerControlsTmpl from './templates/header-controls.tmpl';
+import projectTmpl from './templates/project.tmpl';
+import projectParamsTmpl from './templates/project-params.tmpl';
+import playerTmpl from './templates/player.tmpl';
+import playerParamsTmpl from './templates/player-params.tmpl';
+import playerSensorsTmpl from './templates/player-sensors.tmpl';
+import playerLikelihoodsTmpl from './templates/player-likelihoods.tmpl';
 
-const projectTemplate = `
-  <div class="project-header">
-    <h4><%= name %></h4>
-    <div class="toggle-container project-param mute <%= params.mute ? 'active' : '' %>" data-target="<%= uuid %>">
-      <div class="toggle-btn">
-        <div></div>
-      </div>Mute
-    </div>
-    <div class="toggle-container project-param intensity <%= params.intensity ? 'active' : ''%>" data-target="<%= uuid %>">
-      <div class="toggle-btn">
-        <div></div>
-      </div>Intensity
-    </div>
+import SensorsDisplay from './display-components/SensorsDisplay';
+import LikelihoodsDisplay from './display-components/LikelihoodsDisplay';
 
-    <button class="show-hide-wrapper-control btn normal">advanced options</button>
-    <div class="show-hide-wrapper hidden">
-      <div class="labels"><h3>Labels:</h3>
-        <div class="label-container">
-          <label class="delete-all-container">
-            <button class="clear-model btn danger small" data-param="<%= name %>" data-target="<%= uuid %>">Clear all</button>
-          </label>
+//
+import mlPresets from '../../shared/config/ml-presets';
+import { colors } from '../../shared/config/ui';
 
-          <label class="delete-container">
-            <% for (var label in audioLabels) { %>
-            <button class="clear-label btn warning small" data-target="<%= uuid %>" data-param="<%= label %>">Clear <%= label %></button>
-            <% } %>
-          </label>
-        </div>
-      </div>
 
-      <div class="select-container"><h3>Presets:</h3>
-        <% for (var p in mlPresets) { %>
-         <button class="project-configuration ml-preset btn normal" data-target="<%= uuid %>" value="<%= p %>">
-            <%= mlPresets[p].name %>
-          </button>
-        <% } %>
-      </div><!-- Presets -->
-
-      <div><h3>Global:</h3>
-
-        <div class="select-container">Model type
-          <select class="project-configuration" data-target="<%= uuid %>" data-param="modelType" >
-            <% ['gmm', 'hhmm'].forEach(function(opt) { %>
-            <option value="<%= opt %>" <%= modelType === opt ? 'selected' : '' %> ><%= opt %></option>
-            <% }); %>
-          </select>
-        </div>
-
-        <div class="select-container">Gaussians
-          <select class="project-configuration" data-target="<%= uuid %>" data-param="gaussians" >
-            <% for (var i = 1; i <= 10; i++) { %>
-            <option value="<%= i %>" <%= gaussians === i ? 'selected' : '' %> ><%= i %> </option>
-            <% } %>
-          </select>
-        </div>
-
-        <div class="select-container">Covariance
-          <select class="project-configuration" data-target="<%= uuid %>" data-param="covarianceMode" >
-            <% ['full', 'diagonal'].forEach(function(opt) { %>
-            <option value="<%= opt %>" <%= covarianceMode === opt ? 'selected' : '' %> ><%= opt %></option>
-            <% }); %>
-          </select>
-        </div>
-
-        <div class="number-box">Absolute regularization
-          <input type="number" value="<%= absoluteRegularization %>" data-target="<%= uuid %>" data-param="absoluteRegularization" class="project-configuration" />
-        </div>
-
-        <div class="number-box">Relative regularization
-          <input type="number" value="<%= relativeRegularization %>" data-target="<%= uuid %>" data-param="relativeRegularization" class="project-configuration" />
-        </div>
-
-      </div> <!-- Global -->
-
-      <div class="hhmm-configuration"><h3>HHMM:</h3>
-
-        <div class="select-container">States
-          <select class="project-configuration" data-target="<%= uuid %>" data-param="states" >
-            <% for (var i = 1; i <= 20; i++) { %>
-            <option value="<%= i %>" <%= states === i ? 'selected' : '' %> ><%= i %></option>
-            <% } %>
-          </select>
-        </div>
-
-        <div class="select-container">Transition
-          <select class="project-configuration" data-target="<%= uuid %>" data-param="transitionMode" >
-            <% ['ergodic', 'leftright'].forEach(function(opt) { %>
-            <option value="<%= opt %>" <%= transitionMode === opt ? 'selected' : '' %> ><%= opt %></option>
-            <% }); %>
-          </select>
-        </div>
-
-      </div> <!-- HHMM -->
-
-      <div><h3>Recording:</h3>
-
-        <div class="number-box">High Threshold
-          <input type="number" value="<%= config.highThreshold %>" data-target="<%= uuid %>" data-param="highThreshold" class="project-configuration" />
-        </div>
-
-        <div class="number-box">Low Threshold
-          <input type="number" value="<%= config.lowThreshold %>" data-target="<%= uuid %>" data-param="lowThreshold" class="project-configuration" />
-        </div>
-
-        <div class="number-box">Off Delay
-          <input type="number" value="<%= config.offDelay %>" data-target="<%= uuid %>" data-param="offDelay" class="project-configuration" />
-        </div>
-
-      </div> <!-- Recording -->
-    </div> <!-- show / hide wrapper -->
-
-    <% if (clients.length === 0) { %>
-    <button class="btn danger delete-project" data-target="<%= uuid %>">Delete</button>
-    <% } %>
-  </div> <!-- Project Header -->
-
-  <% if (clients.length > 0) { %>
-  <ul class="clients">
-  <% clients.forEach(function(client) { %>
-    <li class="client <%= client.type %>" id="<%= client.uuid %>">
-      <div class="color trigger-ping" style="background-color:<%= uiColors[client.index % uiColors.length]%>" data-uuid="<%= client.uuid %>"></div>
-      <p><%= client.type %></p>
-
-      <div class="toggle-container mute <%= client.params.mute ? 'active' : '' %>" data-target="<%= client.uuid %>" class="client-configuration">
-        <div class="toggle-btn"><div></div></div> Mute
-      </div>
-      <div class="toggle-container intensity <%= client.params.intensity ? 'active' : '' %>" data-target="<%= client.uuid %>" class="client-configuration">
-        <div class="toggle-btn"><div></div></div> Intensity
-      </div>
-      <div class="toggle-container stream-sensors <%= client.params.streamSensors ? 'active' : '' %>" data-target="<%= client.uuid %>" class="client-configuration">
-        <div class="toggle-btn"><div></div></div> Stream sensors
-      </div>
-
-      <div class="record-container">
-        Record state: <span class="current-state"><%= client.params.recordState %></span>
-        <% switch (client.params.recordState) {
-             case 'idle': %>
-        <button class="btn record normal arm" data-param="arm" data-target="<%= client.uuid %>">Arm</button>
-        <button class="btn record normal start" data-param="start" data-target="<%= client.uuid %>">Record</button>
-        <%     break;
-             case 'armed': %>
-        <button class="btn record normal cancel" data-param="idle" data-target="<%= client.uuid %>">Cancel</button>
-        <button class="btn record normal start" data-param="start" data-target="<%= client.uuid %>">Record</button>
-        <%     break;
-             case 'recording': %>
-        <button class="btn record normal stop" data-param="stop" data-target="<%= client.uuid %>">Stop</button>
-        <%     break;
-             case 'pending': %>
-        <button class="btn record normal confirm" data-param="confirm" data-target="<%= client.uuid %>">Confirm</button>
-        <button class="btn record normal cancel" data-param="cancel" data-target="<%= client.uuid %>">Cancel</button>
-        <%     break;
-           } %>
-      </div>
-
-      <div class="label-container">
-        <label class="select-container">Label:
-          <select class="label-select" data-target="<%= client.uuid %>">
-          <% for (var label in audioLabels) { %>
-            <option value="<%= label %>" <%= client.params.currentLabel === label ? 'selected' : '' %>><%= label %></option>
-          <% } %>
-          </select>
-        </label>
-      </div>
-
-      <div class="disconnect-container">
-        <% if (client.params.recordState === 'idle') { %>
-        <button class="btn warning disconnect-designer" data-target="<%= client.uuid %>">Disconnect</button>
-        <% } %>
-      </div>
-    </li>
-  <% }); %>
-  </ul>
-  <% } %>
-`;
-
-const projectListTemplate = `
-  <option value="all">All</option>
-  <% overview.forEach(function(project) { %>
-    <option value="<%= project.uuid %>"><%= project.name %></option>
-  <% }); %>
-`;
-
-const mainTemplate = `
-  <h1>Controller</h1>
-
-  <div id="main-controls">
-    <label id="select-project-container">
-      Select project:
-      <select id="project-select"></select>
-    </label>
-    <div id="visualization">
-      <div id="sensors-controls"></div>
-      <canvas id="sensors"></sensors>
+const tmpl = `
+  <div id="header">
+    <div class="section" id="create-project">
+      <input type="text" placeholder="project name" class="project-name" value="" />
+      <button class="btn normal create-project">Create</button>
     </div>
 
-    <ul id="triggers">
-    <button data-target="" data-param="stop" class="btn trigger danger">Stop all</button>
+    <form class="section" id="upload-project" enctype="multipart/form-data" method="post">
+      <input type="file" name="project" required />
+      <input type="submit" class="btn normal" value="upload" />
+    </form>
 
-    <% for (var label in audioTriggers) {
-         var loop = audioTriggers[label].loop;
-         var targets = audioTriggers[label].targets; %>
-      <li class="trigger-sound"><span class="trigger-label"><%= label %></span>
-        <button data-target="<%= label %>" data-param="start" class="btn normal trigger <%= loop ? 'loop' : ''%>">Start</button>
-        <button data-target="<%= label %>" data-param="stop" class="btn normal trigger <%= loop ? 'loop' : ''%>">Stop</button>
-        <span class="target-clients">
-        <% targets.forEach( function(target) { %>
-          >&nbsp;<%= target %>
-        <% }) %>
-        <%= loop ? ' (loop)' : '' %>
-        </span>
-      </li>
-    <% } %>
-    </ul>
-
+    <div id="header-controls"></div>
   </div>
-
   <div id="projects"></div>
 `;
 
-class ControllerView extends soundworks.View {
-  constructor() {
-    super(mainTemplate, {
-      audioTriggers
-    }, {}, {
-      id: 'controller',
-    });
+function createDOM(tmplFunction, data) {
+  const html = tmplFunction(data);
+  const $div = document.createElement('div');
+  $div.innerHTML = html;
+  const $content = $div.firstElementChild;
 
-    this.audioTriggerCallback = null;
-    this.deleteProjectCallback = null;
-    this.disconnectDesignerCallback = null;
-    this.clearModelCallback = null;
-    this.clearLabelCallback = null;
-    this.updateProjectParamCallback = null;
-    this.updateProjectConfigCallback = null;
-    this.updateClientParamCallback = null;
-    this.updateClientExclusiveParamCallback = null;
-    this.triggerClientCommandCallback = null;
+  return $content;
+}
+
+const model = {
+  projects: [],
+  mlPresets: mlPresets,
+  colors: colors,
+};
+
+class ControllerView extends View {
+  constructor() {
+    super(tmpl, model, {}, { id: 'controller' });
+
+    this.projectTmpl = template(projectTmpl);
+    this.projectParamsTmpl = template(projectParamsTmpl);
+    this.playerTmpl = template(playerTmpl);
+    this.playerParamsTmpl = template(playerParamsTmpl);
+    this.playerSensorsTmpl = template(playerSensorsTmpl);
+    this.playerLikelihoodsTmpl = template(playerLikelihoodsTmpl);
+    this.headerControlsTmpl = template(headerControlsTmpl);
+
+    this.sensorsDisplayCollection = new Map();
+    this.likelihoodsDisplayCollection = new Map();
 
     this.installEvents({
-      'click #triggers .trigger': (e) => {
-        const $input = e.target;
-        const action = $input.dataset.param;
-        const label = $input.dataset.target;
-        this.audioTriggerCallback(action, label);
-      },
-      'click .trigger-ping': (e) => {
-        const $input = e.target;
-        const uuid = $input.dataset.uuid;
-        this.audioTriggerCallback('start', 'ping', uuid);
-      },
-      'click .delete-project': (e) => {
-        const uuid = e.target.dataset.target;
-        this.deleteProjectCallback(uuid);
-      },
-      'click .disconnect-designer': (e) => {
-        const uuid = e.target.dataset.target;
-        this.disconnectDesignerCallback(uuid);
-      },
-      'change #project-select': (e) => {
-        const value = e.target.value;
-        this._selectProject(value);
-      },
-      // project params: apply to all clients
-      'click .project .project-param.mute': (e) => {
-        const $btn = e.target.closest('.mute');
-        const active = $btn.classList.contains('active');
-        const uuid = $btn.dataset.target;
-        this.updateProjectParamCallback(uuid, 'mute', !active);
-      },
-      'click .project .project-param.intensity': (e) => {
-        const $btn = e.target.closest('.intensity');
-        const active = $btn.classList.contains('active');
-        const uuid = $btn.dataset.target;
-        this.updateProjectParamCallback(uuid, 'intensity', !active);
-      },
-      'click .project .clear-model': (e) => {
+      // ----------------------------------------------------------------
+      //
+      // ----------------------------------------------------------------
+      'click #header .create-project': e => {
+        e.preventDefault();
         const $btn = e.target;
-        const uuid = $btn.dataset.target;
-        const name = $btn.dataset.param;
-        if(window.confirm(`Do you really want to delete all recordings of the project ${name}?`) ) {
-          this.clearModelCallback(uuid);
+        const $input = $btn.previousElementSibling;
+        const name = $input.value;
+        $input.classList.remove('error');
+
+        if (name === '')
+          $input.classList.add('error');
+        else
+          this.request('create-project', { name });
+      },
+
+      'submit #header #upload-project': e => {
+        e.preventDefault();
+        const $form = e.target;
+        const data = new FormData($form);
+
+        const request = new XMLHttpRequest();
+        request.open('POST', './upload', true);
+        request.onload = e => {
+          console.log(e);
+        }
+
+        request.send(data);
+      },
+
+      'change #header-controls #duplicate-audio': e => {
+        e.preventDefault();
+        const $select = e.target;
+        const uuid = $select.value;
+
+        // @todo - handle stop duplication
+        if (uuid === '') {
+          this.requestLocal('stop-duplicate-audio', {});
+        } else {
+          // enable streaming for this client
+          const streamSensors = {
+            uuid: uuid,
+            name: 'streams.sensors',
+            value: true,
+          };
+
+          this.request('update-player-param', streamSensors);
+
+          const streamDecoding = {
+            uuid: uuid,
+            name: 'streams.decoding',
+            value: true,
+          };
+
+          this.request('update-player-param', streamDecoding);
+
+          // find player and project -> this is ugly and should be maintained in
+          // the experience
+          const projects = this.model.projects;
+          let player = null;
+          let project = null;
+
+          projects.forEach(_project => {
+            _project.players.forEach(_player => {
+              if (_player.uuid = uuid)
+                player = _player;
+                project = _project;
+            });
+          });
+
+          // request synth and mapping duplication
+          this.requestLocal('duplicate-audio', { player, project });
         }
       },
-      'click .project .clear-label': (e) => {
+
+      'click .project .export-project': e => {
+        e.preventDefault();
         const $btn = e.target;
-        const uuid = $btn.dataset.target;
-        const label = $btn.dataset.param;
-        if(window.confirm(`Do you really want to delete ${label} recordings?`) ) {
-          this.clearLabelCallback(uuid, label);
+        const $project = $btn.closest('.project');
+        const uuid = $project.dataset.uuid;
+
+        window.open(`./download?uuid=${uuid}`);
+      },
+
+      'click .project .toggle-params': e => {
+        e.preventDefault();
+        const $btn = e.target;
+        const $params = $btn.closest('.project').querySelector('.params');
+        const hidden = $params.classList.contains('hidden');
+
+        if (hidden)
+          $params.classList.remove('hidden');
+        else
+          $params.classList.add('hidden');
+      },
+      'click .project .delete-project': e => {
+        if (window.confirm('Are you sure?')) {
+          e.preventDefault();
+          const $btn = e.target;
+          const $project = $btn.closest('.project');
+          const uuid = $project.dataset.uuid;
+
+          this.request('delete-project', { uuid });
         }
       },
-      // project config
-      // depending on the parameter, may trigger a new model training
-      // cf. server/ControllerExperience::_onUpdateProjectConfig
-      'change .project .project-configuration': (e) => {
-        const $input = e.target;
-        const uuid = $input.dataset.target;
-        const param = $input.dataset.param;
 
-        // appStore should conform the values
-        let value;
-        switch(param) {
-
-          // string
-          case 'covarianceMode':
-          case 'transitionMode':
-          case 'modelType':
-            value = $input.value;
-            break;
-
-          // number
-          case 'absoluteRegularization':
-          case 'gaussians':
-          case 'highThreshold':
-          case 'lowThreshold':
-          case 'offDelay':
-          case 'relativeRegularization':
-          case 'states':
-          default:
-            value = parseFloat($input.value);
-            break;
-        }
-
-        this.updateProjectConfigCallback(uuid, param, value);
-      },
-      'click .project .project-configuration.ml-preset': (e) => {
-        const $input = e.target;
-        const uuid = $input.dataset.target;
-        const value = $input.value;
-        const preset = mlPresets[value].preset;
-        for(let param in preset) {
-          this.updateProjectConfigCallback(uuid, param, preset[param]);
-        }
-      },
-      // client params
-      'click .project .client .mute': (e) => {
-        const $btn = e.target.closest('.mute');
-        const active = $btn.classList.contains('active');
-        const uuid = $btn.dataset.target;
-        this.updateClientParamCallback(uuid, 'mute', !active);
-      },
-      'click .project .client .intensity': (e) => {
-        const $btn = e.target.closest('.intensity');
-        const active = $btn.classList.contains('active');
-        const uuid = $btn.dataset.target;
-        this.updateClientParamCallback(uuid, 'intensity', !active);
-      },
-      // client exclusive params
-      'click .project .client .stream-sensors': (e) => {
-        const $btn = e.target.closest('.stream-sensors');
-        const active = $btn.classList.contains('active');
-        const uuid = $btn.dataset.target;
-        this.updateClientExclusiveParamCallback(uuid, 'streamSensors', !active);
-      },
-      // triggers
-      'click .project .client .record': (e) => {
-        const $input = e.target;
-        const uuid = $input.dataset.target;
-        const args = $input.dataset.param;
-        this.triggerClientCommandCallback(uuid, 'record', args);
-      },
-      'change .project .client .label-select': (e) => {
-        const $input = e.target;
-        const value = $input.value;
-        const uuid = $input.dataset.target;
-        this.updateClientParamCallback(uuid, 'currentLabel', value);
-      },
-
-      // interface
-      'click .show-hide-wrapper-control': (e) => {
+      // ----------------------------------------------------------------
+      // REQUESTS TO APP STORE
+      // ----------------------------------------------------------------
+      // player change project
+      'change .change-project': e => {
         e.preventDefault();
         const $target = e.target;
-        const $projectHeader = $target.closest('.project-header');
-        const $container = $projectHeader.querySelector('.show-hide-wrapper');
+        const $player = $target.closest('.player');
+        const projectUuid = $target.value;
+        const playerUuid = $player.dataset.uuid;
 
-        if ($container.classList.contains('hidden'))
-          $container.classList.remove('hidden');
-        else
-          $container.classList.add('hidden');
+        this.request('add-player-to-project', { playerUuid, projectUuid });
+      },
+
+      // project params (select, numbers)
+      'change .project .project-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $project = $input.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.value;
+
+        this.request('update-project-param', { uuid, name, value });
+      },
+
+      'click .project input[type=checkbox].project-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $project = $input.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = !($input.hasAttribute('checked'));
+
+        this.request('update-project-param', { uuid, name, value });
+      },
+
+      // @fixme (but how?) - these have bad behavior due to rendering
+      'input .project input[type=range].project-param': e => {
+        const $input = e.target;
+        const $project = $input.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.value;
+
+        this.request('update-project-param', { uuid, name, value });
+      },
+      // name
+      'blur .project [contenteditable].project-param': e => {
+        const $input = e.target;
+        const $project = $input.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.textContent;
+
+        this.request('update-project-param', { uuid, name, value });
+      },
+
+      'click .project .preset': e => {
+        e.preventDefault();
+        const $btn = e.target;
+        const $project = $btn.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const name = $btn.value;
+
+        this.request('update-project-ml-preset', { uuid, name });
+      },
+
+      'click .project .clear': e => {
+        e.preventDefault();
+        const $btn = e.target;
+        const $project = $btn.closest('.project');
+        const uuid = $project.dataset.uuid;
+        const type = $btn.dataset.type;
+        const payload = { uuid };
+
+        if (type === 'clear-examples')
+          payload.label = $btn.dataset.target;
+
+        this.request(type, payload);
+      },
+
+      // player params / checkboxes
+      'click .player input[type=checkbox].player-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $player = $input.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = !($input.hasAttribute('checked'));
+
+        this.request('update-player-param', { uuid, name, value });
+      },
+      // player params / selects
+      'change .player select.player-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $player = $input.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.value;
+
+        this.request('update-player-param', { uuid, name, value });
+      },
+      // player params / slider
+      // @todo - these have bad behaviors due to rendering
+      'input .player input[type=range].player-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $player = $input.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.value;
+
+        this.request('update-player-param', { uuid, name, value });
+      },
+
+      // player params / buttons
+      'click .player button.player-param': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $player = $input.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = $input.value;
+
+        this.request('update-player-param', { uuid, name, value });
+      },
+
+      'mousedown .player .trigger-audio': e => {
+        e.preventDefault();
+        const $el = e.target;
+        const $player = $el.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const kind = $el.dataset.kind;
+        const label = $el.dataset.label;
+
+        this.request('trigger-audio', { uuid, kind, label });
+      },
+
+      'click .player .stream-display .close': e => {
+        e.preventDefault();
+        const $btn = e.target;
+        const $player = $btn.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const index = parseInt($player.dataset.index, 10);
+        const paramName = $btn.dataset.name;
+
+        this.request('update-player-param', {
+          uuid: uuid,
+          name: paramName,
+          value: false,
+        });
+
+        if (paramName === 'streams.sensors')
+          this._deleteSensorsStream(uuid, index);
+        else if (paramName === 'streams.decoding')
+          this._deleteLikelihoodsStream(uuid, index);
       }
     });
-
-    this.projectUuidContainerMap = new Map();
-    this.projectTemplate = template(projectTemplate);
-    this.projectListTemplate = template(projectListTemplate);
-
-    this.deleteProject = this.deleteProject.bind(this);
-
-    // project that is currently under control
-    this._currentProject = null;
   }
 
   onRender() {
     super.onRender();
 
+    this.$header = this.$el.querySelector('#header');
     this.$projects = this.$el.querySelector('#projects');
-    this.$projectSelect = this.$el.querySelector('#project-select');
-    this.$visualization = this.$el.querySelector('#visualization');
   }
 
-  _selectProject(value) {
-    this._currentProject = value;
+  onResize(width, height, orientation) {}
 
-    this.projectUuidContainerMap.forEach(($container, uuid) => {
-      if (value === 'all') {
-        $container.style.display = 'block';
-      } else {
-        if (uuid === value)
-          $container.style.display = 'block';
-        else
-          $container.style.display = 'none';
-      }
+  updateHeader() {
+    const players = [];
+
+    this.model.projects.forEach(project => {
+      project.players.forEach(player => players.push(player));
     });
+
+    const $headerControlsContainer = this.$header.querySelector('#header-controls');
+    const headerControls = this.headerControlsTmpl({ players: players });
+
+    $headerControlsContainer.innerHTML = headerControls;
   }
 
-  // build project overview menu
-  createProjectList(projectsOverview) {
-    const content = this.projectListTemplate({ overview: projectsOverview });
-    const uuids = projectsOverview.map(project => project.uuid);
-    this.$projectSelect.innerHTML = content;
-
-    if (uuids.indexOf(this._currentProject) === -1)
-      this._currentProject = 'all';
-
-    this.$projectSelect.value = this._currentProject;
-    this._selectProject(this._currentProject);
-  }
-
-  // build projects detailled descriptions
   addProject(project) {
-    const $container = document.createElement('div');
-    $container.id = project.uuid;
-    $container.classList.add('project');
-    $container.style.display = 'none';
+    this.model.projects.push(project);
 
-    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels, uiColors }));
-    $container.innerHTML = content;
+    const projectData = { project: project, global: this.model };
+    const $project = createDOM(this.projectTmpl, projectData);
+    this.$projects.appendChild($project);
 
-    this.$projects.appendChild($container);
-
-    this.projectUuidContainerMap.set(project.uuid, $container);
+    this.updateProject(project);
   }
 
   deleteProject(project) {
-    const $container = this.projectUuidContainerMap.get(project.uuid);
-    $container.remove();
+    const uuid = project.uuid;
+    const index = this.model.projects.findIndex(p => p.uuid === project.uuid);
 
-    this.projectUuidContainerMap.delete(project);
+    if (index !== -1) {
+      this.model.projects.splice(index, 1);
+
+      const $project = this.$el.querySelector(`#_${uuid}`);
+      $project.remove();
+    }
   }
 
   updateProject(project) {
-    const $container = this.projectUuidContainerMap.get(project.uuid);
-    const content = this.projectTemplate(Object.assign({}, project, { mlPresets, audioLabels, uiColors }));
+    // update project reference
+    const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
+    this.model.projects[projectIndex] = project;
 
-    $container.innerHTML = content;
+    // update project name
+    const nameSelector = `#_${project.uuid} .header .name`;
+    const $name = this.$projects.querySelector(nameSelector);
+    $name.textContent = project.params.name;
+    // update params
+    const paramsSelector = `#_${project.uuid} .header .params`;
+    const $paramsContainer = this.$projects.querySelector(paramsSelector);
+    const data = { project: project, global: this.model };
+    const params = this.projectParamsTmpl(data);
+
+    $paramsContainer.innerHTML = params;
   }
+
+  addPlayerToProject(player, project) {
+    // update project reference
+    const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
+    this.model.projects[projectIndex] = project;
+
+    const data = { player: player, global: this.model };
+    const $player = createDOM(this.playerTmpl, data);
+    const selector = `#_${player.project.uuid} > .players`;
+    const $container = this.$projects.querySelector(selector);
+    $container.appendChild($player);
+
+    this.updatePlayer(player);
+    this.updateHeader();
+  }
+
+  removePlayerFromProject(player, project) {
+    const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
+    this.model.projects[projectIndex] = project;
+
+    const selector = `#_${player.uuid}`;
+    const $player = this.$el.querySelector(selector);
+
+    if (this.sensorsDisplayCollection.has(player.index))
+      this._deleteSensorsStream(player.uuid, player.index);
+
+    $player.remove();
+    this.updateHeader();
+  }
+
+  updatePlayer(player) {
+    const $container = this.$el.querySelector(`#_${player.uuid} .player-params`);
+    const data = { player: player, global: this.model };
+    const $player = this.playerParamsTmpl(data);
+    // update or create
+    $container.innerHTML = $player;
+
+    this._updateSensorsStream(player);
+    this._updateLikelihoodsStream(player);
+  }
+
+  _updateSensorsStream(player) {
+    const sensorsDisplay = this.sensorsDisplayCollection.get(player.index);
+
+    if (player.params.streams.sensors === true) {
+      if (sensorsDisplay && sensorsDisplay.isStreaming === false) {
+        sensorsDisplay.reset();
+        sensorsDisplay.isStreaming = true;
+      } else if (!sensorsDisplay) {
+        const $sensorsContainer = this.$el.querySelector(`#_${player.uuid} .sensors-display`);
+        const playerSensorsHtml = this.playerSensorsTmpl({});
+        $sensorsContainer.innerHTML = playerSensorsHtml;
+
+        const sensorsDisplay = new SensorsDisplay($sensorsContainer);
+        this.sensorsDisplayCollection.set(player.index, sensorsDisplay);
+      }
+    } else if (
+      player.params.streams.sensors === false &&
+      sensorsDisplay &&
+      sensorsDisplay.isStreaming === true
+    ) {
+      sensorsDisplay.isStreaming = false;
+    }
+  }
+
+  _deleteSensorsStream(uuid, index) {
+    let sensorsDisplay = this.sensorsDisplayCollection.get(index);
+    this.sensorsDisplayCollection.delete(index);
+    sensorsDisplay.destroy();
+
+    // delete container
+    const $container = this.$el.querySelector(`.players #_${uuid} .sensors-display`);
+    $container.innerHTML = '';
+  }
+
+  processSensorsStream(playerIndex, data) {
+    const sensorsDisplay = this.sensorsDisplayCollection.get(playerIndex);
+    // as everything is async, we cannot garantee that the chain still exists
+    if (sensorsDisplay)
+      sensorsDisplay.process(data);
+  }
+
+  _updateLikelihoodsStream(player) {
+    const likelihoodsDisplay = this.likelihoodsDisplayCollection.get(player.index);
+
+    if (player.params.streams.decoding === true) {
+      if (likelihoodsDisplay && likelihoodsDisplay.isStreaming === false) {
+        likelihoodsDisplay.reset();
+        likelihoodsDisplay.isStreaming = true;
+      } else if (!likelihoodsDisplay) {
+
+        const $likelihoodsContainer = this.$el.querySelector(`#_${player.uuid} .likelihoods-display`);
+        const playerLikelihoodsHtml = this.playerLikelihoodsTmpl({});
+        $likelihoodsContainer.innerHTML = playerLikelihoodsHtml;
+
+        const likelihoodsDisplay = new LikelihoodsDisplay($likelihoodsContainer);
+        this.likelihoodsDisplayCollection.set(player.index, likelihoodsDisplay);
+      }
+    } else if (
+      player.params.streams.decoding === false &&
+      likelihoodsDisplay &&
+      likelihoodsDisplay.isStreaming === true
+    ) {
+      likelihoodsDisplay.isStreaming = false;
+    }
+  }
+
+  _deleteLikelihoodsStream(uuid, index) {
+    let likelihoodsDisplay = this.likelihoodsDisplayCollection.get(index);
+    this.likelihoodsDisplayCollection.delete(index);
+    likelihoodsDisplay.destroy();
+    // delete container
+    const $container = this.$el.querySelector(`.players #_${uuid} .likelihoods-display`);
+    $container.innerHTML = '';
+  }
+
+  processLikelihoodsStream(playerIndex, data) {
+    const likelihoodsDisplay = this.likelihoodsDisplayCollection.get(playerIndex);
+
+    if (likelihoodsDisplay)
+      likelihoodsDisplay.process(data);
+  }
+
 }
 
 export default ControllerView;

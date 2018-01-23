@@ -1,5 +1,4 @@
 import {
-  View,
   SegmentedView,
   SelectView,
   SpaceView,
@@ -27,84 +26,6 @@ import {
 const noop = () => {};
 
 const serviceViews = {
-  // ------------------------------------------------
-  // ProjectManager
-  // ------------------------------------------------
-  'service:project-manager': class ProjectManagerView extends SegmentedView {
-    constructor() {
-      super();
-
-      // chooser
-      this.template = `
-        <div class="section-top flex-center"></div>
-
-        <div class="section-center align-center">
-          <div>
-            <p>Select project</p>
-            <p class="error">
-            <% if (error === true) { %>
-              Sorry, an error occured
-            <% } %>
-            </p>
-            <div id="project-select">
-              <% projects.forEach(function(project) { %>
-              <button class="btn" data-name="<%= project.name %>"><%= project.name %></button>
-              <% }); %>
-            </div>
-          </div>
-
-          <% if (allowProjectCreation === true) { %>
-          <div>
-            <p>Enter / Create Project</p>
-            <% if (error) { %>
-            <p class="error">
-              Sorry project "<%= name %>" is already in use
-            </p>
-            <% } %>
-            <input type="text" id="name" placeholder="project name" value="" />
-            <button class="btn" id="login">Send</button>
-          </div>
-          <% } %>
-        </div>
-        <div class="section-bottom"></div>
-      `;
-
-      this.model = {
-        projects: [],
-        error: false,
-        name: null,
-      };
-
-      this._loginCallback = noop;
-
-      this.installEvents({
-        'click #project-select .btn': (e) => {
-          const $btn = e.target;
-          const name = $btn.dataset.name;
-          this._loginCallback(name);
-        },
-        'click #login': () => {
-          const name = this.$el.querySelector('#name').value;
-
-          if (name !== '')
-            this._loginCallback(name);
-        },
-      });
-    }
-
-    setProjectList(projects) {
-      this.model.projects = projects;
-    }
-
-    setSelectCallback(callback) {
-      this._selectCallback = callback;
-    }
-
-    setLoginCallback(callback) {
-      this._loginCallback = callback;
-    }
-  },
-
   // ------------------------------------------------
   // AudioBufferManager
   // ------------------------------------------------

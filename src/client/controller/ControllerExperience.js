@@ -1,210 +1,192 @@
-import * as soundworks from 'soundworks/client';
+import { Experience } from 'soundworks/client';
 import ControllerView from './ControllerView';
-import * as lfo from 'waves-lfo/client';
-import * as controllers from 'basic-controllers';
-import { triggers as audioTriggers, labels as audioLabels } from '../../shared/config/audio';
+import AudioRendererHook from './AudioRendererHook';
 
-class ControllerExperience extends soundworks.Experience {
-  constructor() {
+
+class ControllerExperience extends Experience {
+  constructor(config) {
     super();
 
-    this.rawSocket = this.require('raw-socket');
+    this.audioBufferManager = this.require('audio-buffer-manager');
+    this.config = config;
 
-    this._audioTriggerCallback = this._audioTriggerCallback.bind(this);
+    this.dispatch = this.dispatch.bind(this);
+    // define if we need the `rawSocket` service
+    const presets = config.presets;
+    this.streams = false;
+    this.sensorsBuffer = null;
 
-    this._deleteProjectRequest = this._deleteProjectRequest.bind(this);
-    this._disconnectDesignerRequest = this._disconnectDesignerRequest.bind(this);
+    for (let name in presets) {
+      const preset = presets[name];
+      const modules = Object.keys(preset);
 
-    this._setProjectList = this._setProjectList.bind(this);
-    this._createProject = this._createProject.bind(this);
-    this._deleteProject = this._deleteProject.bind(this);
-    this._updateProject = this._updateProject.bind(this);
-    this._updateProjectOverview = this._updateProjectOverview.bind(this);
-    this._updateProjectParamRequest = this._updateProjectParamRequest.bind(this);
-    this._updateProjectConfigRequest = this._updateProjectConfigRequest.bind(this);
-    this._updateClientParamRequest = this._updateClientParamRequest.bind(this);
-    this._updateClientExclusiveParamRequest = this._updateClientExclusiveParamRequest.bind(this);
-    this._triggerClientCommand = this._triggerClientCommand.bind(this);
+      if (modules.indexOf('streams') !== -1) {
+        this.streams = true;
+        this.rawSocket = this.require('raw-socket');
+      }
+    }
   }
 
   start() {
     super.start();
 
-    document.documentElement.style.backgroundColor = 'white';
+    this.audioRendererHook = new AudioRendererHook(this.audioBufferManager, this.config);
 
-    this.view = new ControllerView({
-      audioTriggers: audioTriggers,
-    });
+    // initialize the whole thing
+    this.receive('dispatch', this.dispatch);
 
-    this.view.audioTriggerCallback = this._audioTriggerCallback;
-    this.view.deleteProjectCallback = this._deleteProjectRequest;
-    this.view.disconnectDesignerCallback = this._disconnectDesignerRequest;
-    this.view.clearModelCallback = this._clearModelRequest.bind(this);
-    this.view.clearLabelCallback = this._clearLabelRequest.bind(this);
-    this.view.updateProjectParamCallback = this._updateProjectParamRequest;
-    this.view.updateProjectConfigCallback = this._updateProjectConfigRequest;
-    this.view.updateClientParamCallback = this._updateClientParamRequest;
-    this.view.updateClientExclusiveParamCallback = this._updateClientExclusiveParamRequest;
-    this.view.triggerClientCommandCallback = this._triggerClientCommand;
+    const action = {
+      type: 'init-list-project',
+      payload: null,
+    };
 
-    this.receive('project:list', this._setProjectList);
-    this.receive('project:overview', this._updateProjectOverview);
+    this.request(action);
 
-    this.receive('project:create', this._createProject);
-    this.receive('project:delete', this._deleteProject);
-    this.receive('project:update', this._updateProject);
+    // initialize the view / allow for canvas rendering
+    this.view = new ControllerView();
+    // request server action
+    this.view.request = (type, payload) => {
+      const action = { type, payload };
+      this.request(action);
+    };
 
-    this.show().then(() => {
-      // sensors visualizer
-      const displayFilter = [1, 1, 1, 1, 1, 1, 1, 1];
+    // request local action
+    this.view.requestLocal = (type, payload) => {
+      this.requestLocal({ type, payload });
+    };
 
-      this.eventIn = new lfo.source.EventIn({
-        frameType: 'vector',
-        frameSize: 8,
-        frameRate: 0,
-      });
-
-      this.displayFilter = new lfo.operator.Multiplier({
-        factor: displayFilter,
-      });
-
-      this.bpfDisplay = new lfo.sink.BpfDisplay({
-        min: -1,
-        max: 1,
-        width: 600,
-        height: 300,
-        duration: 10,
-        line: true,
-        radius: 0,
-        colors: [
-          '#da251c', '#f8cc11', // intensity
-          'steelblue', 'orange', 'green',
-          '#565656', '#fa8064', '#54b2a9',
-        ],
-        canvas: '#sensors'
-      });
-
-      this.eventIn.connect(this.displayFilter);
-      this.displayFilter.connect(this.bpfDisplay);
-      this.eventIn.start();
-
+    if (this.streams) {
       this.rawSocket.receive('sensors', data => {
-        this.eventIn.process(null, data)
+        if (!this.sensorsBuffer)
+          this.sensorsBuffer = new Float32Array(data.length - 1);
+
+        const playerIndex = data[0];
+
+        for (let i = 0; i < this.sensorsBuffer.length; i++)
+          this.sensorsBuffer[i] = data[i + 1];
+
+        this.view.processSensorsStream(playerIndex, this.sensorsBuffer);
+        //forward to audioRenderer
+        this.audioRendererHook.processSensorsData(playerIndex, this.sensorsBuffer);
       });
 
-      this.receive('sensors-display', (value) => {
-        if (value)
-          this.bpfDisplay.resetStream();
+      this.receive('decoding', (playerIndex, data) => {
+        const likelihoods = data.likelihoods;
+        this.view.processLikelihoodsStream(playerIndex, likelihoods);
+        //forward to audioRenderer
+        this.audioRendererHook.processDecoderOutput(playerIndex, data);
       });
+    }
 
-      const intensityToggle = new controllers.Toggle({
-        label: 'intensity',
-        active: true,
-        container: '#sensors-controls',
-        callback: active => {
-          const value = active === true ? 1 : 0;
-          displayFilter[0] = value;
-          displayFilter[1] = value;
-        }
-      });
-
-      const bandpassToggle = new controllers.Toggle({
-        label: 'bandpass',
-        active: true,
-        container: '#sensors-controls',
-        callback: active => {
-          const value = active === true ? 1 : 0;
-          displayFilter[2] = value;
-          displayFilter[3] = value;
-          displayFilter[4] = value;
-        }
-      });
-
-      const orientationToggle = new controllers.Toggle({
-        label: 'orientation',
-        active: true,
-        container: '#sensors-controls',
-        callback: active => {
-          const value = active === true ? 1 : 0;
-          displayFilter[5] = value;
-          displayFilter[6] = value;
-          displayFilter[7] = value;
-        }
-      });
-
-      const bpfTickness = new controllers.Slider({
-        label: 'tickness',
-        min: 0,
-        max: 10,
-        step: 1,
-        value: 0,
-        container: '#sensors-controls',
-        callback: value => this.bpfDisplay.params.set('radius', value),
-      });
-    });
+    this.show();
   }
 
-  _audioTriggerCallback(action, label, uuid) {
-    this.send('audio:trigger', action, label, uuid);
+  stop() {}
+
+  // action that shall not be dispatched to the server
+  requestLocal(action) {
+    const { type, payload } = action;
+
+    // handle stop duplication
+    switch (type) {
+      case 'duplicate-audio': {
+        const { player, project } = payload;
+        this.audioRendererHook.init(player, project);
+        break;
+      }
+      case 'stop-duplicate-audio': {
+        this.audioRendererHook.stop();
+        break;
+      }
+    }
   }
 
-  _deleteProjectRequest(uuid) {
-    this.send('project:delete', uuid);
+  request(action) {
+    this.send('request', action);
   }
 
-  _disconnectDesignerRequest(uuid) {
-    this.send('designer:disconnect', uuid);
-  }
+  dispatch(action) {
+    const { type, payload } = action;
 
-  _clearModelRequest(uuid) {
-    this.send('project:clearModel', uuid);
-  }
+    switch (type) {
+      case 'init-list-project': {
+          const { projectsDetails, projectsOverview } = payload;
+          projectsDetails.forEach(project => {
+            this.view.model.projectsOverview = projectsOverview;
+            this.view.addProject(project);
 
-  _clearLabelRequest(uuid, label) {
-    this.send('project:clearLabel', uuid, label);
-  }
-  // parameters realtive to user interfaces
-  _updateProjectParamRequest(uuid, paramName, value) {
-    this.send('param:project:update', uuid, paramName, value);
-  }
+            project.players.forEach(player => {
+              this.view.addPlayerToProject(player, project.uuid);
+            });
+          });
+        break;
+      }
+      case 'list-project': {
+        const { projectsDetails, projectsOverview } = payload;
+        this.view.model.projectsOverview = projectsOverview;
 
-  // parameters relative to training
-  _updateProjectConfigRequest(uuid, paramName, value) {
-    this.send('config:project:update', uuid, paramName, value);
-  }
+        projectsDetails.forEach(project => {
+          project.players.forEach(player => {
+            this.view.updatePlayer(player);
+          });
+        });
+        break;
+      }
+      case 'create-project': {
+        const project = payload;
+        this.view.addProject(project);
+        break;
+      }
+      case 'delete-project': {
+        const project = payload;
+        this.view.deleteProject(project);
+        break;
+      }
+      // case 'update-model':
+      case 'update-project-param': {
+        const project = payload;
+        this.view.updateProject(project);
+        break;
+      }
+      case 'add-player-to-project': {
+        const { player, project } = payload;
+        this.view.addPlayerToProject(player, project);
+        break;
+      }
+      case 'remove-player-from-project': {
+        const { player, project } = payload;
+        this.view.removePlayerFromProject(player, project);
+        break;
+      }
+      case 'update-player-param': {
+        const player = payload;
+        this.view.updatePlayer(player);
+        break;
+      }
 
-  _updateClientParamRequest(uuid, paramName, value) {
-    this.send('param:client:update', uuid, paramName, value);
-  }
+      default: {
+        throw new Error(`Invalid action ${type}`);
+        break;
+      }
+    }
 
-  _updateClientExclusiveParamRequest(uuid, paramName, value) {
-    this.send('exclusive:param:client:update', uuid, paramName, value);
-  }
+    // handle audio duplication
+    switch (type) {
+      case 'update-player-param': {
+        this.audioRendererHook.updatePlayerParams(payload.params.audioRendering);
+        break;
+      }
+      case 'update-project-param': {
+        this.audioRendererHook.updateProject(payload);
+        break;
+      }
+      case 'remove-player-from-project': {
+        const { player, project } = payload;
 
-  _triggerClientCommand(uuid, cmd, ...args) {
-    this.send('command:trigger', uuid, cmd, ...args);
-  }
-
-  // build project overview menu
-  _updateProjectOverview(projectsOverview) {
-    this.view.createProjectList(projectsOverview);
-  }
-
-  // build projects detailled descriptions
-  _setProjectList(projectList) {
-    projectList.forEach(project => this.view.addProject(project));
-  }
-
-  _createProject(project) {
-    this.view.addProject(project);
-  }
-
-  _deleteProject(project) {
-    this.view.deleteProject(project);
-  }
-
-  _updateProject(project) {
-    this.view.updateProject(project);
+        if (player.uuid === this.audioRendererHook.player.uuid)
+          this.audioRendererHook.stop();
+      }
+    }
   }
 }
 

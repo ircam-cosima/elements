@@ -1,313 +1,232 @@
-
-
 #controller {
-  font-weight: normal;
-  font-size: 1.2rem;
   padding: 20px;
   box-sizing: border-box;
-  background-color: white;
-  color: black;
+  font-size: 0.9rem;
 
-  * {
-    font-size: 1rem;
+  p {
+    font-size: 0.9rem;
+
+    &.tiny {
+      font-size: 0.7rem;
+    }
   }
+
+  #header {
+    .section {
+      margin: 12px 0;
+    }
+
+    input[type=text] {
+      width: 284px;
+      position: relative;
+      top: 1px;
+    }
+
+    p {
+      display: inline-block;
+      margin-right: 20px;
+    }
+
+    #header-controls {
+      border: 1px solid #dedede;
+      border-radius: 2px;
+      padding: 12px;
+
+      select {
+        background-color: #efefef;
+        height: 30px;
+        width: 170px;
+        margin-right: 20px;
+        display: inline-block;
+        vertical-align: middle;
+        box-sizing: border-box;
+      }
+    }
+  }
+}
+
+.btn {
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-block;
+  width: 160px;
+  height: 30px;
+}
+
+select {
+  background-color: white;
+}
+
+.project {
+  margin: 20px 0;
+}
+
+.header {
+  padding: 12px;
+  box-sizing: border-box;
+  background-color: rgb(248, 248, 248);
+  border-radius: 2px;
 
   h1 {
-    font-weight: normal;
-    font-size: 1.4rem;
-  }
-
-  h4 {
-    font-weight: normal;
-    font-size: 1.2rem;
-  }
-
-  .btn {
-    width: 120px;
-    height: 36px;
-    line-height: 22px;
-    margin: 0;
-    box-sizing: border-box;
-    cursor: pointer;
-    transition: background-color 100ms;
+    font-size: 1rem;
+    width: 390px;
     display: inline-block;
-
-    &.danger {
-      color: #fff;
-      background-color: #d9534f;
-      border-color: #d43f3a;
-
-      &:hover {
-        background-color: darken(#d9534f, 5%);
-      }
-    }
-
-    &.warning {
-      color: #fff;
-      background-color: #f0ad4e;
-      border-color: #eea236;
-
-      &:hover {
-        background-color: darken(#f0ad4e, 5%);
-      }
-    }
-
-    &.normal {
-      color: #fff;
-      background-color: #0275d8;
-      border-color: #0275d8;
-
-      &:hover {
-        background-color: darken(#0275d8, 5%);
-      }
-    }
-
-    &.small {
-      font-size: 0.6rem;
-    }
   }
 
-  // show / hide advanced options
-  .show-hide-wrapper {
+  .toggle-params {
+    width: 140px;
+    display: inline-block;
+  }
+
+  .params {
+    margin-top: 12px;
+
     &.hidden {
       display: none;
     }
+
+    h2 {
+      font-size: 1rem;
+      padding: 0 0 6px 0;
+      margin: 12px 0 6px;
+      border-bottom: 1px solid #aaaaaa;
+    }
+
+    h3 {
+      font-size: 0.9rem;
+      margin: 6px 0;
+    }
+
+    .checkbox {
+      display: inline-block;
+      width: 160px;
+    }
+
+    .preset {
+      @extend .btn.normal;
+    }
+
+    .param {
+      margin-bottom: 6px;
+    }
+
+    .select-container {
+      width: 500px;
+    }
+
+    .number-box {
+      width: 370px;
+    }
+  }
+}
+
+.player {
+  padding: 12px 0 12px 40px;
+  position: relative;
+  // font-size: 0.9rem;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #cdcdcd;
   }
 
-  .show-hide-wrapper-control {
-    font-size: 0.7rem;
-    margin-left: 30px;
+  .color {
+    position: absolute;
+    top: 12px;
+    left: 0;
+    width: 20px;
+    height: 30px;
+    cursor: pointer;
   }
 
-  .label-container {
-    margin-bottom: 12px;
+  .type {
+    font-weight: bold;
+    width: 170px;
+    display: inline-block;
   }
 
-  .select-container {
-    font-size: 0.8rem;
+  select {
+    background-color: #efefef;
+    height: 30px;
+    width: 170px;
+    margin-right: 20px;
+    display: inline-block;
+    vertical-align: middle;
+    box-sizing: border-box;
+  }
+
+  .checkbox {
+    display: inline-block;
+    width: 192px;
+  }
+
+  .audio-params {
+    height: 30px;
+    display: block;
+    margin: 12px 0 12px 170px;
+  }
+
+  .streams-params {
+    height: 30px;
+    display: inline-block;
+  }
+
+  .recording-control {
+    height: 30px;
     margin-bottom: 6px;
 
-    select {
-      right: 4px;
-      font-size: 0.8rem;
-    }
-  }
-
-  .toggle-container {
-    height: 20px;
-    // font-size: 1rem;
-    margin: 0 30px;
-    // width: 20px;
-    line-height: 20px;
-    position: relative;
-    display: inline-block;
-    font-size: 0.9rem;
-
-    .toggle-btn {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 2px solid $green;
-      position: absolute;
-      top: 0;
-      left: 0;
-
-      div {
-        width: 14px;
-        height: 14px;
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        border-radius: 50%;
-        background-color: $green;
-        opacity: 0;
-        transition: opacity 50ms;
-      }
-    }
-
-    &.active .toggle-btn div {
-      opacity: 0.9;
-    }
-  }
-
-  #main-controls {
-    border: 1px solid #cdcdcd;
-    border-radius: 2px;
-    box-sizing: border-box;
-    padding: 12px;
-    margin-top: 12px;
-
-    select {
-      width: 240px;
-      margin-left: 12px;
-    }
-
-    #select-project-container {
-      padding: 0 8px;
-      // border-bottom: 1px solid #cdcdcd;
-      // margin-bottom: 12px;
-      display: block;
-    }
-
-    #visualization {
-      display: none;
-      width: 602px;
-      margin-top: 12px;
-
-      .basic-controllers .label {
-        font-style: normal;
-        font-size: 12px;
-      }
-    }
-  }
-
-  #triggers {
-    .trigger-sound {
-      margin: 4px 0;
-    }
-
-    .trigger-label {
+    .record-state {
       display: inline-block;
-      width: 200px;
-      text-align: right;
-      padding-right: 12px;
-      font-size: 0.9rem;
+      vertical-align: middle;
+      width: 170px;
+
+      span {
+        font-style: italic;
+        font-weight: bold;
+      }
     }
 
     .btn {
-      font-size: 0.9rem;
+      @extend .btn.normal;
+      display: inline-block;
+      vertical-align: middle;
+      box-sizing: border-box;
     }
 
-    .target-clients {
-      font-size: 0.9rem;
-      font-style: italic;
-      text-indent: 12px;
-      display: inline-block;
+  }
+
+  .stream-display {
+    background-color: 1px solid #efefef;
+    position: relative;
+    overflow: auto;
+
+    .close {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 20px;
+      height: 20px;
     }
   }
 
-  .project {
-    margin: 12px 0 0 0;
-    padding: 12px 0;
-    border-radius: 2px;
-    box-sizing: border-box;
+  .sensors-display {
+    .controllers {
+      width: 602px;
+      margin-left: 20px;
 
-    .project-header {
-      font-weight: normal;
-      background-color: #efefef;
-      padding: 4px 0 4px 20px;
-      margin-bottom: 6px;
-      position: relative;
-      // height: 44px;
-      line-height: 36px;
-      border-radius: 2px;
-      box-sizing: border-box;
-
-      h4 {
-        width: 100px;
-        display: inline-block;
-        font-size: 0.9rem;
-        font-weight: bold;
+      .basic-controllers {
+        border: none;
+        border-bottom: 1px solid #cdcdcd;
+        background-color: transparent;
       }
 
-      .btn.delete-project {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-      }
-
-      .number-box {
-        margin-bottom: 2px;
+      .basic-controllers span {
         font-size: 0.8rem;
-        display: inline-block;
-        margin-right: 40px;
-        width: 200px;
-
-        input {
-          border: 1px solid #cdcdcd;
-          border-radius: 2px;
-          padding: 0 4px;
-          font-size: 0.8rem;
-          height: 26px;
-          width: 40px;
-          margin-right: 12px;
-        }
+        font-style: normal;
       }
     }
 
-    .clients {
-      padding: 0 0 12px 0;
-      list-style-type: disc;
-
-      .client {
-        border-bottom: 1px solid #cdcdcd;
-        position: relative;
-        line-height: 36px;
-        list-style-type: none;
-        padding-left: 34px;
-
-        p {
-          width: 100px;
-          display: inline-block;
-        }
-
-        .color {
-          width: 26px;
-          height: 38px;
-          position: absolute;
-          top: 0;
-          left: 0;
-          cursor: pointer;
-        }
-      }
-
-      .btn.disconnect-designer {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-      }
-
-      // .btn.toggle-record {
-      //   display: inline-block;
-      //   color: #fff;
-      //   background-color: lighten(#d9534f, 10%);
-      //   border-color: #d43f3a;
-      //   border-radius: 20px;
-      //   width: 70px;
-      //   padding: 0 12px;
-      //   position: relative;
-      //   top: 4px;
-
-      //   &:hover {
-      //     background-color: darken(#d9534f, 5%);
-      //   }
-
-      //   &.stop {
-      //     background-color: darken(#d9534f, 5%);
-      //   }
-      // }
-
-      .record-container {
-        font-size: 0.9rem;
-        margin: 8px 0;
-
-        .current-state {
-          font-size: 0.9rem;
-          display: inline-block;
-          width: 194px;
-          text-transform: uppercase;
-          text-align: center;
-          color: steelblue;
-        }
-
-        .btn {
-          font-size: 0.9rem;
-        }
-
-        .current-state {
-
-        }
-      }
+    .canvas-container, .controllers {
+      float: left;
     }
   }
 }
