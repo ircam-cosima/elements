@@ -76,7 +76,7 @@ const clientPresets = {
     'project-manager': {
       enableChange: true,
       enableCreation: true,
-      projectList: 'buttons', // 'none' | 'select' | 'buttons'
+      projectList: 'select', // 'none' | 'select' | 'buttons'
       // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
     },
     'gesture-recognition': {},
@@ -86,7 +86,7 @@ const clientPresets = {
         // type: 'likeliest-mapping', 'probabilistic-mapping'
         synth: { // only exists with `likeliest-mapping`
           // type: 'loop', // or loop / granular
-          type: 'granular', // or loop / granular
+          type: 'loop', // or loop / granular
         },
         audioProcesses: [
           {
@@ -199,6 +199,7 @@ designgran: {
     'project-manager': {
       // enableChange: false,
       // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
+      projectList: 'select', // 'none' | 'select' | 'buttons'
     },
     'gesture-recognition': {},
     'audio-renderer': {
