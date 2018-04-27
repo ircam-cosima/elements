@@ -187,7 +187,7 @@ class ControllerExperience extends Experience {
       case 'remove-player-from-project': {
         const { player, project } = payload;
 
-        if (player.uuid === this.audioRendererHook.player.uuid)
+        if (this.audioRendererHook.player && player.uuid === this.audioRendererHook.player.uuid)
           this.audioRendererHook.stop();
       }
     }
