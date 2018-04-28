@@ -17,8 +17,8 @@ const template = `
     <label class="param select-container">
       <span>Model Type</span>
       <select class="project-param" data-name="learning.config.payload.modelType">
-        <option value="xmm:gmm"<%= learningConfig.payload.modelType === 'gmm' ? ' selected' : '' %>>gmm</option>
-        <option value="xmm:hhmm"<%= learningConfig.payload.modelType === 'hhmm' ? ' selected' : '' %>>hhmm</option>
+        <option value="gmm"<%= learningConfig.payload.modelType === 'gmm' ? ' selected' : '' %>>gmm</option>
+        <option value="hhmm"<%= learningConfig.payload.modelType === 'hhmm' ? ' selected' : '' %>>hhmm</option>
       </select>
     </label>
 

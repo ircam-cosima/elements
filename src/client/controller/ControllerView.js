@@ -351,7 +351,6 @@ class ControllerView extends View {
 
     const $headerControlsContainer = this.$header.querySelector('#header-controls');
     const headerControls = this.headerControlsTmpl({ players: players });
-    console.log($headerControlsContainer, headerControls);
 
     $headerControlsContainer.innerHTML = headerControls;
   }

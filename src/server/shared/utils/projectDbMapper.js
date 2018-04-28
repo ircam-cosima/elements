@@ -46,7 +46,9 @@ const projectStore = {
           }
         });
 
-        Promise.all(promises).then(results => resolve(results));
+        Promise.all(promises).then(results => {
+          resolve(results)
+        });
       });
     });
   },

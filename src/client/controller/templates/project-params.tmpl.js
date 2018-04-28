@@ -69,8 +69,8 @@ const projectParamsTmpl = `
 <label class="param select-container">
   <span>Model Type</span>
   <select class="project-param" data-name="learning.config.payload.modelType">
-    <option value="xmm:gmm"<%= project.params.learning.config.payload.modelType === 'gmm' ? ' selected' : '' %>>gmm</option>
-    <option value="xmm:hhmm"<%= project.params.learning.config.payload.modelType === 'hhmm' ? ' selected' : '' %>>hhmm</option>
+    <option value="gmm"<%= project.params.learning.config.payload.modelType === 'gmm' ? ' selected' : '' %>>gmm</option>
+    <option value="hhmm"<%= project.params.learning.config.payload.modelType === 'hhmm' ? ' selected' : '' %>>hhmm</option>
   </select>
 </label>
 
