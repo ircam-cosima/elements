@@ -35,7 +35,7 @@
     "lodash.template": "^4.4.0",
     "mano-js": "github:ircam-rnd/mano-js#v1.1.6",
     "rapid-mix-adapters": "github:ircam-rnd/rapid-mix-adapters#v1.2.2",
-    "soundworks": "collective-soundworks/soundworks#v2.1.5",
+    "soundworks": "collective-soundworks/soundworks#v2.1.7",
     "source-map-support": "^0.4.17",
     "sqlite3": "^3.1.9",
     "waves-audio": "^0.4.0",
