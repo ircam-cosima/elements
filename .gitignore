@@ -12,6 +12,7 @@
 # Application instance specific
 /logs
 /db
+.soundworks
 
 # ignore junk files
 npm-debug.log

@@ -19,7 +19,6 @@ const playerParamsTmpl = `
 <% }); %>
 </select>
 
-
 <% if (Object.keys(player.preset).indexOf('streams') !== -1) { %>
 <div class="streams-params">
   <label class="checkbox">

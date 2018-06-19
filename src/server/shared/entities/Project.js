@@ -32,10 +32,10 @@ class Project {
           volume: 0,
         },
         record: {
-          label: Object.keys(audioConfig)[0], // defaults to first audio label
+          label: null, // defaults to first audio label
         },
       },
-      audioFiles: audioConfig,
+      audioFiles: {},
       learning: {
         config: null,
         trainingSet: null,
@@ -54,17 +54,6 @@ class Project {
         },
       },
       sensorsPreprocessing: {},
-      // @todo - move this from client configuration to project configuration
-      // mapping: {
-      //   type: 'likeliest-mapping',
-      //   synth: {
-      //     type: 'loop',
-      //   },
-      //   audioProcesses: {
-      //     type: 'energy-filter',
-      //     options: {},
-      //   }
-      // },
     }
   }
 

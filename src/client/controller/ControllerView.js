@@ -395,6 +395,10 @@ class ControllerView extends View {
     $paramsContainer.innerHTML = params;
   }
 
+  updateProjectPlayers(project) {
+    project.players.forEach(player => this.updatePlayer(player));
+  }
+
   addPlayerToProject(player, project) {
     // update project reference
     const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
@@ -484,7 +488,6 @@ class ControllerView extends View {
         likelihoodsDisplay.reset();
         likelihoodsDisplay.isStreaming = true;
       } else if (!likelihoodsDisplay) {
-
         const $likelihoodsContainer = this.$el.querySelector(`#_${player.uuid} .likelihoods-display`);
         const playerLikelihoodsHtml = this.playerLikelihoodsTmpl({});
         $likelihoodsContainer.innerHTML = playerLikelihoodsHtml;

@@ -32,6 +32,7 @@ class AudioRendererModule extends BaseModule {
       'add-player-to-project',
       'remove-player-from-project',
       'update-player-param',
+      'update-project-param',
       'update-model',
     ];
 
@@ -137,6 +138,25 @@ class AudioRendererModule extends BaseModule {
             }
 
             this.gestureRecognitionModule.addDecoderListener(this.processDecoderOutput);
+          });
+        break;
+      }
+      case 'update-project-param': {
+        const project = payload;
+        const uuid = project.uuid;
+        const audioFiles = project.params.audioFiles;
+        const audioBufferManager = this.experience.audioBufferManager;
+
+        this.view.model.loading = true;
+        this.view.render();
+
+        audioBufferManager
+          .load({ [uuid]: audioFiles })
+          .then(buffers => {
+            this.mapping.setBuffers(buffers[uuid]);
+
+            this.view.model.loading = false;
+            this.view.render();
           });
         break;
       }

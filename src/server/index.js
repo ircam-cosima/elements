@@ -8,6 +8,7 @@ import appStore from './shared/appStore';
 import ControllerExperience from './ControllerExperience';
 import PlayerExperience from './PlayerExperience';
 
+import DirectoryWatcher from './shared/services/DirectoryWatcher';
 import projectDbMapper from './shared/utils/projectDbMapper';
 import clientPresets from '../shared/config/client-presets';
 
@@ -55,6 +56,10 @@ appStore.init()
     });
 
     const comm = new EventEmitter();
+    const directoryWatcher = server.require('directory-watcher', {
+      watchedDirectory: 'sounds/labels',
+    });
+
     const clientTypes = Object.keys(clientPresets);
 
     const player = new PlayerExperience(clientTypes, config, clientPresets, comm);
@@ -86,6 +91,12 @@ appStore.init()
         .catch(err => res.status(500).send(err))
     });
 
-    server.start();
+    server.start().then(() => {
+      // init
+      appStore.updateAudioFiles(directoryWatcher.getList());
+      // watch for updates
+      directoryWatcher.addListener('update', list => appStore.updateAudioFiles(list));
+
+    });
   })
   .catch(err => console.error(err.stack));

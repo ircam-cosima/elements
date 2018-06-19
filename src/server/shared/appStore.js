@@ -1,3 +1,4 @@
+import path from 'path';
 import * as mano from 'mano-js/common';
 import merge from 'lodash.merge';
 import projectDbMapper from './utils/projectDbMapper';
@@ -14,6 +15,8 @@ const appStore = {
   init() {
     this.projects = new ProjectCollection();
     this.players = new PlayerCollection();
+
+    this.defaultAudioFiles = null;
 
     this._listeners = new Set();
 
@@ -51,6 +54,7 @@ const appStore = {
    */
   createProject(name, params = null) {
     const project = Project.create(name);
+    project.params.audioFiles = this.defaultAudioFiles;
 
     if (params !== null) {
       merge(project.params, params);
@@ -275,6 +279,47 @@ const appStore = {
     this._persistProject(project)
       .then(() => this._updateModel(project))
       .catch(err => console.error(err.stack));
+  },
+
+  updateAudioFiles(list) {
+    list.sort();
+    this.defaultAudioFiles = list;
+
+    // - create a filelist according to the format used client side:
+    // aka: "label": [path1, path2]
+    // @note - automating the audio file process breaks the ability
+    // of using several soundfiles with the same label.
+
+    const audioFiles = {};
+    const labels = [];
+    const promises = [];
+
+    for (let i = 0; i < list.length; i++) {
+      const filename = list[i];
+      const extname = path.extname(filename);
+      const basename = path.basename(filename, extname);
+      audioFiles[basename] = [filename];
+      labels.push(basename);
+    }
+
+    this.projects.getAll().forEach(project => {
+      const trainedLabels = project.trainingSet.getLabels();
+      // clear examples associated to removed labels/soundfile
+      trainedLabels.forEach(trainedLabel => {
+        if (labels.indexOf(trainedLabel) === -1)
+          this.clearExamplesFromProject(trainedLabel, project);
+      });
+
+      project.params.audioFiles = audioFiles;
+      project.params.clientDefaults.record.label = Object.keys(audioFiles)[0];
+
+      this.emit('update-project-param', project);
+
+      const promise = this._persistProject(project);
+      promises.push(promise);
+    });
+
+    return Promise.all(promises).catch(err => console.error(err.stack));
   },
 
   _persistProject(project) {

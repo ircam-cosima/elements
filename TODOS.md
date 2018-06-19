@@ -2,6 +2,17 @@
 
 ## Features
 
+- dynamically update soundfiles 
+  possible problems:
+  + what to do with labels already trained, remove from model ?
+  + lost ability to have several soundfiles per label
+
+- update mapping behavior
+- trigger with countdown as only possibility
+- refactor controller using vue.js
+
+- add second xmm instance on client (two models per project)
+
 ### todos
 
 - mappings and synth configuration

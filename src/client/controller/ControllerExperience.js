@@ -150,6 +150,7 @@ class ControllerExperience extends Experience {
       case 'update-project-param': {
         const project = payload;
         this.view.updateProject(project);
+        this.view.updateProjectPlayers(project);
         break;
       }
       case 'add-player-to-project': {

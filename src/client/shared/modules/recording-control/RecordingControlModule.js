@@ -112,30 +112,36 @@ class RecordingControlModule extends BaseModule {
     // handle autoTrigger params
     if (type === 'add-player-to-project' || type === 'update-project-param') {
       let recording = null;
+      let audioFiles = null;
 
-      if (type === 'add-player-to-project')
+      if (type === 'add-player-to-project') {
         recording = payload.project.params.recording.options;
-      else
+        audioFiles = payload.project.params.audioFiles
+      } else {
         recording = payload.params.recording.options;
+        audioFiles = payload.params.audioFiles;
+      }
 
       this.autoTrigger.highThreshold = recording.highThreshold;
       this.autoTrigger.lowThreshold = recording.lowThreshold;
       this.autoTrigger.offDelay = recording.offDelay;
+
+      this.view.model.labels = Object.keys(audioFiles);
     }
 
     // handle recording state
     if (type === 'add-player-to-project' || type === 'update-player-param') {
       switch (type) {
-        case 'add-player-to-project':
-          const audioFiles = payload.project.params.audioFiles;
-          this.view.model.labels = Object.keys(audioFiles);
+        case 'add-player-to-project': {
           this.currentProject = payload.project;
           // @todo - reset any ongoing recording and should set state to `idle`
           recordParams = payload.player.params.record;
           break;
-        case 'update-player-param':
+        }
+        case 'update-player-param': {
           recordParams = payload.params.record;
           break;
+        }
       }
 
       const gestureRecognitionModule = this.experience.getModule('gesture-recognition');

@@ -7,6 +7,7 @@ import * as modules from '../shared/modules/index';
 
 
 function bootstrap() {
+  document.body.classList.remove('loading');
   // initialize the client with configuration received
   // from the server through the `index.html`
   // @see {~/src/server/index.js}

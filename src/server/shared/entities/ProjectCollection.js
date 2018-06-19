@@ -30,6 +30,10 @@ class ProjectCollection {
     return project;
   }
 
+  getAll() {
+    return Array.from(this.projects);
+  }
+
   /**
    * Return an overview of the projects
    * @return Array<Object<uuid, name>>
