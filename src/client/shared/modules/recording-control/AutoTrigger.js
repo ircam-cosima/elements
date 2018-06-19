@@ -71,7 +71,7 @@ class AutoTrigger {
     this.state = state;
 
     if (state === 'off') {
-      this.timeoutId !== null
+      if (this.timeoutId !== null)
         clearTimeout(this.timeoutId);
 
       this.timeoutId = null;

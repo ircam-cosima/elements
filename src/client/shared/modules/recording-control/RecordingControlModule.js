@@ -3,7 +3,8 @@ import * as lfo from 'waves-lfo/common';
 import * as mano from 'mano-js';
 import BaseModule from '../BaseModule';
 import moduleManager from '../moduleManager';
-import AutoTrigger from './AutoTrigger';
+// import AutoTrigger from './AutoTrigger';
+import CountDownTrigger from './CountDownTrigger';
 import merge from 'lodash.merge';
 import RecordingControlView from './RecordingControlView';
 import SampleSynth from '../../audio/SampleSynth';
@@ -55,7 +56,7 @@ class RecordingControlModule extends BaseModule {
       }
     };
 
-    this.autoTrigger = new AutoTrigger({
+    this.trigger = new CountDownTrigger({
       startCallback: () => {
         const action = {
           type: 'update-player-param',
@@ -80,12 +81,16 @@ class RecordingControlModule extends BaseModule {
 
         this.request(action);
       },
+      countCallback: counter => {
+        const buffer = this.experience.audioBufferManager.data.uiSounds['startRecord'];
+        this.sampleSynth.trigger(buffer);
+      },
     });
 
     this.exampleRecorder = new mano.Example();
 
     this.feedRecorder = this.feedRecorder.bind(this);
-    this.feedAutoTrigger = this.feedAutoTrigger.bind(this);
+    this.feedTrigger = this.feedTrigger.bind(this);
 
     this.sampleSynth = new SampleSynth();
     this.sampleSynth.connect(audioContext.destination); // bypass mute
@@ -109,7 +114,7 @@ class RecordingControlModule extends BaseModule {
       this.view.model.trainedLabels = trainedLabels;
     }
 
-    // handle autoTrigger params
+    // handle trigger params
     if (type === 'add-player-to-project' || type === 'update-project-param') {
       let recording = null;
       let audioFiles = null;
@@ -122,9 +127,10 @@ class RecordingControlModule extends BaseModule {
         audioFiles = payload.params.audioFiles;
       }
 
-      this.autoTrigger.highThreshold = recording.highThreshold;
-      this.autoTrigger.lowThreshold = recording.lowThreshold;
-      this.autoTrigger.offDelay = recording.offDelay;
+      this.trigger.threshold = recording.threshold;
+      this.trigger.offDelay = recording.offDelay;
+      this.trigger.preRollCount = recording.preRollCount;
+      this.trigger.preRollInterval = recording.preRollInterval;
 
       this.view.model.labels = Object.keys(audioFiles);
     }
@@ -180,27 +186,26 @@ class RecordingControlModule extends BaseModule {
           case 'idle': {
             // we should be able to go idle from any state (ex change project while recording)
             gestureRecognitionModule.removeSensorsListener(this.feedRecorder);
-            gestureRecognitionModule.removeSensorsListener(this.feedAutoTrigger);
+            gestureRecognitionModule.removeSensorsListener(this.feedTrigger);
             gestureRecognitionModule.enableDecoding();
             this.exampleRecorder.clear();
             break;
           }
           case 'armed': {
-            this.autoTrigger.setState('on');
-            // this.experience.processedSensors.removeListener(decodingModule.feedDecoder);
-            gestureRecognitionModule.addSensorsListener(this.feedAutoTrigger);
+            this.trigger.setState('preroll');
+
             gestureRecognitionModule.disableDecoding();
 
             audioRendererModule.enablePreview(this.recordLabel);
             break;
           }
           case 'recording': {
-            // @note - if record has been launched from controller, auto trigger
-            // is still in `off` and thus cannot trigger `stop`, define if it is
-            // a desirable behavior.
+            this.trigger.setState('on');
+
             const buffer = this.experience.audioBufferManager.data.uiSounds['startRecord'];
             this.sampleSynth.trigger(buffer);
             // pipe sensors into an example instance
+            gestureRecognitionModule.addSensorsListener(this.feedTrigger);
             gestureRecognitionModule.addSensorsListener(this.feedRecorder);
             break;
           }
@@ -208,12 +213,12 @@ class RecordingControlModule extends BaseModule {
             const buffer = this.experience.audioBufferManager.data.uiSounds['stopRecord'];
             this.sampleSynth.trigger(buffer);
             // stop auto trigger
-            this.autoTrigger.setState('off');
-
-            gestureRecognitionModule.removeSensorsListener(this.feedAutoTrigger);
+            gestureRecognitionModule.removeSensorsListener(this.feedTrigger);
             gestureRecognitionModule.removeSensorsListener(this.feedRecorder);
 
             audioRendererModule.disablePreview();
+
+            this.trigger.setState('off');
             break;
           }
           case 'confirm': {
@@ -262,8 +267,8 @@ class RecordingControlModule extends BaseModule {
     this.view.render();
   }
 
-  feedAutoTrigger(data) {
-    this.autoTrigger.process(data[1]); // enhanced intensity
+  feedTrigger(data) {
+    this.trigger.process(data[1]); // enhanced intensity
   }
 
   feedRecorder(data) {

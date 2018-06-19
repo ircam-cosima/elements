@@ -48,9 +48,10 @@ class Project {
       recording: {
         type: 'AutoTrigger',
         options: {
-          highThreshold: 0.2,
-          lowThreshold: 0.05,
-          offDelay: 200,
+          threshold: 0.02,
+          offDelay: 0.3,
+          preRollCount: 2, // num ticks before recording
+          preRollInterval: 1, // in seconds
         },
       },
       sensorsPreprocessing: {},

@@ -74,6 +74,7 @@ const template = `
 
     <h2>Recording</h2>
 
+    <!--
     <label class="param number-box">
       <span>High Threshold</span>
       <input class="project-param" data-name="recording.options.highThreshold" type="number" value="<%= recordingOptions.highThreshold %>" />
@@ -85,6 +86,23 @@ const template = `
     <label class="param number-box">
       <span>Off Delay</span>
       <input class="project-param" data-name="recording.options.offDelay" type="number" value="<%= recordingOptions.offDelay %>" />
+    </label>
+    -->
+    <label class="param number-box">
+      <span>Threshold</span>
+      <input class="project-param" data-name="recording.options.threshold" type="number" value="<%= recordingOptions.threshold %>" />
+    </label>
+    <label class="param number-box">
+      <span>Off Delay</span>
+      <input class="project-param" data-name="recording.options.offDelay" type="number" value="<%= recordingOptions.offDelay %>" />
+    </label>
+    <label class="param number-box">
+      <span>PreRoll Count</span>
+      <input class="project-param" data-name="recording.options.preRollCount" type="number" value="<%= recordingOptions.preRollCount %>" />
+    </label>
+    <label class="param number-box">
+      <span>PreRoll Interval</span>
+      <input class="project-param" data-name="recording.options.preRollInterval" type="number" value="<%= recordingOptions.preRollInterval %>" />
     </label>
   </div>
 </div>
