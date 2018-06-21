@@ -105,15 +105,15 @@ const clientPresets = {
         //     gain: 1,
         //   }
         // },
-        {
-          id: 'delay',
-          type: 'delay',
-          params: {
-            delay: 0.1,
-            preGain: 0,
-            feedback: 0.95,
-          }
-        }
+        // {
+        //   id: 'delay',
+        //   type: 'delay',
+        //   params: {
+        //     delay: 0.1,
+        //     preGain: 0,
+        //     feedback: 0.95,
+        //   }
+        // }
       ],
       mappings: [
         {
@@ -163,19 +163,19 @@ const clientPresets = {
         //     target.gain = avg;
         //   }
         // },
-        {
-          id: 'delay',
-          input: 'sensors',
-          target: 'delay',
-          payload: {
-            movingAverage: new MovingAverage(20),
-          },
-          process: (data, target, payload) => {
-            const energy = data[1];
-            const avg = payload.movingAverage.process(energy);
-            target.preGain = avg;
-          }
-        }
+        // {
+        //   id: 'delay',
+        //   input: 'sensors',
+        //   target: 'delay',
+        //   payload: {
+        //     movingAverage: new MovingAverage(20),
+        //   },
+        //   process: (data, target, payload) => {
+        //     const energy = data[1];
+        //     const avg = payload.movingAverage.process(energy);
+        //     target.preGain = avg;
+        //   }
+        // }
       ],
       showView: true,
     },
