@@ -41,7 +41,7 @@ class Instrument {
   }
 
   disablePreview() {
-    this.synth.disablePreview(label);
+    this.synth.disablePreview();
   }
 
   updateMappings(config) {

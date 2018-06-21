@@ -1,9 +1,11 @@
 import Filter from './Filter';
 import Gain from './Gain';
+import Delay from './Delay';
 
 const ctors = {
   'filter': Filter,
   'gain': Gain,
+  'delay': Delay,
 };
 
 function create(config) {

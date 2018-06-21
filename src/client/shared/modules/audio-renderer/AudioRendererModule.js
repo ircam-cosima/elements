@@ -40,6 +40,7 @@ class AudioRendererModule extends BaseModule {
     this.processSensorsData = this.processSensorsData.bind(this);
     this.processDecoderOutput = this.processDecoderOutput.bind(this);
 
+    this.audioFiles = {};
     this.instrument = null;
 
     if (this.options.showView) {
@@ -101,6 +102,8 @@ class AudioRendererModule extends BaseModule {
         const audioFiles = project.params.audioFiles;
         const audioParams = player.params.audioRendering;
 
+        this.audioFiles = audioFiles;
+
         if (this.view) {
           merge(this.view.model, audioParams);
           this.view.model.loading = true;
@@ -141,19 +144,39 @@ class AudioRendererModule extends BaseModule {
         const project = payload;
         const uuid = project.uuid;
         const audioFiles = project.params.audioFiles;
-        const audioBufferManager = this.experience.audioBufferManager;
 
-        this.view.model.loading = true;
-        this.view.render();
+        // check if we need to refresh audioFiles
+        let refresh = false;
+        const currentFiles = this.audioFiles;
 
-        audioBufferManager
-          .load({ [uuid]: audioFiles })
-          .then(buffers => {
-            this.instrument.setBuffers(buffers[uuid]);
+        for (let label in audioFiles) {
+          if (!(label in currentFiles))
+            refresh = true;
 
-            this.view.model.loading = false;
-            this.view.render();
-          });
+          if (currentFiles[label] && currentFiles[label][0] !== audioFiles[label][0])
+            refresh = true;
+
+          if (refresh)
+            break;
+        }
+
+        this.audioFiles = audioFiles;
+
+        if (refresh) {
+          const audioBufferManager = this.experience.audioBufferManager;
+
+          this.view.model.loading = true;
+          this.view.render();
+
+          audioBufferManager
+            .load({ [uuid]: audioFiles })
+            .then(buffers => {
+              this.instrument.setBuffers(buffers[uuid]);
+
+              this.view.model.loading = false;
+              this.view.render();
+            });
+        }
         break;
       }
       case 'update-model': {

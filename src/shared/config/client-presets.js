@@ -98,11 +98,20 @@ const clientPresets = {
             Q: 7,
           },
         },
+        // {
+        //   id: 'gain',
+        //   type: 'gain',
+        //   params: {
+        //     gain: 1,
+        //   }
+        // },
         {
-          id: 'gain',
-          type: 'gain',
+          id: 'delay',
+          type: 'delay',
           params: {
-            gain: 1,
+            delay: 0.1,
+            preGain: 0,
+            feedback: 0.95,
           }
         }
       ],
@@ -141,17 +150,30 @@ const clientPresets = {
             target.Q = avg * 30;
           },
         },
+        // {
+        //   id: 'gain',
+        //   input: 'sensors',
+        //   target: 'gain',
+        //   payload: {
+        //     movingAverage: new MovingAverage(20),
+        //   },
+        //   process: (data, target, payload) => {
+        //     const energy = data[1];
+        //     const avg = payload.movingAverage.process(energy);
+        //     target.gain = avg;
+        //   }
+        // },
         {
-          id: 'gain',
+          id: 'delay',
           input: 'sensors',
-          target: 'gain',
+          target: 'delay',
           payload: {
             movingAverage: new MovingAverage(20),
           },
           process: (data, target, payload) => {
             const energy = data[1];
             const avg = payload.movingAverage.process(energy);
-            target.gain = avg;
+            target.preGain = avg;
           }
         }
       ],
