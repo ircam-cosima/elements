@@ -2,7 +2,6 @@ import * as mano from 'mano-js/common';
 import PlayerCollection from './PlayerCollection';
 import uuidv4 from 'uuid/v4';
 import merge from 'lodash.merge';
-// @todo - remove
 import { labels as audioConfig } from '../../../shared/config/audio';
 
 
@@ -15,7 +14,7 @@ class Project {
     // copy of `this.trainingSet` according to `params.learning.filter`
     this.filteredTrainingData = new mano.TrainingSet();
     // used for config formatting
-    this.processor = new mano.XmmProcessor({ url: null, });
+    this.processor = new mano.XmmProcessor({ url: null });
 
     /**
      * xmm model is not part of the params as it will never be saved but always
@@ -27,12 +26,11 @@ class Project {
       name: '',
       clientDefaults: {
         audioRendering: {
-          sensors: false,
           mute: true,
           volume: 0,
         },
         record: {
-          label: null, // defaults to first audio label
+          label: null,
         },
       },
       audioFiles: {},

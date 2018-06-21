@@ -9,10 +9,13 @@ class Player {
     this.project = null;
     this.preset = preset;
 
+    const mappings = {};
+    preset['audio-renderer'].mappings.forEach(mapping => mappings[mapping.id] = false);
+
     this.params = {
       audioRendering: {
-        sensors: false,
-        volume: 0, // in dB
+        mappings: mappings,
+        volume: 0, // dB
         mute: true,
       },
       record: {

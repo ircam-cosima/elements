@@ -44,8 +44,6 @@ appStore.init()
     server.setClientConfigDefinition((clientType, config, httpRequest) => {
       return {
         clientType: clientType,
-        preset: clientPresets[clientType],
-        presets: clientPresets,
         env: config.env,
         appName: config.appName,
         websockets: config.websockets,
@@ -60,10 +58,12 @@ appStore.init()
       watchedDirectory: 'sounds/labels',
     });
 
-    const clientTypes = Object.keys(clientPresets);
+    // remove functions (mapping) that are client-side oriented (need audioContext)
+    const presets = JSON.parse(JSON.stringify(clientPresets));
+    const clientTypes = Object.keys(presets);
 
-    const player = new PlayerExperience(clientTypes, config, clientPresets, comm);
-    const controller = new ControllerExperience('controller', config, clientPresets, comm);
+    const player = new PlayerExperience(clientTypes, config, presets, comm);
+    const controller = new ControllerExperience('controller', config, presets, comm);
 
     // updload and download files
     server.router.get('/download', (req, res) => {

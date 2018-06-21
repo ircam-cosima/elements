@@ -1,7 +1,7 @@
 import { client } from 'soundworks/client';
-import BaseModule from '../BaseModule';
 import AudioControlView from './AudioControlView';
-import mappingManager from './mappings/mappingManager';
+import BaseModule from '../BaseModule';
+import Instrument from './Instrument';
 import moduleManager from '../moduleManager';
 import merge from 'lodash.merge';
 
@@ -14,18 +14,9 @@ class AudioRendererModule extends BaseModule {
 
     this.options = merge({
       showView: true,
-      mapping: {
-        type: 'likeliest-mapping',
-        synth: {
-          type: 'loop',
-        },
-        audioProcesses: [
-          {
-            type: 'energy-filter',
-            options: {},
-          },
-        ],
-      },
+      synth: 'likeliest-loop',
+      effects: [],
+      mappings: [],
     }, options);
 
     this.subscriptions = [
@@ -49,7 +40,7 @@ class AudioRendererModule extends BaseModule {
     this.processSensorsData = this.processSensorsData.bind(this);
     this.processDecoderOutput = this.processDecoderOutput.bind(this);
 
-    this.mapping = null;
+    this.instrument = null;
 
     if (this.options.showView) {
       this.view = new AudioControlView();
@@ -60,6 +51,16 @@ class AudioRendererModule extends BaseModule {
         this.request(action);
       }
     }
+  }
+
+  start() {
+    super.start();
+    this.gestureRecognitionModule.addSensorsListener(this.processSensorsData);
+  }
+
+  stop() {
+    this.gestureRecognitionModule.removeSensorsListener(this.processSensorsData);
+    super.stop();
   }
 
   show() {
@@ -85,9 +86,9 @@ class AudioRendererModule extends BaseModule {
     // @todo - as something is async here, something could go wrong
     switch (type) {
       case 'remove-player-from-project': {
-        if (this.mapping) {
+        if (this.instrument) {
           this.disableSensors();
-          this.mapping.stop();
+          this.instrument.stop();
         }
 
         this.gestureRecognitionModule.removeDecoderListener(this.processDecoderOutput);
@@ -113,24 +114,19 @@ class AudioRendererModule extends BaseModule {
             const labels = model.payload.models.map(mod => mod.label);
             const audioOutput = this.experience.getAudioOutput();
 
-            const mappingType = this.options.mapping.type;
-            const synthConfig = this.options.mapping.synth;
-            const audioProcessesConfig = this.options.mapping.audioProcesses;
-            const mappingCtor = mappingManager.get(mappingType);
+            const synth = this.options.synth;
+            const effects = this.options.effects;
+            const mappings = this.options.mappings;
 
-            this.mapping = new mappingCtor(synthConfig, audioProcessesConfig);
+            this.instrument = new Instrument(synth, effects, mappings);
 
-            this.mapping.setBuffers(buffers[uuid]);
-            this.mapping.setLabels(labels);
-            this.mapping.setAudioDestination(audioOutput);
+            this.instrument.setBuffers(buffers[uuid]);
+            this.instrument.setLabels(labels);
+            this.instrument.connect(audioOutput);
+            this.instrument.updateMappings(audioParams.mappings);
 
             this.experience.mute(audioParams.mute);
             this.experience.volume(audioParams.volume);
-
-            if (audioParams.sensors)
-              this.enableSensors();
-            else
-              this.disableSensors();
 
             if (this.view) {
               this.view.model.loading = false;
@@ -153,7 +149,7 @@ class AudioRendererModule extends BaseModule {
         audioBufferManager
           .load({ [uuid]: audioFiles })
           .then(buffers => {
-            this.mapping.setBuffers(buffers[uuid]);
+            this.instrument.setBuffers(buffers[uuid]);
 
             this.view.model.loading = false;
             this.view.render();
@@ -163,7 +159,7 @@ class AudioRendererModule extends BaseModule {
       case 'update-model': {
         const model = payload.model;
         const labels = model.payload.models.map(mod => mod.label);
-        this.mapping.setLabels(labels);
+        this.instrument.setLabels(labels);
         break;
       }
       case 'update-player-param': {
@@ -172,10 +168,7 @@ class AudioRendererModule extends BaseModule {
         this.experience.mute(audioParams.mute);
         this.experience.volume(audioParams.volume);
 
-        if (audioParams.sensors)
-          this.enableSensors();
-        else
-          this.disableSensors();
+        this.instrument.updateMappings(audioParams.mappings);
 
         merge(this.view.model, audioParams);
         this.view.render();
@@ -184,48 +177,30 @@ class AudioRendererModule extends BaseModule {
     }
   }
 
-  /**
-   * @note - consumed by the `RecordingControlModule`.
-   */
+  /** @note - consumed by the `RecordingControlModule`. */
   enablePreview(label) {
     this.gestureRecognitionModule.removeDecoderListener(this.processDecoderOutput);
 
-    if (this.mapping)
-      this.mapping.enablePreview(label);
+    if (this.instrument)
+      this.instrument.enablePreview(label);
   }
 
-  /**
-   * @note - consumed by the `RecordingControlModule`.
-   */
+  /** @note - consumed by the `RecordingControlModule`. */
   disablePreview() {
-    if (this.mapping)
-      this.mapping.disablePreview();
+    if (this.instrument)
+      this.instrument.disablePreview();
 
     this.gestureRecognitionModule.addDecoderListener(this.processDecoderOutput);
   }
 
-  enableSensors() {
-    if (this.mapping)
-      this.mapping.enableSensors();
-
-    this.gestureRecognitionModule.addSensorsListener(this.processSensorsData);
-  }
-
-  disableSensors() {
-    this.gestureRecognitionModule.removeSensorsListener(this.processSensorsData);
-
-    if (this.mapping)
-      this.mapping.disableSensors();
-  }
-
   processSensorsData(data) {
-    if (this.mapping)
-      this.mapping.processSensorsData(data);
+    if (this.instrument)
+      this.instrument.processSensorsData(data);
   }
 
   processDecoderOutput(data) {
-    if (this.mapping)
-      this.mapping.processDecoderOutput(data);
+    if (this.instrument)
+      this.instrument.processDecoderOutput(data);
   }
 }
 

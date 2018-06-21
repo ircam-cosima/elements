@@ -1,5 +1,5 @@
 import { audioContext } from 'soundworks/client';
-import mappingManager from '../shared/modules/audio-renderer/mappings/mappingManager';
+// import mappingManager from '../shared/modules/audio-renderer/mappings/mappingManager';
 /**
  * mimic AudioRendererModule behavior
  */

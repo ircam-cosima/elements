@@ -6,8 +6,8 @@
   + a trained label is removed from model if the soundfile is deleted
   + lost ability to have several soundfiles per label
 
-- trigger with countdown as only possibility
-- update mapping behavior
+- trigger with countdown as only possibility - ok
+- update mapping behavior - 
 
 - refactor controller using vue.js
 - add second xmm instance on client (two models per project)

@@ -9,13 +9,15 @@ const template = `
   <span><%= text.mute %></span>
 </label>
 
+<% for (var name in mappings) { %>
 <label class="checkbox">
-  <% var checked = sensors ? ' checked' : ''; %>
-  <input type="checkbox" class="player-param" data-name="audioRendering.sensors"<%= checked %> />
+  <% var checked = mappings[name] ? ' checked' : ''; %>
+  <input type="checkbox" class="player-param" data-name="audioRendering.mappings.<%= name %>"<%= checked %> />
   <div class="checkbox-ui"></div>
 
-  <span><%= text.sensors %></span>
+  <span><%= name %></span>
 </label>
+<% } %>
 
 <% if (loading) { %>
 <div class="overlay">
@@ -28,12 +30,12 @@ const template = `
 
 const model = {
   mute: false,
-  sensors: false,
+  mappings: {},
 
   loading: false,
 
   text: {
-    sensors: 'Sensors',
+    // sensors: 'Sensors',
     mute: 'Mute',
     loading: 'Loading...'
   },

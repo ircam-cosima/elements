@@ -1,3 +1,5 @@
+import MovingAverage from '../utils/MovingAverage';
+
 /**
  * Available modules:
  *
@@ -71,273 +73,305 @@ const clientPresets = {
   /**
    * Example config for a designer client.
    */
-  designer: {
-    'project-params-control': {},
-    'project-manager': {
-      enableChange: true,
-      enableCreation: true,
-      projectList: 'select', // 'none' | 'select' | 'buttons'
-      // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
-    },
-    'gesture-recognition': {},
-    'audio-renderer': {
-      mapping: {
-        type: 'likeliest-mapping',
-        // type: 'likeliest-mapping', 'probabilistic-mapping'
-        synth: { // only exists with `likeliest-mapping`
-          // type: 'loop', // or loop / granular
-          type: 'loop', // or loop / granular
-        },
-        audioProcesses: [
-          {
-            type: 'energy-gain',
-            options: {
-              //default options
-              energyAvgOrder: 20,
-              energyExp: 2, // default 1
-              energyIndex: 1,
-            },
-          },
-          // {
-          //   type: 'energy-filter',
-          //   options: {
-          //     //default options
-          //     energyAvgOrder: 20,
-          //     energyExp: 1/4, //1/2
-          //     minCutoffFreq: 500,  //50
-          //     //maxCutoffFreq: audioContext.sampleRate / 2,
-          //     maxCutoffFreq: 44100 / 2,
-          //     filterType: 'lowpass',
-          //     energyIndex: 1,
-          //   },
-          // },
-          // {
-          //   type: 'feedback-delay',
-          //   options: {
-          //     // default options
-          //     // delayTime: 0.1,
-          //     // feedback: 0.9,
-          //   },
-          // },
-        ],
-      },
-      showView: true,
-    },
-    'recording-control': {},
-    'canvas-renderer': {
-      background: false,
-      likelihoods: true,
-    },
-    'streams': {
-      osc: {
-        sendAddress: '127.0.0.1',
-        sendPort: 57120,
-      },
-    },
-    'audio-trigger': {},
-  },
-
-designgran: {
-    'project-params-control': {},
-    'project-manager': {
-      enableChange: true,
-      enableCreation: true,
-      projectList: 'buttons', // 'none' | 'select' | 'buttons'
-      // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
-    },
-    'gesture-recognition': {},
-    'audio-renderer': {
-      mapping: {
-        type: 'probabilistic-mapping',
-        // type: 'likeliest-mapping', 'probabilistic-mapping'
-        synth: { // only exists with `likeliest-mapping`
-          type: 'granular', // or loop / granular
-        },
-        audioProcesses: [
-          {
-            type: 'energy-filter',
-            options: {
-              //default options
-              energyAvgOrder: 20,
-              energyExp: 1/4, //1/2
-              minCutoffFreq: 100,  //50
-              //maxCutoffFreq: audioContext.sampleRate / 2,
-              maxCutoffFreq: 44100 / 2,
-              filterType: 'lowpass',
-              energyIndex: 1,
-            },
-          },
-          // {
-          //   type: 'feedback-delay',
-          //   options: {
-          //     // default options
-          //     // delayTime: 0.1,
-          //     // feedback: 0.9,
-          //   },
-          // },
-        ],
-      },
-      showView: true,
-    },
-    'recording-control': {},
-    'canvas-renderer': {
-      background: false,
-      likelihoods: true,
-    },
-    'streams': {
-      osc: {
-        sendAddress: '127.0.0.1',
-        sendPort: 57120,
-      },
-    },
-    'audio-trigger': {},
-  },
-  /**
-   * Example configuration for a basic player client.
-   */
   default: {
+    'project-params-control': {},
     'project-manager': {
-      // enableChange: false,
-      // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
+      enableChange: true,
+      enableCreation: true,
       projectList: 'select', // 'none' | 'select' | 'buttons'
+      forceProject: '58bd151e-b1a2-43dd-acb1-354271eb039c',
     },
     'gesture-recognition': {},
     'audio-renderer': {
-      mapping: {
-        type: 'likeliest-mapping',
-        // type: 'likeliest-mapping', 'probabilistic-mapping'
-        synth: { // only exists with `likeliest-mapping`
-          type: 'loop', // or loop / granular
-        },
-        audioProcesses: [
-          {
-            type: 'energy-filter',
-            options: {
-              //default options
-              energyAvgOrder: 20,
-              energyExp: 1/4, //1/2
-              minCutoffFreq: 500,  //50
-              //maxCutoffFreq: audioContext.sampleRate / 2,
-              maxCutoffFreq: 44100 / 2,
-              filterType: 'lowpass',
-              energyIndex: 1,
-            },
-          },
-          // {
-          //   type: 'feedback-delay',
-          //   options: {
-          //     // default options
-          //     // delayTime: 0.1,
-          //     // feedback: 0.9,
-          //   },
-          // },
-        ],
+      synth: {
+        type: 'likeliest-loop', // 'likeliest-loop' - 'probabilistic-granular'
+        params: {},
       },
+      effects: [
+        {
+          id: 'lowpass',
+          type: 'filter',
+          // values when mapping is disabled
+          params: {
+            type: 'lowpass',
+            frequency: 10000,
+            Q: 7,
+          },
+        },
+        {
+          id: 'gain',
+          type: 'gain',
+          params: {
+            gain: 1,
+          }
+        }
+      ],
+      mappings: [
+        {
+          id: 'lowpass',
+          input: 'sensors',
+          target: 'lowpass',
+          // enabled: true,
+          payload: {
+            movingAverage: new MovingAverage(20),
+            minCutoff: 200,
+            maxCutoff: 10000,
+          },
+          /**
+           * data contains:
+           * - IntensityNorm
+           * - IntensityNormBoost
+           * - BandPass AccX
+           * - BandPass AccY
+           * - BandPass AccZ
+           * - Orientation X (processed from acc and gyro)
+           * - Orientation Y (processed from acc and gyro)
+           * - Orientation Z (processed from acc and gyro)
+           */
+          process: (data, target, payload) => {
+            // execute only once and cache the result
+            if (!payload.ratio)
+              payload.ratio = Math.log(payload.maxCutoff / payload.minCutoff);
+
+            const energy = data[1];
+            const avg = payload.movingAverage.process(energy);
+            const cutoff = payload.minCutoff * Math.exp(payload.ratio * avg);
+
+            target.frequency = cutoff;
+            target.Q = avg * 30;
+          },
+        },
+        {
+          id: 'gain',
+          input: 'sensors',
+          target: 'gain',
+          payload: {
+            movingAverage: new MovingAverage(20),
+          },
+          process: (data, target, payload) => {
+            const energy = data[1];
+            const avg = payload.movingAverage.process(energy);
+            target.gain = avg;
+          }
+        }
+      ],
       showView: true,
     },
+    'recording-control': {},
     'canvas-renderer': {
-      background: true,  //color of background
-      likelihoods: false,
+      background: false,
+      likelihoods: true,
+    },
+    'streams': {
+      osc: {
+        sendAddress: '127.0.0.1',
+        sendPort: 57120,
+      },
     },
     'audio-trigger': {},
   },
 
+//   designgran: {
+//     'project-params-control': {},
+//     'project-manager': {
+//       enableChange: true,
+//       enableCreation: true,
+//       projectList: 'buttons', // 'none' | 'select' | 'buttons'
+//       // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
+//     },
+//     'gesture-recognition': {},
+//     'audio-renderer': {
+//       mapping: {
+//         type: 'probabilistic-mapping',
+//         // type: 'likeliest-mapping', 'probabilistic-mapping'
+//         synth: { // only exists with `likeliest-mapping`
+//           type: 'granular', // or loop / granular
+//         },
+//         audioProcesses: [
+//           {
+//             type: 'energy-filter',
+//             options: {
+//               //default options
+//               energyAvgOrder: 20,
+//               energyExp: 1/4, //1/2
+//               minCutoffFreq: 100,  //50
+//               //maxCutoffFreq: audioContext.sampleRate / 2,
+//               maxCutoffFreq: 44100 / 2,
+//               filterType: 'lowpass',
+//               energyIndex: 1,
+//             },
+//           },
+//           // {
+//           //   type: 'feedback-delay',
+//           //   options: {
+//           //     // default options
+//           //     // delayTime: 0.1,
+//           //     // feedback: 0.9,
+//           //   },
+//           // },
+//         ],
+//       },
+//       showView: true,
+//     },
+//     'recording-control': {},
+//     'canvas-renderer': {
+//       background: false,
+//       likelihoods: true,
+//     },
+//     'streams': {
+//       osc: {
+//         sendAddress: '127.0.0.1',
+//         sendPort: 57120,
+//       },
+//     },
+//     'audio-trigger': {},
+//   },
+//   /**
+//    * Example configuration for a basic player client.
+//    */
+//   default: {
+//     'project-manager': {
+//       // enableChange: false,
+//       // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
+//       projectList: 'select', // 'none' | 'select' | 'buttons'
+//     },
+//     'gesture-recognition': {},
+//     'audio-renderer': {
+//       mapping: {
+//         type: 'likeliest-mapping',
+//         // type: 'likeliest-mapping', 'probabilistic-mapping'
+//         synth: { // only exists with `likeliest-mapping`
+//           type: 'loop', // or loop / granular
+//         },
+//         audioProcesses: [
+//           {
+//             type: 'energy-filter',
+//             options: {
+//               //default options
+//               energyAvgOrder: 20,
+//               energyExp: 1/4, //1/2
+//               minCutoffFreq: 500,  //50
+//               //maxCutoffFreq: audioContext.sampleRate / 2,
+//               maxCutoffFreq: 44100 / 2,
+//               filterType: 'lowpass',
+//               energyIndex: 1,
+//             },
+//           },
+//           // {
+//           //   type: 'feedback-delay',
+//           //   options: {
+//           //     // default options
+//           //     // delayTime: 0.1,
+//           //     // feedback: 0.9,
+//           //   },
+//           // },
+//         ],
+//       },
+//       showView: true,
+//     },
+//     'canvas-renderer': {
+//       background: true,  //color of background
+//       likelihoods: false,
+//     },
+//     'audio-trigger': {},
+//   },
 
 
 
-// granular player
- gran: {
-    'project-manager': {
-      // enableChange: false,
-      // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
-    },
-    'gesture-recognition': {},
-    'audio-renderer': {
-      mapping: {
-        type: 'likeliest-mapping',
-        // type: 'likeliest-mapping', 'probabilistic-mapping'
-        synth: { // only exists with `likeliest-mapping`
-          type: 'granular', // or loop / granular
-        },
-        audioProcesses: [
-          {
-            type: 'energy-filter',
-            options: {
-              //default options
-              energyAvgOrder: 20,
-              energyExp: 1/4, //1/2
-              minCutoffFreq: 200,  //50
-              //maxCutoffFreq: audioContext.sampleRate / 2,
-              maxCutoffFreq: 44100 / 2,
-              filterType: 'lowpass',
-              energyIndex: 1,
-            },
-          },
-          // {
-          //   type: 'feedback-delay',
-          //   options: {
-          //     // default options
-          //     // delayTime: 0.1,
-          //     // feedback: 0.9,
-          //   },
-          // },
-        ],
-      },
-      showView: true,
-    },
-    'canvas-renderer': {
-      background: true,  //color of background
-      likelihoods: false,
-    },
-    'audio-trigger': {},
-  },
 
-// probabilist granular player
- probgran: {
-    'project-manager': {
-      // enableChange: false,
-      // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
-    },
-    'gesture-recognition': {},
-    'audio-renderer': {
-      mapping: {
-        type: 'probabilistic-mapping',
-        // type: 'likeliest-mapping', 'probabilistic-mapping'
-        synth: { // only exists with `likeliest-mapping`
-          type: 'granular', // or loop / granular
-        },
-        audioProcesses: [
-          {
-            type: 'energy-filter',
-            options: {
-              //default options
-              energyAvgOrder: 20,
-              energyExp: 1/4, //1/2
-              minCutoffFreq: 200,  //50
-              //maxCutoffFreq: audioContext.sampleRate / 2,
-              maxCutoffFreq: 44100 / 2,
-              filterType: 'lowpass',
-              energyIndex: 1,
-            },
-          },
-          // {
-          //   type: 'feedback-delay',
-          //   options: {
-          //     // default options
-          //     // delayTime: 0.1,
-          //     // feedback: 0.9,
-          //   },
-          // },
-        ],
-      },
-      showView: true,
-    },
-    'canvas-renderer': {
-      background: true,  //color of background
-      likelihoods: false,
-    },
-    'audio-trigger': {},
-  },
+// // granular player
+//  gran: {
+//     'project-manager': {
+//       // enableChange: false,
+//       // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
+//     },
+//     'gesture-recognition': {},
+//     'audio-renderer': {
+//       mapping: {
+//         type: 'likeliest-mapping',
+//         // type: 'likeliest-mapping', 'probabilistic-mapping'
+//         synth: { // only exists with `likeliest-mapping`
+//           type: 'granular', // or loop / granular
+//         },
+//         audioProcesses: [
+//           {
+//             type: 'energy-filter',
+//             options: {
+//               //default options
+//               energyAvgOrder: 20,
+//               energyExp: 1/4, //1/2
+//               minCutoffFreq: 200,  //50
+//               //maxCutoffFreq: audioContext.sampleRate / 2,
+//               maxCutoffFreq: 44100 / 2,
+//               filterType: 'lowpass',
+//               energyIndex: 1,
+//             },
+//           },
+//           // {
+//           //   type: 'feedback-delay',
+//           //   options: {
+//           //     // default options
+//           //     // delayTime: 0.1,
+//           //     // feedback: 0.9,
+//           //   },
+//           // },
+//         ],
+//       },
+//       showView: true,
+//     },
+//     'canvas-renderer': {
+//       background: true,  //color of background
+//       likelihoods: false,
+//     },
+//     'audio-trigger': {},
+//   },
+
+// // probabilist granular player
+//  probgran: {
+//     'project-manager': {
+//       // enableChange: false,
+//       // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
+//     },
+//     'gesture-recognition': {},
+//     'audio-renderer': {
+//       mapping: {
+//         type: 'probabilistic-mapping',
+//         // type: 'likeliest-mapping', 'probabilistic-mapping'
+//         synth: { // only exists with `likeliest-mapping`
+//           type: 'granular', // or loop / granular
+//         },
+//         audioProcesses: [
+//           {
+//             type: 'energy-filter',
+//             options: {
+//               //default options
+//               energyAvgOrder: 20,
+//               energyExp: 1/4, //1/2
+//               minCutoffFreq: 200,  //50
+//               //maxCutoffFreq: audioContext.sampleRate / 2,
+//               maxCutoffFreq: 44100 / 2,
+//               filterType: 'lowpass',
+//               energyIndex: 1,
+//             },
+//           },
+//           // {
+//           //   type: 'feedback-delay',
+//           //   options: {
+//           //     // default options
+//           //     // delayTime: 0.1,
+//           //     // feedback: 0.9,
+//           //   },
+//           // },
+//         ],
+//       },
+//       showView: true,
+//     },
+//     'canvas-renderer': {
+//       background: true,  //color of background
+//       likelihoods: false,
+//     },
+//     'audio-trigger': {},
+//   },
 
 
 

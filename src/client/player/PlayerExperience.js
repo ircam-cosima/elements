@@ -9,10 +9,10 @@ import { sounds as uiSounds } from '../../shared/config/ui';
 const audioContext = soundworks.audioContext;
 
 class PlayerExperience extends soundworks.Experience {
-  constructor(config) {
+  constructor(config, preset) {
     super();
 
-    this.preset = config.preset;
+    this.preset = preset;
 
     this.platform = this.require('platform', { features: ['web-audio', 'mobile-device'] });
     this.checkin = this.require('checkin');

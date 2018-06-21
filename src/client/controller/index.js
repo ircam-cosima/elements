@@ -1,6 +1,7 @@
 import * as soundworks from 'soundworks/client';
 import ControllerExperience from './ControllerExperience';
 import serviceViews from '../shared/serviceViews';
+import presets from '../../shared/config/client-presets';
 
 // import shared modules
 import * as modules from '../shared/modules/index';
@@ -20,7 +21,7 @@ function bootstrap() {
       instance.view = serviceViews.get(id, config);
   });
 
-  const experience = new ControllerExperience(config);
+  const experience = new ControllerExperience(config, presets);
   soundworks.client.start();
 }
 

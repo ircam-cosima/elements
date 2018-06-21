@@ -2,6 +2,7 @@
 import { client } from 'soundworks/client';
 import PlayerExperience from './PlayerExperience';
 import serviceViews from '../shared/serviceViews';
+import presets from '../../shared/config/client-presets';
 // load modules
 import * as modules from '../shared/modules/index';
 
@@ -21,7 +22,9 @@ function bootstrap() {
       instance.view = serviceViews.get(id, config);
   });
 
-  const experience = new PlayerExperience(config);
+  const preset = presets[config.clientType];
+  const experience = new PlayerExperience(config, preset);
+
   client.start();
 }
 

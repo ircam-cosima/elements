@@ -4,7 +4,7 @@ import AudioRendererHook from './AudioRendererHook';
 
 
 class ControllerExperience extends Experience {
-  constructor(config) {
+  constructor(config, presets) {
     super();
 
     this.audioBufferManager = this.require('audio-buffer-manager');
@@ -16,7 +16,6 @@ class ControllerExperience extends Experience {
 
     this.dispatch = this.dispatch.bind(this);
     // define if we need the `rawSocket` service
-    const presets = config.presets;
     this.streams = false;
     this.sensorsBuffer = null;
 
