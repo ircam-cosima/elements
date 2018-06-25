@@ -45,8 +45,13 @@ class Instrument {
   }
 
   updateMappings(config) {
-    this.enabledSensorsMappings.forEach(({ mapping, target }) => target.reset());
-    this.enabledDecoderMappings.forEach(({ mapping, target }) => target.reset());
+    this.enabledSensorsMappings.forEach(({ mapping, targets }) => {
+      targets.forEach(target => target.reset());
+    });
+
+    this.enabledDecoderMappings.forEach(({ mapping, targets }) => {
+      targets.forEach(target => target.reset());
+    });
 
     this.enabledSensorsMappings = [];
     this.enabledDecoderMappings = [];
@@ -60,17 +65,24 @@ class Instrument {
         if (!mapping)
           console.error('Undefined mapping id', id);
 
-        let target = null;
+        let targets = [];
 
-        if (mapping.input === 'sensors') {
-          target = this.effects.find(effect => effect.id === mapping.target);
+        mapping.targets.forEach(targetId => {
+          let target = null;
+
+          if (targetId === 'synth')
+            target = this.synth;
+          else
+            target = this.effects.find(effect => effect.id === targetId);
 
           if (target)
-            this.enabledSensorsMappings.push({ mapping, target });
-        } else if (mapping.input === 'decoding') {
-          target = this.synth;
-          this.enabledDecoderMappings.push({ mapping, target });
-        }
+            targets.push(target);
+        });
+
+        if (mapping.input === 'sensors')
+          this.enabledSensorsMappings.push({ mapping, targets });
+        else if (mapping.input === 'decoding')
+          this.enabledDecoderMappings.push({ mapping, targets });
       }
     }
   }
@@ -78,8 +90,8 @@ class Instrument {
   processSensorsData(data) {
     if (this.enabledSensorsMappings.length > 0) {
       for (let i = 0; i < this.enabledSensorsMappings.length; i++) {
-        const { mapping, target } = this.enabledSensorsMappings[i];
-        mapping.process(data, target, mapping.payload);
+        const { mapping, targets } = this.enabledSensorsMappings[i];
+        mapping.process(data, targets, mapping.payload);
       }
     }
   }
@@ -87,7 +99,12 @@ class Instrument {
   processDecoderOutput(data) {
     this.synth.processDecoderOutput(data);
 
-    // decoder mappings
+    if (this.enabledDecoderMappings.length > 0) {
+      for (let i = 0; i < this.enabledDecoderMappings.length; i++) {
+        const { mapping, targets } = this.enabledDecoderMappings[i];
+        mapping.process(data, targets, mapping.payload);
+      }
+    }
   }
 }
 

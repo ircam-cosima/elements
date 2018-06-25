@@ -98,12 +98,19 @@ const clientPresets = {
           }
         },
         {
-          id: 'peaking',
+          id: 'filter-gain',
+          type: 'gain',
+          params: {
+            gain: 1,
+          }
+        },
+        {
+          id: 'bandpass',
           type: 'filter',
           // values when mapping is disabled
           params: {
-            type: 'peaking',
-            frequency: 5000,
+            type: 'bandpass',
+            frequency: 100,
             Q: 0,
             gain: 0,
           },
@@ -122,27 +129,57 @@ const clientPresets = {
         {
           id: 'gain',
           input: 'sensors',
-          target: 'gain',
+          targets: ['gain'],
           payload: {
             movingAverage: new MovingAverage(20),
           },
-          process: (data, target, payload) => {
+          process: (data, targets, payload) => {
+            const gain = targets[0];
+
             const energy = data[1]; // enhanced intensity
             const avg = payload.movingAverage.process(energy);
-            target.gain = avg;
+            const pow = Math.pow(avg, 1/1);
+
+            gain.gain = pow;
           }
         },
+        // {
+        //   id: 'dynamic-gain',
+        //   input: 'sensors',
+        //   target: 'dynamic-gain',
+        //   // enabled: true,
+        //   payload: {
+        //     movingAverage: new MovingAverage(1),
+        //     normDegree: 1/360,
+        //   },
+        //   process: (data, target, payload) => {
+        //     // get gyroscopes energy
+        //     const alpha = data[8] * payload.normDegree;
+        //     const beta = data[9] * payload.normDegree;
+        //     const gamma = data[10] * payload.normDegree;
+        //     // ~ [0, 3]
+        //     const norm = Math.sqrt(alpha * alpha + beta * beta + gamma * gamma);
+        //     target.gain = 1 + norm;
+        //     // const avg = payload.movingAverage.process(norm);
+        //     // const pow = Math.pow(avg, 1/4);
+        //     // const cutoff = payload.minCutoff * Math.exp(payload.ratio * pow);
+
+        //     // target.frequency = cutoff;
+        //     // // target.gain = avg * 20 + 4; // [0, 30]
+        //     // target.Q = pow; // ??
+        //   },
+        // },
         {
-          id: 'peaking',
+          id: 'bandpass',
           input: 'sensors',
-          target: 'peaking',
+          targets: ['bandpass', 'filter-gain'],
           // enabled: true,
           payload: {
             movingAverage: new MovingAverage(20),
             normDegree: 1/360,
             // Q:
-            minCutoff: 300,
-            maxCutoff: 5000,
+            minCutoff: 100,
+            maxCutoff: 6000,
           },
           /**
            * data is an array that contains:
@@ -158,7 +195,9 @@ const clientPresets = {
            * - [9]  gyro (beta)
            * - [10] gyro (gamma)
            */
-          process: (data, target, payload) => {
+          process: (data, targets, payload) => {
+            const bandpass = targets[0];
+            const gain = targets[1];
             // // execute only once and cache the result
             if (!payload.ratio)
               payload.ratio = Math.log(payload.maxCutoff / payload.minCutoff);
@@ -168,31 +207,17 @@ const clientPresets = {
             const beta = data[9] * payload.normDegree;
             const gamma = data[10] * payload.normDegree;
             // ~ [0, 3]
-            const energy = Math.sqrt(alpha * alpha + beta * beta + gamma * gamma);
-            const avg = payload.movingAverage.process(energy);
+            const norm = Math.sqrt(alpha * alpha + beta * beta + gamma * gamma);
+            const avg = payload.movingAverage.process(norm);
+            const pow = Math.pow(avg, 1/4);
+            const cutoff = payload.minCutoff * Math.exp(payload.ratio * pow);
 
-            const cutoff = payload.minCutoff * Math.exp(payload.ratio * (avg / 3));
+            gain.gain = 1 + norm * 4;
 
-            // console.log(avg * 10);
-
-            target.frequency = cutoff;
-            target.gain = avg * 20 + 4; // [0, 30]
-            target.Q = 15; // ??
+            bandpass.frequency = cutoff;
+            bandpass.Q = pow * 6;
           },
         },
-        // {
-        //   id: 'delay',
-        //   input: 'sensors',
-        //   target: 'delay',
-        //   payload: {
-        //     movingAverage: new MovingAverage(20),
-        //   },
-        //   process: (data, target, payload) => {
-        //     const energy = data[1];
-        //     const avg = payload.movingAverage.process(energy);
-        //     target.preGain = avg;
-        //   }
-        // }
       ],
       showView: true,
     },

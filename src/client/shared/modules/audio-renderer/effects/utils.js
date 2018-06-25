@@ -15,7 +15,7 @@ export function setParam(param, value) {
 }
 
 export function rampParam(param, value, duration) {
-  if (client.platform.os = 'ios') {
+  if (client.platform.os === 'ios') {
     param.value = value;
   } else {
     const now = audioContext.currentTime;
