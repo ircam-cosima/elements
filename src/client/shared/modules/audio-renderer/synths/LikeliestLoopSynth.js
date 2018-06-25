@@ -1,9 +1,13 @@
 import { audioContext, client } from 'soundworks/client';
 
 class LoopSynth {
-  constructor() {
+  constructor(config) {
+    const defaults = {
+      fadeDuration: 1,
+    };
+
+    this.params = Object.assign({}, defaults, config);
     this.buffers = null;
-    this.fadeDuration = 1; // 0.1
 
     this._current = {};
 
@@ -37,7 +41,7 @@ class LoopSynth {
     env.connect(this.output);
     env.gain.value = 0;
     env.gain.setValueAtTime(0, now);
-    env.gain.linearRampToValueAtTime(1, now + this.fadeDuration);
+    env.gain.linearRampToValueAtTime(1, now + this.params.fadeDuration);
 
     const src = audioContext.createBufferSource();
     src.connect(env);
@@ -54,7 +58,7 @@ class LoopSynth {
     if (this._current.src) {
       const { src, env } = this._current;
       const now = audioContext.currentTime;
-      const endTime = now + this.fadeDuration;
+      const endTime = now + this.params.fadeDuration;
 
       env.gain.cancelScheduledValues(now);
       env.gain.setValueAtTime(env.gain.value, now);
@@ -74,7 +78,7 @@ class LoopSynth {
 
 class LikeliestLoopSynth {
   constructor(config) {
-    this.synth = new LoopSynth();
+    this.synth = new LoopSynth(config);
 
     this.currentLabel = null;
     this.labels = null;

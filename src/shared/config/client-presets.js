@@ -84,27 +84,30 @@ const clientPresets = {
     'gesture-recognition': {},
     'audio-renderer': {
       synth: {
-        type: 'probabilistic-granular', // 'likeliest-loop', 'likeliest-granular', 'probabilistic-granular'
-        params: {},
+        type: 'likeliest-loop', // 'likeliest-loop', 'likeliest-granular', 'probabilistic-granular'
+        params: {
+          fadeDuration: 0.5,
+        },
       },
       effects: [
         {
-          id: 'lowpass',
+          id: 'gain',
+          type: 'gain',
+          params: {
+            gain: 1,
+          }
+        },
+        {
+          id: 'peaking',
           type: 'filter',
           // values when mapping is disabled
           params: {
-            type: 'lowpass',
-            frequency: 10000,
-            Q: 7,
+            type: 'peaking',
+            frequency: 5000,
+            Q: 0,
+            gain: 0,
           },
         },
-        // {
-        //   id: 'gain',
-        //   type: 'gain',
-        //   params: {
-        //     gain: 1,
-        //   }
-        // },
         // {
         //   id: 'delay',
         //   type: 'delay',
@@ -117,53 +120,66 @@ const clientPresets = {
       ],
       mappings: [
         {
-          id: 'lowpass',
+          id: 'gain',
           input: 'sensors',
-          target: 'lowpass',
+          target: 'gain',
+          payload: {
+            movingAverage: new MovingAverage(20),
+          },
+          process: (data, target, payload) => {
+            const energy = data[1]; // enhanced intensity
+            const avg = payload.movingAverage.process(energy);
+            target.gain = avg;
+          }
+        },
+        {
+          id: 'peaking',
+          input: 'sensors',
+          target: 'peaking',
           // enabled: true,
           payload: {
             movingAverage: new MovingAverage(20),
-            minCutoff: 200,
-            maxCutoff: 10000,
+            normDegree: 1/360,
+            // Q:
+            minCutoff: 300,
+            maxCutoff: 5000,
           },
           /**
-           * data contains:
-           * - IntensityNorm
-           * - IntensityNormBoost
-           * - BandPass AccX
-           * - BandPass AccY
-           * - BandPass AccZ
-           * - Orientation X (processed from acc and gyro)
-           * - Orientation Y (processed from acc and gyro)
-           * - Orientation Z (processed from acc and gyro)
+           * data is an array that contains:
+           * - [0]  IntensityNorm
+           * - [1]  IntensityNormBoost
+           * - [2]  BandPass AccX
+           * - [3]  BandPass AccY
+           * - [4]  BandPass AccZ
+           * - [5]  Orientation X (processed from acc and gyro)
+           * - [6]  Orientation Y (processed from acc and gyro)
+           * - [7]  Orientation Z (processed from acc and gyro)
+           * - [8]  gyro (alpha)
+           * - [9]  gyro (beta)
+           * - [10] gyro (gamma)
            */
           process: (data, target, payload) => {
-            // execute only once and cache the result
+            // // execute only once and cache the result
             if (!payload.ratio)
               payload.ratio = Math.log(payload.maxCutoff / payload.minCutoff);
 
-            const energy = data[1];
+            // get gyroscopes energy
+            const alpha = data[8] * payload.normDegree;
+            const beta = data[9] * payload.normDegree;
+            const gamma = data[10] * payload.normDegree;
+            // ~ [0, 3]
+            const energy = Math.sqrt(alpha * alpha + beta * beta + gamma * gamma);
             const avg = payload.movingAverage.process(energy);
-            const exp = Math.pow(avg, 4);
-            const cutoff = payload.minCutoff * Math.exp(payload.ratio * avg);
+
+            const cutoff = payload.minCutoff * Math.exp(payload.ratio * (avg / 3));
+
+            // console.log(avg * 10);
 
             target.frequency = cutoff;
-            target.Q = avg * 30;
+            target.gain = avg * 20 + 4; // [0, 30]
+            target.Q = 15; // ??
           },
         },
-        // {
-        //   id: 'gain',
-        //   input: 'sensors',
-        //   target: 'gain',
-        //   payload: {
-        //     movingAverage: new MovingAverage(20),
-        //   },
-        //   process: (data, target, payload) => {
-        //     const energy = data[1];
-        //     const avg = payload.movingAverage.process(energy);
-        //     target.gain = avg;
-        //   }
-        // },
         // {
         //   id: 'delay',
         //   input: 'sensors',
@@ -193,214 +209,6 @@ const clientPresets = {
     },
     'audio-trigger': {},
   },
-
-//   designgran: {
-//     'project-params-control': {},
-//     'project-manager': {
-//       enableChange: true,
-//       enableCreation: true,
-//       projectList: 'buttons', // 'none' | 'select' | 'buttons'
-//       // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
-//     },
-//     'gesture-recognition': {},
-//     'audio-renderer': {
-//       mapping: {
-//         type: 'probabilistic-mapping',
-//         // type: 'likeliest-mapping', 'probabilistic-mapping'
-//         synth: { // only exists with `likeliest-mapping`
-//           type: 'granular', // or loop / granular
-//         },
-//         audioProcesses: [
-//           {
-//             type: 'energy-filter',
-//             options: {
-//               //default options
-//               energyAvgOrder: 20,
-//               energyExp: 1/4, //1/2
-//               minCutoffFreq: 100,  //50
-//               //maxCutoffFreq: audioContext.sampleRate / 2,
-//               maxCutoffFreq: 44100 / 2,
-//               filterType: 'lowpass',
-//               energyIndex: 1,
-//             },
-//           },
-//           // {
-//           //   type: 'feedback-delay',
-//           //   options: {
-//           //     // default options
-//           //     // delayTime: 0.1,
-//           //     // feedback: 0.9,
-//           //   },
-//           // },
-//         ],
-//       },
-//       showView: true,
-//     },
-//     'recording-control': {},
-//     'canvas-renderer': {
-//       background: false,
-//       likelihoods: true,
-//     },
-//     'streams': {
-//       osc: {
-//         sendAddress: '127.0.0.1',
-//         sendPort: 57120,
-//       },
-//     },
-//     'audio-trigger': {},
-//   },
-//   /**
-//    * Example configuration for a basic player client.
-//    */
-//   default: {
-//     'project-manager': {
-//       // enableChange: false,
-//       // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
-//       projectList: 'select', // 'none' | 'select' | 'buttons'
-//     },
-//     'gesture-recognition': {},
-//     'audio-renderer': {
-//       mapping: {
-//         type: 'likeliest-mapping',
-//         // type: 'likeliest-mapping', 'probabilistic-mapping'
-//         synth: { // only exists with `likeliest-mapping`
-//           type: 'loop', // or loop / granular
-//         },
-//         audioProcesses: [
-//           {
-//             type: 'energy-filter',
-//             options: {
-//               //default options
-//               energyAvgOrder: 20,
-//               energyExp: 1/4, //1/2
-//               minCutoffFreq: 500,  //50
-//               //maxCutoffFreq: audioContext.sampleRate / 2,
-//               maxCutoffFreq: 44100 / 2,
-//               filterType: 'lowpass',
-//               energyIndex: 1,
-//             },
-//           },
-//           // {
-//           //   type: 'feedback-delay',
-//           //   options: {
-//           //     // default options
-//           //     // delayTime: 0.1,
-//           //     // feedback: 0.9,
-//           //   },
-//           // },
-//         ],
-//       },
-//       showView: true,
-//     },
-//     'canvas-renderer': {
-//       background: true,  //color of background
-//       likelihoods: false,
-//     },
-//     'audio-trigger': {},
-//   },
-
-
-
-
-// // granular player
-//  gran: {
-//     'project-manager': {
-//       // enableChange: false,
-//       // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
-//     },
-//     'gesture-recognition': {},
-//     'audio-renderer': {
-//       mapping: {
-//         type: 'likeliest-mapping',
-//         // type: 'likeliest-mapping', 'probabilistic-mapping'
-//         synth: { // only exists with `likeliest-mapping`
-//           type: 'granular', // or loop / granular
-//         },
-//         audioProcesses: [
-//           {
-//             type: 'energy-filter',
-//             options: {
-//               //default options
-//               energyAvgOrder: 20,
-//               energyExp: 1/4, //1/2
-//               minCutoffFreq: 200,  //50
-//               //maxCutoffFreq: audioContext.sampleRate / 2,
-//               maxCutoffFreq: 44100 / 2,
-//               filterType: 'lowpass',
-//               energyIndex: 1,
-//             },
-//           },
-//           // {
-//           //   type: 'feedback-delay',
-//           //   options: {
-//           //     // default options
-//           //     // delayTime: 0.1,
-//           //     // feedback: 0.9,
-//           //   },
-//           // },
-//         ],
-//       },
-//       showView: true,
-//     },
-//     'canvas-renderer': {
-//       background: true,  //color of background
-//       likelihoods: false,
-//     },
-//     'audio-trigger': {},
-//   },
-
-// // probabilist granular player
-//  probgran: {
-//     'project-manager': {
-//       // enableChange: false,
-//       // forceProject: '2a3eab59-0c1a-4a27-a75b-eca6548a6431',
-//     },
-//     'gesture-recognition': {},
-//     'audio-renderer': {
-//       mapping: {
-//         type: 'probabilistic-mapping',
-//         // type: 'likeliest-mapping', 'probabilistic-mapping'
-//         synth: { // only exists with `likeliest-mapping`
-//           type: 'granular', // or loop / granular
-//         },
-//         audioProcesses: [
-//           {
-//             type: 'energy-filter',
-//             options: {
-//               //default options
-//               energyAvgOrder: 20,
-//               energyExp: 1/4, //1/2
-//               minCutoffFreq: 200,  //50
-//               //maxCutoffFreq: audioContext.sampleRate / 2,
-//               maxCutoffFreq: 44100 / 2,
-//               filterType: 'lowpass',
-//               energyIndex: 1,
-//             },
-//           },
-//           // {
-//           //   type: 'feedback-delay',
-//           //   options: {
-//           //     // default options
-//           //     // delayTime: 0.1,
-//           //     // feedback: 0.9,
-//           //   },
-//           // },
-//         ],
-//       },
-//       showView: true,
-//     },
-//     'canvas-renderer': {
-//       background: true,  //color of background
-//       likelihoods: false,
-//     },
-//     'audio-trigger': {},
-//   },
-
-
-
-
-
-
 };
 
 export default clientPresets;

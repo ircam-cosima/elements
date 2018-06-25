@@ -1,4 +1,5 @@
 import { audioContext } from 'soundworks/client';
+import { setParam, rampParam } from './utils';
 import Effect from './Effect';
 
 const defaults = {
@@ -19,13 +20,11 @@ class Gain extends Effect {
   }
 
   set gain(value) {
-    const now = audioContext.currentTime;
-    this.node.gain.linearRampToValueAtTime(value, now + 0.005);
+    rampParam(this.node.gain, value, 0.005);
   }
 
   reset() {
-    const now = audioContext.currentTime;
-    this.node.gain.linearRampToValueAtTime(this.params.gain, now + 0.005);
+    setParam(this.node.gain, this.params.gain);
   }
 
   connect(output) {

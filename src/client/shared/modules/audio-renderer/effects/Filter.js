@@ -1,4 +1,5 @@
 import { audioContext } from 'soundworks/client';
+import { setParam, rampParam } from './utils';
 import Effect from './Effect';
 
 // cf. https://www.w3.org/TR/2018/WD-webaudio-20180619/#BiquadFilterNode-attributes
@@ -6,6 +7,7 @@ const defaults = {
   type: 'lowpass',
   frequency: 350,
   Q: 1,
+  gain: 0,
 };
 
 class Filter extends Effect {
@@ -23,19 +25,21 @@ class Filter extends Effect {
   }
 
   set frequency(value) {
-    const now = audioContext.currentTime;
-    this.node.frequency.linearRampToValueAtTime(value, now + 0.005);
+    rampParam(this.node.frequency, value, 0.005);
   }
 
   set Q(value) {
-    const now = audioContext.currentTime;
-    this.node.Q.linearRampToValueAtTime(value, now + 0.005);
+    rampParam(this.node.Q, value, 0.005);
+  }
+
+  set gain(value) {
+    rampParam(this.node.gain, value, 0.005);
   }
 
   reset() {
-    const now = audioContext.currentTime;
-    this.node.frequency.linearRampToValueAtTime(this.params.frequency, now + 0.005);
-    this.node.Q.linearRampToValueAtTime(this.params.Q, now + 0.005);
+    setParam(this.node.frequency, this.params.frequency);
+    setParam(this.node.Q, this.params.Q);
+    setParam(this.node.gain, this.params.gain);
   }
 
   connect(output) {

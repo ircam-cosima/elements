@@ -1,4 +1,5 @@
 import { audioContext } from 'soundworks/client';
+import { setParam, rampParam } from './utils';
 import Effect from './Effect';
 
 const defaults = {
@@ -30,25 +31,21 @@ class Delay extends Effect {
   }
 
   set preGain(value) {
-    const now = audioContext.currentTime;
-    this.preGainNode.gain.linearRampToValueAtTime(value, now + 0.005);
+    rampParam(this.preGainNode.gain, value, 0.005);
   }
 
   set delay(value) {
-    const now = audioContext.currentTime;
-    this.delayNode.delayTime.linearRampToValueAtTime(value, now + 0.005);
+    rampParam(this.delayNode.delayTime, value, 0.005);
   }
 
   set feedback(value) {
-    const now = audioContext.currentTime;
-    this.feedbackNode.gain.linearRampToValueAtTime(value, now + 0.005);
+    rampParam(this.feedbackNode.gain, value, 0.005);
   }
 
   reset() {
-    const now = audioContext.currentTime;
-    this.preGainNode.gain.linearRampToValueAtTime(this.params.preGain, now + 0.005);
-    this.delayNode.delayTime.linearRampToValueAtTime(this.params.delay, now + 0.005);
-    this.feedbackNode.gain.linearRampToValueAtTime(this.params.feedback, now + 0.005);
+    setParam(this.preGainNode.gain, this.params.preGain);
+    setParam(this.delayNode.delayTime, this.params.delay);
+    setParam(this.feedbackNode.gain, this.params.feedback);
   }
 
   connect(output) {
