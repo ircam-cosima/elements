@@ -30,7 +30,6 @@ class PlayerExperience extends soundworks.Experience {
     if (Object.keys(this.preset).indexOf('streams') !== -1)
       this.rawSocket = this.require('raw-socket');
 
-
     this.subscriptions = new Map();
     this.modules = new Map();
 
@@ -159,11 +158,14 @@ class PlayerExperience extends soundworks.Experience {
 
   volume(volume) {
     const gain = decibelToLinear(volume);
-    this.masterNode.gain.setValueAtTime(gain, audioContext.currentTime + 0.005);
+    const now = audioContext.currentTime;
+    this.masterNode.gain.setValueAtTime(gain, now + 0.005);
   }
 
   mute(flag) {
-    this.muteNode.gain.value = flag ? 0 : 1;
+    const target = flag ? 0 : 1;
+    const now = audioContext.currentTime;
+    this.muteNode.gain.linearRampToValueAtTime(target, now + 0.005);
   }
 
   // @todo - test module dependecies and throw more usefull error

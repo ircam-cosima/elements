@@ -87,10 +87,8 @@ class AudioRendererModule extends BaseModule {
     // @todo - as something is async here, something could go wrong
     switch (type) {
       case 'remove-player-from-project': {
-        if (this.instrument) {
-          this.disableSensors();
+        if (this.instrument)
           this.instrument.stop();
-        }
 
         this.gestureRecognitionModule.removeDecoderListener(this.processDecoderOutput);
         break;
@@ -110,26 +108,25 @@ class AudioRendererModule extends BaseModule {
           this.view.render();
         }
 
+        const model = project.model;
+        const labels = model.payload.models.map(mod => mod.label);
+        const synth = this.options.synth;
+        const effects = this.options.effects;
+        const mappings = this.options.mappings;
+        const audioOutput = this.experience.getAudioOutput();
+
+        this.instrument = new Instrument(synth, effects, mappings);
+        this.instrument.setLabels(labels);
+        this.instrument.updateMappings(audioParams.mappings);
+        this.instrument.connect(audioOutput);
+
+        this.experience.mute(audioParams.mute);
+        this.experience.volume(audioParams.volume);
+
         audioBufferManager
           .load({ [uuid]: audioFiles })
           .then(buffers => {
-            const model = project.model;
-            const labels = model.payload.models.map(mod => mod.label);
-            const audioOutput = this.experience.getAudioOutput();
-
-            const synth = this.options.synth;
-            const effects = this.options.effects;
-            const mappings = this.options.mappings;
-
-            this.instrument = new Instrument(synth, effects, mappings);
-
             this.instrument.setBuffers(buffers[uuid]);
-            this.instrument.setLabels(labels);
-            this.instrument.connect(audioOutput);
-            this.instrument.updateMappings(audioParams.mappings);
-
-            this.experience.mute(audioParams.mute);
-            this.experience.volume(audioParams.volume);
 
             if (this.view) {
               this.view.model.loading = false;

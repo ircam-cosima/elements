@@ -84,7 +84,7 @@ const clientPresets = {
     'gesture-recognition': {},
     'audio-renderer': {
       synth: {
-        type: 'likeliest-loop', // 'likeliest-loop' - 'probabilistic-granular'
+        type: 'probabilistic-granular', // 'likeliest-loop', 'likeliest-granular', 'probabilistic-granular'
         params: {},
       },
       effects: [
@@ -144,6 +144,7 @@ const clientPresets = {
 
             const energy = data[1];
             const avg = payload.movingAverage.process(energy);
+            const exp = Math.pow(avg, 4);
             const cutoff = payload.minCutoff * Math.exp(payload.ratio * avg);
 
             target.frequency = cutoff;

@@ -2,7 +2,7 @@ import * as mano from 'mano-js/common';
 import PlayerCollection from './PlayerCollection';
 import uuidv4 from 'uuid/v4';
 import merge from 'lodash.merge';
-import { labels as audioConfig } from '../../../shared/config/audio';
+// import { labels as audioConfig } from '../../../shared/config/audio';
 
 
 class Project {
@@ -41,6 +41,7 @@ class Project {
           intensity: true,
           bandpass: true,
           orientation: true,
+          gyroscope: false,
         }
       },
       recording: {

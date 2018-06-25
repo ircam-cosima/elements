@@ -1,7 +1,11 @@
 import LikeliestLoopSynth from './LikeliestLoopSynth';
+import LikeliestGranularSynth from './LikeliestGranularSynth';
+import ProbabilisticGranularSynth from './ProbabilisticGranularSynth';
 
 const ctors = {
   'likeliest-loop': LikeliestLoopSynth,
+  'likeliest-granular': LikeliestGranularSynth,
+  'probabilistic-granular': ProbabilisticGranularSynth,
 };
 
 function create(config) {

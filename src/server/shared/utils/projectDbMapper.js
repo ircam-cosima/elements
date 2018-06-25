@@ -37,7 +37,7 @@ const projectStore = {
                   const projectData = JSON.parse(data);
                   resolve(projectData);
                 } catch(err) {
-                  throw err;
+                  console.error(`Invalid project: ${filename} is not valid JSON`);
                 }
               });
             });

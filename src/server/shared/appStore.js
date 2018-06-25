@@ -60,7 +60,17 @@ const appStore = {
       merge(project.params, params);
       // update training instances
       const { trainingSet, config } = project.params.learning;
+
       project.trainingSet.setTrainingSet(trainingSet);
+      project.processor.setConfig(config);
+    } else {
+      const { config } = project.params.learning;
+
+       for (let name in mlPresets) {
+        if (mlPresets[name].default === true)
+          merge(config, mlPresets[name].params);
+      }
+
       project.processor.setConfig(config);
     }
 
@@ -283,7 +293,6 @@ const appStore = {
 
   updateAudioFiles(list) {
     list.sort();
-    this.defaultAudioFiles = list;
 
     // - create a filelist according to the format used client side:
     // aka: "label": [path1, path2]
@@ -301,6 +310,8 @@ const appStore = {
       audioFiles[basename] = [filename];
       labels.push(basename);
     }
+
+    this.defaultAudioFiles = audioFiles;
 
     this.projects.getAll().forEach(project => {
       const trainedLabels = project.trainingSet.getLabels();
@@ -339,7 +350,12 @@ const appStore = {
     // if one of the input is false, recreate a new trainingSet from raw data
     const inputs = project.params.learning.inputs;
 
-    if (!inputs.intensity || !inputs.bandpass || !inputs.orientation) {
+    if (
+      !inputs.intensity || 
+      !inputs.bandpass ||
+      !inputs.orientation  ||
+      !inputs.gyroscope
+    ) {
       const data = trainingSet.payload.data;
       let inputDimension = 0;
 
@@ -382,6 +398,13 @@ const appStore = {
 
           if (inputs.orientation) {
             for (let k = 5; k < 8; k++) {
+              datum[index] = srcDatum[k];
+              index += 1;
+            }
+          }
+
+          if (inputs.gyroscope) {
+            for (let k = 8; k < 11; k++) {
               datum[index] = srcDatum[k];
               index += 1;
             }

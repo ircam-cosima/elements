@@ -5,9 +5,14 @@
 - dynamically update soundfiles - ok
   + a trained label is removed from model if the soundfile is deleted
   + lost ability to have several soundfiles per label
-
 - trigger with countdown as only possibility - ok
-- update mapping behavior - 
+- add default for ml-presets gesture - ok
+
+- expose gyros (mano-js, review if default config for training and decoding) - ok test
+- default gyros to disabled - ok (define what to do with mano, weird behavior ?)
+- finish mapping behavior update (Synths) - ok
+
+=> récupérer les cables 30m - ok
 
 - refactor controller using vue.js
 - add second xmm instance on client (two models per project)

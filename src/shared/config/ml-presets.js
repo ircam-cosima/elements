@@ -18,6 +18,7 @@ export default {
   },
   shortGestures: {
     label: 'short gestures',
+    default: true,
     params: {
       target: {
         name: 'xmm',

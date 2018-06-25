@@ -64,6 +64,13 @@ const projectParamsTmpl = `
   <span>Orientation</span>
 </label>
 
+<label class="param checkbox">
+  <% var checked = project.params.learning.inputs.gyroscope ? ' checked' : ''; %>
+  <input type="checkbox" class="project-param" data-name="learning.inputs.gyroscope"<%= checked %> />
+  <div class="checkbox-ui"></div>
+  <span>Gyroscope</span>
+</label>
+
 <h2>Learning Params</h2>
 
 <label class="param select-container">
