@@ -12,7 +12,9 @@ import xmm from 'xmm-node';
 import rapidMixAdapters from 'rapid-mix-adapters';
 
 const appStore = {
-  init() {
+  init(presetsName) {
+    projectDbMapper.configure(presetsName);
+
     this.projects = new ProjectCollection();
     this.players = new PlayerCollection();
 

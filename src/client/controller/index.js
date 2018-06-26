@@ -1,19 +1,21 @@
 import * as soundworks from 'soundworks/client';
 import ControllerExperience from './ControllerExperience';
 import serviceViews from '../shared/serviceViews';
-import presets from '../../shared/config/client-presets';
 
 // import shared modules
 import * as modules from '../shared/modules/index';
 
 function bootstrap() {
   document.body.classList.remove('loading');
+
   // initialize the client with configuration received
   // from the server through the `index.html`
   // @see {~/src/server/index.js}
   // @see {~/html/default.ejs}
   const config = Object.assign({ appContainer: '#container' }, window.soundworksConfig);
   soundworks.client.init(config.clientType, config);
+
+  const presets = window.clientPresets;
 
   // configure views for the services
   soundworks.client.setServiceInstanciationHook((id, instance) => {

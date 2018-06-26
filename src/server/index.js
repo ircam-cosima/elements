@@ -2,6 +2,7 @@ import 'source-map-support/register'; // enable sourcemaps in node
 import { EventEmitter } from 'events';
 import path from 'path';
 import fileUpload from 'express-fileupload';
+import serveStatic from 'serve-static';
 import * as soundworks from 'soundworks/server';
 
 import appStore from './shared/appStore';
@@ -10,7 +11,6 @@ import PlayerExperience from './PlayerExperience';
 
 import DirectoryWatcher from './shared/services/DirectoryWatcher';
 import projectDbMapper from './shared/utils/projectDbMapper';
-import clientPresets from '../shared/config/client-presets';
 
 const server = soundworks.server;
 // process config file
@@ -26,6 +26,17 @@ try {
   process.exit(1);
 }
 
+// retrive client presets
+const presetsName = process.env.PRESETS || config.presets || 'default';
+let clientPresets = null;
+
+try {
+  clientPresets = require(`../applications/${presetsName}.js`).default;
+} catch(err) {
+  console.error(`Invalid presest "${presetsName}", file "./applications/${presetsName}/presets.js" not found`);
+  process.exit(1);
+}
+
 if (process.env && process.env.PORT) {
   config.port = process.env.PORT;
 }
@@ -35,7 +46,7 @@ process.env.NODE_ENV = config.env;
 if (process.env.PORT)
   config.port = process.env.PORT;
 
-appStore.init()
+appStore.init(presetsName)
   .then(() => {
     server.init(config);
 
@@ -45,6 +56,7 @@ appStore.init()
       return {
         clientType: clientType,
         env: config.env,
+        presetsName: presetsName,
         appName: config.appName,
         websockets: config.websockets,
         version: config.version,
@@ -54,9 +66,14 @@ appStore.init()
     });
 
     const comm = new EventEmitter();
+
+    const appDirectory = path.join('applications', presetsName);
     const directoryWatcher = server.require('directory-watcher', {
-      watchedDirectory: 'sounds/labels',
+      publicDirectory: appDirectory,
+      watchedDirectory: 'audio',
     });
+
+    server.router.use('/audio', serveStatic(path.join(appDirectory, 'audio')));
 
     // remove functions (mapping) that are client-side oriented (need audioContext)
     const presets = JSON.parse(JSON.stringify(clientPresets));

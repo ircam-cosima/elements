@@ -23,10 +23,8 @@
   <body class="loading">
     <div id="container" class="container"></div>
 
-    <script>
-      // configuration sent from soundworks server
-      window.soundworksConfig = JSON.parse('<%- JSON.stringify(data) %>');
-    </script>
+    <script>window.soundworksConfig = JSON.parse('<%- JSON.stringify(data) %>');</script>
+    <script src="<%= data.assetsDomain %>js/presets-<%= data.presetsName %>.js?<%= data.version %>"></script>
 
     <% if (data.clientType === 'controller') { %>
     <script src="<%= data.assetsDomain %>js/controller.js?<%= data.version %>"></script>

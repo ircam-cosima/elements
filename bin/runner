@@ -76,6 +76,73 @@ const cssPublicDirectory = path.join(cwd, 'public', 'css');
 // HTML Stuff
 const htmlTemplatesDirectory = path.join(cwd, 'html');
 
+// applications directory
+const applicationsDirectory = path.join(cwd, 'applications');
+
+const escapedPresetsMatchStr = '^' + escapeRegExp(cwd + path.sep + 'applications' + path.sep) + '([a-zA-Z\-_]+)' + escapeRegExp(path.sep + 'presets.js');
+const presetsMatch = new RegExp(escapedPresetsMatchStr);
+
+// const escapedConfigSearchStr = '^' + escapeRegExp(distDirectory + path.sep + 'applications' + path.sep) + '([a-zA-Z\-_]+)' + escapeRegExp(path.sep) + '.*';
+// const clientsSearch = new RegExp(escapedClientsSearchStr);
+
+
+const transpilePreset = file => {
+  const appName = file.abs.match(presetsMatch)[1];
+  const target = path.join(distDirectory, 'applications', `${appName}.js`);
+
+  return fileStore.get(target)
+    .then(dist => {
+      const startTime = new Date().getTime();
+
+      return transpiler.transpile(file, dist, babelOptions)
+        .then(([file, dist]) => {
+          const dt = new Date().getTime() - startTime;
+          return log.transpileSuccess(file, dist, dt);
+        })
+        .catch(err => log.transpileError(file, err));
+    });
+};
+
+const transpilePresets = () => {
+  return fileStore.getAll(applicationsDirectory)
+    .then(files => files.filter(file => file.abs.match(presetsMatch)))
+    .then(sources => {
+      return sources.reduce((promise, src) => {
+        return promise.then(all => {
+          return transpilePreset(src).then(pair => {
+            all.push(pair);
+            return all;
+          });
+        }).catch(err => {});
+      }, Promise.resolve([]));
+    })
+    .catch(err => console.log(err));
+};
+
+const bundlePreset = file => {
+  const appName = path.basename(file.abs, '.js');
+  const bundleTarget = path.join(clientPublicDirectory, `presets-${appName}.js`);
+
+  return fileStore.get(bundleTarget)
+    .then(dist => {
+      const startTime = new Date().getTime();
+
+      return transpiler.bundle(file, dist, browserifyOptions)
+        .then(([file, dist]) => {
+          const dt = new Date().getTime() - startTime;
+          return log.bundleSuccess(file, dist, dt);
+        })
+        .catch(err => log.bundleError(file, err));
+    });
+};
+
+const bundlePresets = () => {
+  return fileStore.getAll(path.join(distDirectory, 'applications'))
+    .then(files => Promise.all(files.map(bundlePreset)));
+};
+
+
+
 /* --------------------------------------------------------------------------
  * Reusable logic
  * -------------------------------------------------------------------------- */
@@ -263,6 +330,29 @@ function watchJsSources() {
   });
 }
 
+function watchApplicationsSources() {
+  const _watchOptions = Object.assign({}, watchOptions, {
+    ignoreDirectoryPattern: new RegExp('audio'),
+  });
+
+  const processApp = filename => {
+    if (!presetsMatch.test(filename))
+      return;
+
+    fileStore.get(filename)
+      .then(transpilePreset)
+      .then(bundlePresets)
+      .then(restartServer)
+      .catch(err => console.log(err));
+  }
+
+  watch.createMonitor(applicationsDirectory, _watchOptions, monitor => {
+    monitor.on('created', processApp);
+    monitor.on('changed', processApp);
+    monitor.on('removed', processApp);
+  });
+}
+
 function watchAdditionnalSources() {
   additionnalClientDirectories.forEach(dir => {
     watch.createMonitor(dir, Object.assign({}, watchOptions), monitor => {
@@ -306,32 +396,32 @@ function __watch() {
   watchCssSources();
   watchJsSources();
   watchAdditionnalSources();
+  watchApplicationsSources();
 
   return fileStore.get(serverIndex).then(server.start);
 }
 
 function __transpile() {
-  const transpileSass = processSass();
-
-  const transpileJS = fileStore.getAll(srcDirectory)
-    .then(sources => { // 1. transpile all js files (if json, just copy)
-      return sources.reduce((promise, src) => {
-        return promise.then(all => {
-          return transpileFile(src).then(pair => {
-            all.push(pair);
-            return all;
-          });
-        }).catch(err => {});
-      }, Promise.resolve([]));
+  return processSass()
+    .then(() => {
+      return fileStore.getAll(srcDirectory)
+        .then(sources => { // 1. transpile all js files (if json, just copy)
+          return sources.reduce((promise, src) => {
+            return promise.then(all => {
+              return transpileFile(src).then(pair => {
+                all.push(pair);
+                return all;
+              });
+            }).catch(err => {});
+          }, Promise.resolve([]));
+        }) // then transpile all presets
+        .then(bundleClients)
     })
-    .then(pairs => { // 2. bundle clients
-      const clients = pairs.filter(([src, dist]) => dist.abs.match(clientsMatch));
-      return Promise.all(clients.map(([src, dist]) => bundleClient(dist)));
+    .then(() => {
+      return transpilePresets()
+        .then(bundlePresets)
+        .catch(err => {})
     })
-    .catch(err => {});
-
-  return Promise
-    .all([transpileSass, transpileJS])
     .catch(err => {});
 }
 
@@ -391,6 +481,10 @@ switch (cmd) {
   case '--clear':
     __clear().catch(err => console.error('Unhandled Error', err));;
     break;
+  // case '--presets':
+  //   watchApplicationsSources();
+  //   transpilePresets().then(bundlePresets)
+  //     .catch(err => console.error('Unhandled Error', err));;
 }
 
 process.on('SIGINT', () => process.exit());

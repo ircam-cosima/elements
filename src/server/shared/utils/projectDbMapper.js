@@ -11,20 +11,27 @@ if (!fs.existsSync(dbPath))
  * Naive project persistance implementation.
  */
 const projectStore = {
+  configure(presetsName) {
+    this.dbPath = path.join(dbPath, presetsName);
+
+    if (!fs.existsSync(this.dbPath))
+      fs.mkdirSync(this.dbPath);
+  },
+
   getFilename(uuid) {
-    const filename = path.join(dbPath, `${uuid}.json`);
+    const filename = path.join(this.dbPath, `${uuid}.json`);
     return filename;
   },
 
   getList() {
     return new Promise((resolve, reject) => {
-      fs.readdir(dbPath, (err, files) => {
+      fs.readdir(this.dbPath, (err, files) => {
         if (err)
           throw err;
 
         const promises = [];
         files.forEach(basename => {
-          const filename = path.join(dbPath, basename);
+          const filename = path.join(this.dbPath, basename);
           const stats = fs.statSync(filename)
           // read one file
           if (!stats.isDirectory()) {
@@ -60,7 +67,7 @@ const projectStore = {
       if (!uuid)
         throw new Error(`projectDbMapper: Invalid project "${project.name}"`);
 
-      const filename = path.join(dbPath, `${uuid}.json`);
+      const filename = path.join(this.dbPath, `${uuid}.json`);
 
       try {
         const json = JSON.stringify(projectData, null, 2);
@@ -84,7 +91,7 @@ const projectStore = {
       if (!uuid)
         throw new Error(`projectDbMapper: Invalid project "${project.name}"`);
 
-      const filename = path.join(dbPath, `${uuid}.json`);
+      const filename = path.join(this.dbPath, `${uuid}.json`);
 
       fs.unlink(filename, err => {
         if (err)

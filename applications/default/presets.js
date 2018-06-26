@@ -1,4 +1,4 @@
-import MovingAverage from '../utils/MovingAverage';
+import MovingAverage from '../shared/utils/MovingAverage';
 
 /**
  * Available modules:
@@ -79,7 +79,7 @@ const clientPresets = {
       enableChange: true,
       enableCreation: true,
       projectList: 'select', // 'none' | 'select' | 'buttons'
-      forceProject: '58bd151e-b1a2-43dd-acb1-354271eb039c',
+      // forceProject: '1ccd4418-9f2f-49b4-86a2-6f072ac20b68',
     },
     'gesture-recognition': {},
     'audio-renderer': {
@@ -235,5 +235,10 @@ const clientPresets = {
     'audio-trigger': {},
   },
 };
+
+// never remove that
+const isNode = new Function('try {return this===global;}catch(e){return false;}');
+if (!isNode())
+  window.clientPresets = clientPresets;
 
 export default clientPresets;
