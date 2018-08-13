@@ -162,16 +162,20 @@ class AudioRendererModule extends BaseModule {
         if (refresh) {
           const audioBufferManager = this.experience.audioBufferManager;
 
-          this.view.model.loading = true;
-          this.view.render();
+          if (this.view) {
+            this.view.model.loading = true;
+            this.view.render();
+          }
 
           audioBufferManager
             .load({ [uuid]: audioFiles })
             .then(buffers => {
               this.instrument.setBuffers(buffers[uuid]);
 
-              this.view.model.loading = false;
-              this.view.render();
+              if (this.view) {
+                this.view.model.loading = false;
+                this.view.render();
+              }
             });
         }
         break;
@@ -190,8 +194,10 @@ class AudioRendererModule extends BaseModule {
 
         this.instrument.updateMappings(audioParams.mappings);
 
-        merge(this.view.model, audioParams);
-        this.view.render();
+        if (this.view) {
+          merge(this.view.model, audioParams);
+          this.view.render();
+        }
         break;
       }
     }
