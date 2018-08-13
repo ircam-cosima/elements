@@ -72,7 +72,7 @@ class ProbabilisticGranularSynth {
     this.engine.connect(destination);
   }
 
-  stop() {
+  disconnect() {
     if (this.engine.master)
       scheduler.remove(this.engine);
 

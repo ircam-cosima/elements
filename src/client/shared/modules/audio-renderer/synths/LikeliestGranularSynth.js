@@ -126,7 +126,7 @@ class LikeliestGranularSynth {
     this.synth.connect(destination);
   }
 
-  stop() {
+  disconnect() {
     this.synth.disconnect();
   }
 

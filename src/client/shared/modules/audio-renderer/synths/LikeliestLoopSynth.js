@@ -89,7 +89,7 @@ class LikeliestLoopSynth {
     this.synth.connect(destination);
   }
 
-  stop() {
+  disconnect() {
     this.synth.disconnect();
   }
 
