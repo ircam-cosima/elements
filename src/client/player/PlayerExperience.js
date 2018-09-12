@@ -9,10 +9,12 @@ import { sounds as uiSounds } from '../../shared/config/ui';
 const audioContext = soundworks.audioContext;
 
 class PlayerExperience extends soundworks.Experience {
-  constructor(config, preset) {
+  constructor(config, clientPreset, projectPresets) {
     super();
 
-    this.preset = preset;
+    console.log(projectPresets);
+    this.clientPreset = clientPreset;
+    this.projectPresets = projectPresets;
 
     this.platform = this.require('platform', { features: ['web-audio', 'mobile-device'] });
     this.checkin = this.require('checkin');
@@ -27,7 +29,7 @@ class PlayerExperience extends soundworks.Experience {
 
     this.streamSensors = false;
 
-    if (Object.keys(this.preset).indexOf('streams') !== -1)
+    if (Object.keys(this.clientPreset).indexOf('streams') !== -1)
       this.rawSocket = this.require('raw-socket');
 
     this.subscriptions = new Map();
@@ -58,14 +60,14 @@ class PlayerExperience extends soundworks.Experience {
     this.masterNode.gain.setValueAtTime(1, audioContext.currentTime);
 
     // instanciate modules from configuration
-    for (let moduleId in this.preset) {
+    for (let moduleId in this.clientPreset) {
       const ctor = moduleManager.get(moduleId);
-      const options = this.preset[moduleId];
+      const clientOptions = this.clientPreset[moduleId];
 
       if (!ctor)
         throw new Error(`Undefined module "${moduleId}"`);
 
-      const mod = new ctor(this, options);
+      const mod = new ctor(this, clientOptions);
       this.modules.set(mod.id, mod);
       this.view.addPlaceholder(mod.id);
     }

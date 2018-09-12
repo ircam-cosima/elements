@@ -26,27 +26,39 @@ try {
   process.exit(1);
 }
 
-// retrive client presets
-const presetsName = process.env.PRESETS || config.presets || 'default';
-let clientPresets = null;
-
-try {
-  clientPresets = require(`../applications/${presetsName}.js`).default;
-} catch(err) {
-  console.error(`Invalid presest "${presetsName}", file "./applications/${presetsName}/presets.js" not found`);
-  process.exit(1);
-}
-
 if (process.env && process.env.PORT) {
   config.port = process.env.PORT;
 }
+
 // configure express environment ('production' enables cache systems)
 process.env.NODE_ENV = config.env;
 
-if (process.env.PORT)
-  config.port = process.env.PORT;
 
-appStore.init(presetsName)
+// application presets
+const applicationName = process.env.APPLICATION || config.application || 'default';
+let clientPresets = null;
+let projectPresets = null;
+
+try {
+  clientPresets = require(`../applications/${applicationName}-client-presets.js`).default;
+} catch(err) {
+  console.error(`Invalid "${applicationName}" client presests, file "./applications/${applicationName}/client-presets.js" not found`);
+  process.exit(1);
+}
+
+try {
+  const presets = require(`../applications/${applicationName}-project-presets.js`).default;
+  projectPresets = {};
+  for (let id in presets) {
+    projectPresets[id] = {};
+    projectPresets[id].mappings = presets[id].mappings.map(m => m.id);
+  }
+} catch(err) {
+  console.error(`Invalid "${applicationName}" project presets, file "./applications/${applicationName}/client-presets.js" not found`);
+  process.exit(1);
+}
+
+appStore.init(applicationName, projectPresets)
   .then(() => {
     server.init(config);
 
@@ -56,7 +68,7 @@ appStore.init(presetsName)
       return {
         clientType: clientType,
         env: config.env,
-        presetsName: presetsName,
+        applicationName: applicationName,
         appName: config.appName,
         websockets: config.websockets,
         version: config.version,
@@ -67,7 +79,7 @@ appStore.init(presetsName)
 
     const comm = new EventEmitter();
 
-    const appDirectory = path.join('applications', presetsName);
+    const appDirectory = path.join('applications', applicationName);
     const directoryWatcher = server.require('directory-watcher', {
       publicDirectory: appDirectory,
       watchedDirectory: 'audio',
@@ -103,7 +115,7 @@ appStore.init(presetsName)
       }
 
       appStore
-        .createProject(json.params.name, json.params)
+        .createProject(json.params.name, json.params.preset, json.params)
         .then(() => res.send('project restored'))
         .catch(err => res.status(500).send(err))
     });

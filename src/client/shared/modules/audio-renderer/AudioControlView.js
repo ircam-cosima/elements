@@ -2,7 +2,7 @@ import { View } from 'soundworks/client';
 
 const template = `
 <label class="checkbox">
-  <% var checked = mute ? ' checked' : ''; %>
+  <% var checked = audioParams.mute ? ' checked' : ''; %>
   <input type="checkbox" class="player-param" data-name="audioRendering.mute"<%= checked %> />
   <div class="checkbox-ui"></div>
 
@@ -12,10 +12,10 @@ const template = `
 <% for (var name in mappings) { %>
 <label class="checkbox">
   <% var checked = mappings[name] ? ' checked' : ''; %>
-  <input type="checkbox" class="player-param" data-name="audioRendering.mappings.<%= name %>"<%= checked %> />
+  <input type="checkbox" class="player-param" data-name="mappings.<%= name %>"<%= checked %> />
   <div class="checkbox-ui"></div>
 
-  <span><%= name %></span>
+  <span><%= name.charAt(0).toUpperCase() + name.slice(1) %></span>
 </label>
 <% } %>
 
@@ -29,13 +29,12 @@ const template = `
 `;
 
 const model = {
-  mute: false,
+  audioParams: {
+    mute: false,
+  },
   mappings: {},
-
   loading: false,
-
   text: {
-    // sensors: 'Sensors',
     mute: 'Mute',
     loading: 'Loading...'
   },

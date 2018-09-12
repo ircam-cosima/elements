@@ -1,7 +1,7 @@
 import { View } from 'soundworks/client';
 import template from 'lodash.template';
 // templates
-import headerControlsTmpl from './templates/header-controls.tmpl';
+import headerTmpl from './templates/header.tmpl';
 import projectTmpl from './templates/project.tmpl';
 import projectParamsTmpl from './templates/project-params.tmpl';
 import playerTmpl from './templates/player.tmpl';
@@ -18,19 +18,7 @@ import { colors } from '../../shared/config/ui';
 
 
 const tmpl = `
-  <div id="header">
-    <div class="section" id="create-project">
-      <input type="text" placeholder="project name" class="project-name" value="" />
-      <button class="btn normal create-project">Create</button>
-    </div>
-
-    <form class="section" id="upload-project" enctype="multipart/form-data" method="post">
-      <input type="file" name="project" required />
-      <input type="submit" class="btn normal" value="upload" />
-    </form>
-
-    <div id="header-controls"></div>
-  </div>
+  <div id="header"></div>
   <div id="projects"></div>
 `;
 
@@ -45,6 +33,7 @@ function createDOM(tmplFunction, data) {
 
 const model = {
   projects: [],
+  projectPresets: [],
   mlPresets: mlPresets,
   colors: colors,
 };
@@ -59,7 +48,7 @@ class ControllerView extends View {
     this.playerParamsTmpl = template(playerParamsTmpl);
     this.playerSensorsTmpl = template(playerSensorsTmpl);
     this.playerLikelihoodsTmpl = template(playerLikelihoodsTmpl);
-    this.headerControlsTmpl = template(headerControlsTmpl);
+    this.headerTmpl = template(headerTmpl);
 
     this.sensorsDisplayCollection = new Map();
     this.likelihoodsDisplayCollection = new Map();
@@ -70,15 +59,18 @@ class ControllerView extends View {
       // ----------------------------------------------------------------
       'click #header .create-project': e => {
         e.preventDefault();
-        const $btn = e.target;
-        const $input = $btn.previousElementSibling;
-        const name = $input.value;
-        $input.classList.remove('error');
+
+        const $name = this.$header.querySelector('.project-name');
+        const $preset = this.$header.querySelector('.project-preset');
+        const name = $name.value;
+        const preset = $preset.value;
+
+        $name.classList.remove('error');
 
         if (name === '')
-          $input.classList.add('error');
+          $name.classList.add('error');
         else
-          this.request('create-project', { name });
+          this.request('create-project', { name, preset });
       },
 
       'submit #header #upload-project': e => {
@@ -338,21 +330,17 @@ class ControllerView extends View {
 
     this.$header = this.$el.querySelector('#header');
     this.$projects = this.$el.querySelector('#projects');
+
+    this.updateHeader();
   }
 
   onResize(width, height, orientation) {}
 
   updateHeader() {
-    const players = [];
+    let players = [];
 
-    this.model.projects.forEach(project => {
-      project.players.forEach(player => players.push(player));
-    });
-
-    const $headerControlsContainer = this.$header.querySelector('#header-controls');
-    const headerControls = this.headerControlsTmpl({ players: players });
-
-    $headerControlsContainer.innerHTML = headerControls;
+    this.model.projects.forEach(p => players = players.concat(p.players));
+    this.$header.innerHTML = this.headerTmpl({ players: players });
   }
 
   addProject(project) {

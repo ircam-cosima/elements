@@ -46,12 +46,15 @@ const playerParamsTmpl = `
     <span>Mute</span>
   </label>
 
-  <label class="checkbox">
-    <% var checked = player.params.audioRendering.sensors ? ' checked' : ''; %>
-    <input type="checkbox" class="player-param" data-name="audioRendering.sensors"<%= checked %> />
-    <div class="checkbox-ui"></div>
-    <span>Sensors</span>
-  </label>
+  <% for (let id in player.params.mappings) { %>
+    <label class="checkbox">
+      <% var checked = player.params.mappings[id] ? ' checked' : ''; %>
+      <input type="checkbox" class="player-param" data-name="mappings.<%= id %>"<%= checked %> />
+      <div class="checkbox-ui"></div>
+      <span><%= id.charAt(0).toUpperCase() + id.slice(1) %></span>
+    </label>
+  <% } %>
+
 
   <label class="slider">
     <input type="range" class="player-param" data-name="audioRendering.volume" min="-80" max="6" step="0.1" value="<%= player.params.audioRendering.volume %>" />

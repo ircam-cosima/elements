@@ -1,7 +1,9 @@
 const projectTmpl = `
 <div class="project" id="_<%= project.uuid %>" data-uuid="<%= project.uuid %>">
   <div class="header">
-    <h1 contenteditable class="project-param name" data-name="name"><%= project.params.name %></h1>
+    <h1 contenteditable class="project-param name" data-name="name">
+      <%= project.params.name %>
+    </h1>
 
     <button class="btn normal toggle-params">Advanced options</button>
     <button class="btn normal export-project">Export</button>

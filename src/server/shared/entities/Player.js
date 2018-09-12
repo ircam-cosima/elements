@@ -9,12 +9,11 @@ class Player {
     this.project = null;
     this.preset = preset;
 
-    const mappings = {};
-    preset['audio-renderer'].mappings.forEach(mapping => mappings[mapping.id] = false);
+    // const mappings = {};
+    // preset['audio-renderer'].mappings.forEach(mapping => mappings[mapping.id] = false);
 
     this.params = {
       audioRendering: {
-        mappings: mappings,
         volume: 0, // dB
         mute: true,
       },
@@ -27,6 +26,9 @@ class Player {
         sensors: false,
         decoding: false,
       },
+      // as mapping are related to the project, this is populated
+      // when the client is added to the project. (cf. appStore::addPlayerToProject)
+      mappings: {},
     };
   }
 

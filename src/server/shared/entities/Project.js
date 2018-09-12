@@ -24,11 +24,13 @@ class Project {
 
     this.params = {
       name: '',
+      preset: '',
       clientDefaults: {
         audioRendering: {
           mute: true,
           volume: 0,
         },
+        mappings: {}, // populated by
         record: {
           label: null,
         },
@@ -93,13 +95,23 @@ class Project {
    * @param {String} name - Name of the project
    * @return {Promise}
    */
-  static create(name) {
+  static create(name, preset, presetInfos) {
     const project = new Project();
 
     project.uuid = uuidv4();
     project.params.name = name;
+    project.params.preset = preset;
+
     project.params.learning.trainingSet = project.trainingSet.toJSON();
-    project.params.learning.config = project.processor.getConfig()
+    project.params.learning.config = project.processor.getConfig();
+
+    // create clientDefaults according to presetInfos
+    project.params.clientDefaults.mappings = {};
+    presetInfos.mappings.forEach(mappingName => {
+      // default to disabled
+      project.params.clientDefaults.mappings[mappingName] = false;
+    });
+
 
     return project;
   }

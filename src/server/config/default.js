@@ -16,7 +16,7 @@ export default {
   env: 'development',
 
   // define which presets to load from application folder
-  presets: 'default',
+  application: 'default',
 
   // version of application, can be used to force reload css and js files
   // from server (cf. `html/default.ejs`)

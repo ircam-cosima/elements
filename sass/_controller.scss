@@ -7,7 +7,7 @@
     font-size: 0.9rem;
 
     &.tiny {
-      font-size: 0.7rem;
+      font-size: 0.8rem;
     }
   }
 
@@ -80,6 +80,13 @@ select {
 
   .params {
     margin-top: 12px;
+
+    p.info {
+      span {
+        display: inline-block;
+        width: 80px;
+      }
+    }
 
     &.hidden {
       display: none;

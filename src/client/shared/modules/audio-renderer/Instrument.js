@@ -26,6 +26,18 @@ class Instrument {
   stop() {
     this.synth.disconnect();
     this.effects.forEach(effect => effect.disconnect());
+
+    this.enabledSensorsMappings.forEach(({ mapping, targets }) => {
+      targets.forEach(target => target.reset());
+    });
+
+    this.enabledSensorsMappings.length = 0;
+
+    this.enabledDecoderMappings.forEach(({ mapping, targets }) => {
+      targets.forEach(target => target.reset());
+    });
+
+    this.enabledDecoderMappings.length = 0;
   }
 
   setBuffers(buffers) {
@@ -45,26 +57,26 @@ class Instrument {
   }
 
   updateMappings(config) {
-    this.enabledSensorsMappings.forEach(({ mapping, targets }) => {
-      targets.forEach(target => target.reset());
-    });
-
-    this.enabledDecoderMappings.forEach(({ mapping, targets }) => {
-      targets.forEach(target => target.reset());
-    });
-
-    this.enabledSensorsMappings = [];
-    this.enabledDecoderMappings = [];
-
     for (let id in config) {
       const enabled = config[id];
+      const mapping = this.mappings.find(mapping => mapping.id === id);
 
-      if (enabled) {
-        const mapping = this.mappings.find(mapping => mapping.id === id);
+      if (!mapping) {
+        console.error('Undefined mapping id', id);
+        return;
+      }
 
-        if (!mapping)
-          console.error('Undefined mapping id', id);
+      // get the stack we are addressing
+      let enabledMappingStack = [];
 
+      if (mapping.input === 'sensors')
+        enabledMappingStack = this.enabledSensorsMappings;
+      else if (mapping.input === 'decoding')
+        enabledMappingStack = this.enabledDecoderMappings;
+
+      const index = enabledMappingStack.findIndex(entry => entry.mapping === mapping);
+
+      if (enabled && index === -1) { // add to stack
         let targets = [];
 
         mapping.targets.forEach(targetId => {
@@ -79,10 +91,13 @@ class Instrument {
             targets.push(target);
         });
 
-        if (mapping.input === 'sensors')
-          this.enabledSensorsMappings.push({ mapping, targets });
-        else if (mapping.input === 'decoding')
-          this.enabledDecoderMappings.push({ mapping, targets });
+        enabledMappingStack.push({ mapping, targets });
+
+      } else if (!enabled && index !== -1) { // remove from stack
+        const { targets } = enabledMappingStack[index];
+        enabledMappingStack.splice(index, 1);
+
+        targets.forEach(target => target.reset());
       }
     }
   }

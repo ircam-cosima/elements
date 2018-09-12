@@ -24,7 +24,8 @@
     <div id="container" class="container"></div>
 
     <script>window.soundworksConfig = JSON.parse('<%- JSON.stringify(data) %>');</script>
-    <script src="<%= data.assetsDomain %>js/presets-<%= data.presetsName %>.js?<%= data.version %>"></script>
+    <script src="<%= data.assetsDomain %>js/<%= data.applicationName %>-client-presets.js?<%= data.version %>"></script>
+    <script src="<%= data.assetsDomain %>js/<%= data.applicationName %>-project-presets.js?<%= data.version %>"></script>
 
     <% if (data.clientType === 'controller') { %>
     <script src="<%= data.assetsDomain %>js/controller.js?<%= data.version %>"></script>

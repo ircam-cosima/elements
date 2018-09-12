@@ -1,6 +1,6 @@
 
 class ProjectCollection {
-  constructor() {
+  constructor(projectPresets) {
     this.projects = new Set();
     this.uuidProjectMap = new Map();
   }

@@ -15,7 +15,10 @@ function bootstrap() {
   const config = Object.assign({ appContainer: '#container' }, window.soundworksConfig);
   client.init(config.clientType, config);
 
-  const presets = window.clientPresets;
+  const clientPresets = window.clientPresets;
+  const clientPreset = clientPresets[config.clientType];
+
+  const projectPresets = window.projectPresets;
 
   // configure views for the services
   client.setServiceInstanciationHook((id, instance) => {
@@ -23,8 +26,7 @@ function bootstrap() {
       instance.view = serviceViews.get(id, config);
   });
 
-  const preset = presets[config.clientType];
-  const experience = new PlayerExperience(config, preset);
+  const experience = new PlayerExperience(config, clientPreset, projectPresets);
 
   client.start();
 }

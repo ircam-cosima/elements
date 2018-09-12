@@ -10,6 +10,7 @@ export function setParam(param, value) {
     param.value = value;
   } else {
     const now = audioContext.currentTime;
+    param.cancelScheduledValues(now);
     param.setValueAtTime(value, now);
   }
 }

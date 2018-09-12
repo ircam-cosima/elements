@@ -4,7 +4,7 @@ import AudioRendererHook from './AudioRendererHook';
 
 
 class ControllerExperience extends Experience {
-  constructor(config, presets) {
+  constructor(config, clientPresets, projectPresets) {
     super();
 
     this.audioBufferManager = this.require('audio-buffer-manager');
@@ -13,14 +13,16 @@ class ControllerExperience extends Experience {
     }
 
     this.config = config;
+    this.clientPresets = clientPresets;
+    this.projectPresets = projectPresets;
 
     this.dispatch = this.dispatch.bind(this);
     // define if we need the `rawSocket` service
     this.streams = false;
     this.sensorsBuffer = null;
 
-    for (let name in presets) {
-      const preset = presets[name];
+    for (let name in clientPresets) {
+      const preset = clientPresets[name];
       const modules = Object.keys(preset);
 
       if (modules.indexOf('streams') !== -1) {
@@ -39,7 +41,7 @@ class ControllerExperience extends Experience {
     this.receive('dispatch', this.dispatch);
 
     const action = {
-      type: 'init-list-project',
+      type: 'init',
       payload: null,
     };
 
@@ -47,6 +49,7 @@ class ControllerExperience extends Experience {
 
     // initialize the view / allow for canvas rendering
     this.view = new ControllerView();
+    this.view.model.projectPresets = projectPresets
     // request server action
     this.view.request = (type, payload) => {
       const action = { type, payload };
@@ -112,8 +115,9 @@ class ControllerExperience extends Experience {
     const { type, payload } = action;
 
     switch (type) {
-      case 'init-list-project': {
+      case 'init': {
           const { projectsDetails, projectsOverview } = payload;
+
           projectsDetails.forEach(project => {
             this.view.model.projectsOverview = projectsOverview;
             this.view.addProject(project);

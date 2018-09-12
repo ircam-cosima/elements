@@ -14,9 +14,6 @@ class AudioRendererModule extends BaseModule {
 
     this.options = merge({
       showView: true,
-      synth: 'likeliest-loop',
-      effects: [],
-      mappings: [],
     }, options);
 
     this.subscriptions = [
@@ -99,25 +96,28 @@ class AudioRendererModule extends BaseModule {
         const uuid = payload.project.uuid;
         const audioFiles = project.params.audioFiles;
         const audioParams = player.params.audioRendering;
+        const mappingParams = player.params.mappings;
 
         this.audioFiles = audioFiles;
 
         if (this.view) {
           merge(this.view.model, audioParams);
           this.view.model.loading = true;
+          this.view.model.mappings = player.params.mappings;
           this.view.render();
         }
 
         const model = project.model;
         const labels = model.payload.models.map(mod => mod.label);
-        const synth = this.options.synth;
-        const effects = this.options.effects;
-        const mappings = this.options.mappings;
+        const projectPreset = this.experience.projectPresets[project.params.preset];
+        const synth = projectPreset.synth;
+        const effects = projectPreset.effects;
+        const mappings = projectPreset.mappings;
         const audioOutput = this.experience.getAudioOutput();
 
         this.instrument = new Instrument(synth, effects, mappings);
         this.instrument.setLabels(labels);
-        this.instrument.updateMappings(audioParams.mappings);
+        this.instrument.updateMappings(mappingParams);
         this.instrument.connect(audioOutput);
 
         this.experience.mute(audioParams.mute);
@@ -188,14 +188,16 @@ class AudioRendererModule extends BaseModule {
       }
       case 'update-player-param': {
         const audioParams = payload.params.audioRendering;
+        const mappings = payload.params.mappings;
 
         this.experience.mute(audioParams.mute);
         this.experience.volume(audioParams.volume);
 
-        this.instrument.updateMappings(audioParams.mappings);
+        this.instrument.updateMappings(mappings);
 
         if (this.view) {
-          merge(this.view.model, audioParams);
+          merge(this.view.model.audioParams, audioParams);
+          merge(this.view.model.mappings, mappings);
           this.view.render();
         }
         break;

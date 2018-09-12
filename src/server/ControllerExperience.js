@@ -1,7 +1,6 @@
 import { Experience } from 'soundworks/server';
 import appStore from './shared/appStore';
 
-
 class ControllerExperience extends Experience {
   constructor(clientType, config, presets, comm) {
     super(clientType);
@@ -178,7 +177,7 @@ class ControllerExperience extends Experience {
       const { type, payload } = action;
 
       switch (type) {
-        case 'init-list-project': {
+        case 'init': {
           const projectsDetails = appStore.projects.serialize();
           const projectsOverview = appStore.projects.overview();
           action.payload = { projectsDetails, projectsOverview };
@@ -187,10 +186,12 @@ class ControllerExperience extends Experience {
         }
         case 'create-project': {
           const name = payload.name;
+          const preset = payload.preset;
+          // cannot create several projects with same name
           const project = appStore.projects.getByName(name);
 
           if (project === null)
-            appStore.createProject(name);
+            appStore.createProject(name, preset);
 
           break;
         }

@@ -1,5 +1,6 @@
 const projectParamsTmpl = `
-<p class="tiny"><%= project.uuid %></p>
+<p class="tiny info"><span>preset:</span> <%= project.params.preset %></p>
+<p class="tiny info"><span>uuid:</span> <%= project.uuid %></p>
 
 <h2>Labels</h2>
 
@@ -29,17 +30,21 @@ const projectParamsTmpl = `
   <span>Mute</span>
 </label>
 
-<label class="param checkbox">
-  <% var checked = project.params.clientDefaults.audioRendering.sensors ? ' checked' : ''; %>
-  <input type="checkbox" class="project-param" data-name="clientDefaults.audioRendering.sensors"<%= checked %> />
-  <div class="checkbox-ui"></div>
-  <span>Sensors</span>
-</label>
-
 <label class="slider">
   <input type="range" class="project-param" data-name="clientDefaults.audioRendering.volume" min="-80" max="6" step="0.1" value="<%= project.params.clientDefaults.audioRendering.volume %>" />
   <span>Volume</span>
 </label>
+
+<h2>Mappings</h2>
+
+<% projectPresets[project.params.preset].mappings.forEach(function(mapping) { %>
+  <label class="param checkbox">
+    <% var checked = project.params.clientDefaults.mappings[mapping.id] ? ' checked' : ''; %>
+    <input type="checkbox" class="project-param" data-name="clientDefaults.mappings.<%= mapping.id %>"<%= checked %> />
+    <div class="checkbox-ui"></div>
+    <span><%= mapping.id.charAt(0).toUpperCase() + mapping.id.slice(1) %></span>
+  </label>
+<% }); %>
 
 <h2>Inputs</h2>
 

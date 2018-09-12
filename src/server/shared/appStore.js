@@ -12,9 +12,10 @@ import xmm from 'xmm-node';
 import rapidMixAdapters from 'rapid-mix-adapters';
 
 const appStore = {
-  init(presetsName) {
-    projectDbMapper.configure(presetsName);
+  init(applicationName, projectPresets) {
+    projectDbMapper.configure(applicationName);
 
+    this.projectPresets = projectPresets;
     this.projects = new ProjectCollection();
     this.players = new PlayerCollection();
 
@@ -54,8 +55,9 @@ const appStore = {
   /**
    *
    */
-  createProject(name, params = null) {
-    const project = Project.create(name);
+  createProject(name, preset, params = null) {
+    const presetInfos = this.projectPresets[preset];
+    const project = Project.create(name, preset, presetInfos);
     project.params.audioFiles = this.defaultAudioFiles;
 
     if (params !== null) {
@@ -135,6 +137,7 @@ const appStore = {
   removePlayerFromProject(player, project) {
     if (project !== null) {
       project.removePlayer(player);
+      player.params.mappings = {}; // clean mappings for next project
       this.emit('remove-player-from-project', player, project);
     }
   },

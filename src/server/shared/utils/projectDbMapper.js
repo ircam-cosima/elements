@@ -11,8 +11,8 @@ if (!fs.existsSync(dbPath))
  * Naive project persistance implementation.
  */
 const projectStore = {
-  configure(presetsName) {
-    this.dbPath = path.join(dbPath, presetsName);
+  configure(applicationName) {
+    this.dbPath = path.join(dbPath, applicationName);
 
     if (!fs.existsSync(this.dbPath))
       fs.mkdirSync(this.dbPath);
