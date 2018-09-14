@@ -1,4 +1,4 @@
-import { Experience } from 'soundworks/client';
+import { Experience, audioContext } from 'soundworks/client';
 import ControllerView from './ControllerView';
 import AudioRendererHook from './AudioRendererHook';
 
@@ -7,6 +7,7 @@ class ControllerExperience extends Experience {
   constructor(config, clientPresets, projectPresets) {
     super();
 
+    this.platform = this.require('platform', { features: ['web-audio'] });
     this.audioBufferManager = this.require('audio-buffer-manager');
     if (config.env === 'production') {
       this.auth = this.require('auth');
@@ -32,10 +33,14 @@ class ControllerExperience extends Experience {
     }
   }
 
+  getAudioOutput() {
+    return audioContext.destination;
+  }
+
   start() {
     super.start();
 
-    this.audioRendererHook = new AudioRendererHook(this.audioBufferManager, this.config);
+    this.audioRendererHook = new AudioRendererHook(this, this.config);
 
     // initialize the whole thing
     this.receive('dispatch', this.dispatch);
@@ -179,13 +184,25 @@ class ControllerExperience extends Experience {
     }
 
     // handle audio duplication
+    // --------------------------------------------------------
+    // @clean - define who has the responsibility of checking the
+    // data forwarding this is not clear here, and mix between
+    // ControllerExperience and AudioRendererHook
     switch (type) {
       case 'update-player-param': {
-        this.audioRendererHook.updatePlayerParams(payload.params.audioRendering);
+        const player = payload;
+
+        if (this.audioRendererHook.player && player.uuid === this.audioRendererHook.player.uuid) {
+          this.audioRendererHook.updatePlayerParams(player);
+        }
         break;
       }
       case 'update-project-param': {
-        this.audioRendererHook.updateProject(payload);
+        const project = payload;
+
+        if (this.audioRendererHook.project && project.uuid === this.audioRendererHook.project.uuid) {
+          this.audioRendererHook.updateProject(project);
+        }
         break;
       }
       case 'remove-player-from-project': {

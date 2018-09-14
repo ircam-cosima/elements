@@ -1,18 +1,16 @@
-import { audioContext } from 'soundworks/client';
-// import mappingManager from '../shared/modules/audio-renderer/mappings/mappingManager';
+import Instrument from '../shared/modules/audio-renderer/Instrument';
+
 /**
  * mimic AudioRendererModule behavior
  */
 class AudioRendererHook {
-  constructor(audioBufferManager, config) {
-    this.audioBufferManager = audioBufferManager;
+  constructor(experience, config) {
+    this.experience = experience;
     this.config = config;
 
     this.player = null;
     this.project = null;
-    this.sensorsEnabled = false;
-
-    this.output = audioContext.destination;
+    this.audioFiles = {};
   }
 
   init(player, project) {
@@ -22,77 +20,89 @@ class AudioRendererHook {
     this.player = player;
     this.project = project;
 
-    const audioConfig = this.config.presets[player.type]['audio-renderer']['mapping'];
-    const uuid = project.params.uuid;
+    const audioBufferManager = this.experience.audioBufferManager;
+    const uuid = project.uuid;
     const audioFiles = project.params.audioFiles;
+    const audioParams = player.params.audioRendering;
+    const mappingParams = player.params.mappings;
 
-    this.audioBufferManager
+    this.audioFiles = audioFiles;
+
+    const model = project.model;
+    const labels = model.payload.models.map(mod => mod.label);
+    const projectPreset = this.experience.projectPresets[project.params.preset];
+    const synth = projectPreset.synth;
+    const effects = projectPreset.effects;
+    const mappings = projectPreset.mappings;
+    const audioOutput = this.experience.getAudioOutput();
+
+    const instrument = new Instrument(synth, effects, mappings);
+    instrument.setLabels(labels);
+    instrument.updateMappings(mappingParams);
+    instrument.connect(audioOutput);
+
+    audioBufferManager
       .load({ [uuid]: audioFiles })
       .then(buffers => {
-        const model = project.model;
-        const labels = model.payload.models.map(mod => mod.label);
-        const audioOutput = this.output;
-        const audioParams = player.params.audioRendering;
-
-        const mappingType = audioConfig.type;
-        const synthConfig = audioConfig.synth;
-        const audioProcessesConfig = audioConfig.audioProcesses;
-        const mappingCtor = mappingManager.get(mappingType);
-
-        this.mapping = new mappingCtor(synthConfig, audioProcessesConfig);
-        this.mapping.setBuffers(buffers[uuid]);
-        this.mapping.setLabels(labels);
-        this.mapping.setAudioDestination(audioContext.destination);
-
-        if (audioParams.sensors)
-          this.enableSensors();
-        else
-          this.disableSensors();
+        instrument.setBuffers(buffers[uuid]);
+        // now the instrument is completely ready and can process streams
+        this.instrument = instrument;
       });
   }
 
   stop() {
-    this.mapping.stop();
+    this.instrument.stop();
+
     this.player = null;
     this.project = null;
+    this.instrument = null;
   }
 
-  updatePlayerParams(params) {
-    if (params.sensors)
-      this.enableSensors();
-    else
-      this.disableSensors();
-  }
-
-  updateProject(project) {
-    if (this.project && this.project.uuid === project.uuid) {
-      const labels = project.model.payload.models.map(mod => mod.label);
-      this.mapping.setLabels(labels);
+  updatePlayerParams(player) {
+    if (this.instrument) {
+      this.instrument.updateMappings(player.params.mappings);
     }
   }
 
-  enableSensors() {
-    if (this.mapping)
-      this.mapping.enableSensors();
+  updateProject(project) {
+    const uuid = project.uuid;
+    const audioFiles = project.params.audioFiles;
+    // check if we need to refresh audioFiles
+    let refresh = false;
+    const currentFiles = this.audioFiles;
 
-    this.sensorsEnabled = true;
-  }
+    for (let label in audioFiles) {
+      if (!(label in currentFiles))
+        refresh = true;
 
-  disableSensors() {
-    this.sensorsEnabled = false;
+      if (currentFiles[label] && currentFiles[label][0] !== audioFiles[label][0])
+        refresh = true;
 
-    if (this.mapping)
-      this.mapping.disableSensors();
+      if (refresh)
+        break;
+    }
+
+    this.audioFiles = audioFiles;
+
+    if (refresh) {
+      const audioBufferManager = this.experience.audioBufferManager;
+
+      audioBufferManager
+        .load({ [uuid]: audioFiles })
+        .then(buffers => this.instrument.setBuffers(buffers[uuid]));
+    }
   }
 
   processSensorsData(clientIndex, data) {
-    if (this.mapping && this.player && clientIndex === this.player.index && this.sensorsEnabled)
-      this.mapping.processSensorsData(data);
+    if (this.instrument && this.player && clientIndex === this.player.index) {
+      this.instrument.processSensorsData(data);
+    }
   }
 
   processDecoderOutput(clientIndex, data) {
-    if (this.mapping && this.player && clientIndex === this.player.index)
-      this.mapping.processDecoderOutput(data);
+    if (this.instrument && this.player && clientIndex === this.player.index) {
+      this.instrument.processDecoderOutput(data);
+    }
   }
 }
 

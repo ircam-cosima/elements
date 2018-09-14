@@ -226,8 +226,9 @@ select {
         background-color: transparent;
       }
 
-      .basic-controllers span {
+      .basic-controllers span, .basic-controllers label {
         font-size: 0.8rem;
+        color: #232323;
         font-style: normal;
       }
     }
