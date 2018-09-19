@@ -207,3 +207,12 @@
     }
   }
 }
+
+////// TODO: fix project creation
+#project-manager {
+  input[type=text].project-name,
+  .btn.create-project {
+    display: none  !important;
+  }
+}
+///// FIXME
