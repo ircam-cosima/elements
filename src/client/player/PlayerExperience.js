@@ -12,7 +12,6 @@ class PlayerExperience extends soundworks.Experience {
   constructor(config, clientPreset, projectPresets) {
     super();
 
-    console.log(projectPresets);
     this.clientPreset = clientPreset;
     this.projectPresets = projectPresets;
 

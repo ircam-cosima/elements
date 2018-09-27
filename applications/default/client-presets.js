@@ -97,6 +97,33 @@ const clientPresets = {
     },
     'audio-trigger': {},
   },
+  player: {
+    // 'project-params-control': {},
+    'project-manager': {
+      enableChange: true,
+      enableCreation: false,
+      projectList: 'buttons', // 'none' | 'select' | 'buttons'
+      // forceProject: '1ccd4418-9f2f-49b4-86a2-6f072ac20b68',
+    },
+    'gesture-recognition': {},
+    'audio-renderer': {
+      showView: false,
+    },
+    // 'recording-control': {
+    //   showView: false,
+    // },
+    'canvas-renderer': {
+      background: true,
+      likelihoods: false,
+    },
+    'streams': {
+      osc: {
+        sendAddress: '127.0.0.1',
+        sendPort: 57120,
+      },
+    },
+    'audio-trigger': {},
+  },
 };
 
 // @important - don't remove that

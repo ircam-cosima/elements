@@ -36,6 +36,7 @@ class ProjectManager extends BaseModule {
       enableCreation: this.options.enableCreation,
       forceProject: !!this.options.forceProject,
       projectList: this.options.projectList,
+      projectPresets: this.experience.projectPresets,
     });
 
     this.view.request = (type, payload) => {

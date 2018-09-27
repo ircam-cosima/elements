@@ -19,6 +19,11 @@ const template = `
     <% if (enableCreation) { %>
       <p>Create or select project</p>
       <input type="text" class="project-name" placeholder="project name" />
+      <select class="project-preset">
+        <% for (var name in projectPresets) { %>
+        <option value="<%= name %>"><%= name %></option>
+        <% } %>
+      </select>
       <button class="btn create-project">Send</button>
     <% } %>
 
@@ -56,6 +61,7 @@ const template = `
 
 const model = {
   projectOverviewList: [],
+  projectPresets: [],
   error: false,
   project: null,
   state: 'expanded', // 'expanded' || 'reduced'
@@ -84,10 +90,14 @@ class ProjectChooserView extends View {
     this.installEvents({
       'click .create-project': e => {
         const $input = this.$el.querySelector('.project-name');
+        const $select = this.$el.querySelector('.project-preset');
         const name = $input.value;
+        const preset = $select.value;
+
+        console.log(name, preset);
 
         if (name !== '')
-          this.request('create-project', { name });
+          this.request('create-project', { name, preset });
       },
       // 'click button': change state and render, view only action
       'click .expand': e => {

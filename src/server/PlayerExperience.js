@@ -233,7 +233,7 @@ class PlayerExperience extends Experience {
           break;
         }
         case 'create-project': {
-          const { name } = payload;
+          const { name, preset } = payload;
           // test is project already exists
           let project = appStore.projects.getByName(name);
 
@@ -241,7 +241,7 @@ class PlayerExperience extends Experience {
             appStore.removePlayerFromProject(player, player.project);
             appStore.addPlayerToProject(player, project);
           } else {
-            appStore.createProject(name)
+            appStore.createProject(name, preset)
               .then(project => {
                 appStore.removePlayerFromProject(player, player.project);
                 appStore.addPlayerToProject(player, project);
