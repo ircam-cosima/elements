@@ -101,9 +101,10 @@ class AudioRendererModule extends BaseModule {
         this.audioFiles = audioFiles;
 
         if (this.view) {
-          merge(this.view.model, audioParams);
+          merge(this.view.model.audioParams, audioParams);
+          merge(this.view.model.mappings, mappingParams);
+
           this.view.model.loading = true;
-          this.view.model.mappings = player.params.mappings;
           this.view.render();
         }
 
@@ -188,16 +189,16 @@ class AudioRendererModule extends BaseModule {
       }
       case 'update-player-param': {
         const audioParams = payload.params.audioRendering;
-        const mappings = payload.params.mappings;
+        const mappingParams = payload.params.mappings;
 
         this.experience.mute(audioParams.mute);
         this.experience.volume(audioParams.volume);
 
-        this.instrument.updateMappings(mappings);
+        this.instrument.updateMappings(mappingParams);
 
         if (this.view) {
           merge(this.view.model.audioParams, audioParams);
-          merge(this.view.model.mappings, mappings);
+          merge(this.view.model.mappings, mappingParams);
           this.view.render();
         }
         break;

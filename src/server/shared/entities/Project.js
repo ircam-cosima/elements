@@ -30,7 +30,7 @@ class Project {
           mute: true,
           volume: 0,
         },
-        mappings: {}, // populated by
+        mappings: {},
         record: {
           label: null,
         },
