@@ -8,6 +8,8 @@
 
 ### todos
 
+- Project creation from designer is broken (server crash)
+
 - refactor controller using vue.js
 - add second xmm instance on client (two models per project)
 - mappings and synth configuration
