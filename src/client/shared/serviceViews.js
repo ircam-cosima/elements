@@ -613,8 +613,6 @@ const serviceViews = {
           <div class="section-top flex-middle"></div>
           <div class="section-center flex-center">
               <p class="big">
-                <%= intro %>
-                <br />
                 <b><%= globals.appName %></b>
               </p>
           </div>
@@ -625,6 +623,7 @@ const serviceViews = {
             <p class="small soft-blink"><%= instructions %></p>
             <% } %>
           </div>
+          <p id="credits">STMS Ircam - CNRS - Sorbonne University</p>
         <% } %>
       `;
 

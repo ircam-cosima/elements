@@ -9,6 +9,7 @@ const template = `
   <span><%= text.mute %></span>
 </label>
 
+<h4>Effects:</h4>
 <% for (var name in mappings) { %>
 <label class="checkbox">
   <% var checked = mappings[name] ? ' checked' : ''; %>
