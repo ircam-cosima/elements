@@ -33,6 +33,7 @@ function createDOM(tmplFunction, data) {
 
 const model = {
   projects: [],
+  projectsOverview: [],
   projectPresets: [],
   mlPresets: mlPresets,
   colors: colors,
@@ -80,14 +81,20 @@ class ControllerView extends View {
 
         const request = new XMLHttpRequest();
         request.open('POST', './upload', true);
-        request.onload = e => {
-          console.log(e);
-        }
+        request.onload = e => console.log(e);
 
         request.send(data);
       },
 
-      'change #header-controls #duplicate-audio': e => {
+      'click #header .move-players-to-project': e => {
+        e.preventDefault();
+        const $select = this.$el.querySelector('.move-players-to-project-target');
+        const uuid = $select.value;
+
+        this.request('move-all-players-to-project', { uuid })
+      },
+
+      'change #header #duplicate-audio': e => {
         e.preventDefault();
         const $select = e.target;
         const uuid = $select.value;
@@ -331,7 +338,7 @@ class ControllerView extends View {
     this.$header = this.$el.querySelector('#header');
     this.$projects = this.$el.querySelector('#projects');
 
-    this.updateHeader();
+    // this.updateHeader();
   }
 
   onResize(width, height, orientation) {}
@@ -340,7 +347,11 @@ class ControllerView extends View {
     let players = [];
 
     this.model.projects.forEach(p => players = players.concat(p.players));
-    this.$header.innerHTML = this.headerTmpl({ players: players });
+    this.$header.innerHTML = this.headerTmpl({
+      players: players,
+      projectPresets: this.model.projectPresets,
+      projectsOverview: this.model.projectsOverview,
+    });
   }
 
   addProject(project) {
@@ -399,7 +410,6 @@ class ControllerView extends View {
     $container.appendChild($player);
 
     this.updatePlayer(player);
-    this.updateHeader();
   }
 
   removePlayerFromProject(player, project) {
@@ -413,7 +423,6 @@ class ControllerView extends View {
       this._deleteSensorsStream(player.uuid, player.index);
 
     $player.remove();
-    this.updateHeader();
   }
 
   updatePlayer(player) {

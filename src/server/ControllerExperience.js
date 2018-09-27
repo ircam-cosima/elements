@@ -208,6 +208,11 @@ class ControllerExperience extends Experience {
           appStore.addPlayerToProject(player, project);
           break;
         }
+        case 'move-all-players-to-project': {
+          const project = appStore.projects.get(payload.uuid);
+          appStore.moveAllPlayersToProject(project);
+          break;
+        }
         case 'update-player-param': {
           const { uuid, name, value } = payload;
           const player = appStore.players.get(uuid);
@@ -241,7 +246,6 @@ class ControllerExperience extends Experience {
         case 'trigger-audio': {
           this.comm.emit('trigger-audio', action);
         }
-
       }
     }
   }

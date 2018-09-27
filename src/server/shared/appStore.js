@@ -142,6 +142,11 @@ const appStore = {
     }
   },
 
+  moveAllPlayersToProject(project) {
+    this.players.forEach(player => this.removePlayerFromProject(player, player.project));
+    this.players.forEach(player => this.addPlayerToProject(player, project));
+  },
+
   // ...
   updatePlayerParam(player, name, value) {
     const path = name.split('.');

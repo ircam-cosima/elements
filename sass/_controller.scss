@@ -12,14 +12,21 @@
   }
 
   #header {
-    .section {
+    border: 1px solid #dedede;
+    border-radius: 2px;
+    padding: 0 12px 12px 12px;
+
+    h4 {
       margin: 12px 0;
     }
 
     input[type=text] {
-      width: 284px;
       position: relative;
       top: 1px;
+    }
+
+    .input-large {
+      width: 284px;
     }
 
     p {
@@ -27,20 +34,13 @@
       margin-right: 20px;
     }
 
-    #header-controls {
-      border: 1px solid #dedede;
-      border-radius: 2px;
-      padding: 12px;
-
-      select {
-        background-color: #efefef;
-        height: 30px;
-        width: 170px;
-        margin-right: 20px;
-        display: inline-block;
-        vertical-align: middle;
-        box-sizing: border-box;
-      }
+    select {
+      background-color: #efefef;
+      height: 30px;
+      width: 170px;
+      display: inline-block;
+      vertical-align: middle;
+      box-sizing: border-box;
     }
   }
 }

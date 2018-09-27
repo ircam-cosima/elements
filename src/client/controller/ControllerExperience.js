@@ -123,14 +123,17 @@ class ControllerExperience extends Experience {
       case 'init': {
           const { projectsDetails, projectsOverview } = payload;
 
+          this.view.model.projectsOverview = projectsOverview;
+
           projectsDetails.forEach(project => {
-            this.view.model.projectsOverview = projectsOverview;
             this.view.addProject(project);
 
             project.players.forEach(player => {
               this.view.addPlayerToProject(player, project.uuid);
             });
           });
+
+          this.view.updateHeader();
         break;
       }
       case 'list-project': {
@@ -142,6 +145,8 @@ class ControllerExperience extends Experience {
             this.view.updatePlayer(player);
           });
         });
+
+        this.view.updateHeader();
         break;
       }
       case 'create-project': {
@@ -164,11 +169,13 @@ class ControllerExperience extends Experience {
       case 'add-player-to-project': {
         const { player, project } = payload;
         this.view.addPlayerToProject(player, project);
+        this.view.updateHeader();
         break;
       }
       case 'remove-player-from-project': {
         const { player, project } = payload;
         this.view.removePlayerFromProject(player, project);
+        this.view.updateHeader();
         break;
       }
       case 'update-player-param': {
