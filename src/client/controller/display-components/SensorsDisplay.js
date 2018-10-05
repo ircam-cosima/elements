@@ -8,7 +8,7 @@ class SensorsDisplay {
 
     this.initialized = false;
 
-    const displayFilter = [1, 1, 1, 1, 1, 1, 1, 1, 1 / 1000, 1 / 1000, 1 / 1000];
+    const displayFilter = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
     // build lfo chain
     const eventIn = new lfo.source.EventIn({
       frameType: 'vector',
@@ -79,9 +79,9 @@ class SensorsDisplay {
       container: $controllerContainer,
       callback: active => {
         const value = active === true ? 1 : 0;
-        displayFilter[8] = value / 1000;
-        displayFilter[9] = value / 1000;
-        displayFilter[10] = value / 1000;
+        displayFilter[8] = value;
+        displayFilter[9] = value;
+        displayFilter[10] = value;
       }
     });
 
