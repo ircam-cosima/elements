@@ -8,11 +8,11 @@ class SensorsDisplay {
 
     this.initialized = false;
 
-    const displayFilter = [1, 1, 1, 1, 1, 1, 1, 1];
+    const displayFilter = [1, 1, 1, 1, 1, 1, 1, 1, 1 / 1000, 1 / 1000, 1 / 1000];
     // build lfo chain
     const eventIn = new lfo.source.EventIn({
       frameType: 'vector',
-      frameSize: 8,
+      frameSize: 11,
       frameRate: 0,
     });
 
@@ -30,8 +30,9 @@ class SensorsDisplay {
       radius: 0,
       colors: [
         '#da251c', '#f8cc11', // intensity
-        'steelblue', 'orange', 'green',
-        '#565656', '#fa8064', '#54b2a9',
+        'steelblue', 'orange', 'green', // bandpass
+        '#565656', '#fa8064', '#54b2a9', // orientation
+        '#67fa32', '#fa3267', '#3267fa', // gyroscopes
       ],
       container: $canvasContainer,
     });
@@ -72,6 +73,18 @@ class SensorsDisplay {
       }
     });
 
+    const gyroscopeToggle = new controllers.Toggle({
+      label: 'gyroscope',
+      active: true,
+      container: $controllerContainer,
+      callback: active => {
+        const value = active === true ? 1 : 0;
+        displayFilter[8] = value / 1000;
+        displayFilter[9] = value / 1000;
+        displayFilter[10] = value / 1000;
+      }
+    });
+
     const bpfTickness = new controllers.Slider({
       label: 'tickness',
       min: 0,
@@ -98,13 +111,15 @@ class SensorsDisplay {
     this.intensityToggle = intensityToggle;
     this.bandpassToggle = bandpassToggle;
     this.orientationToggle = orientationToggle;
+    this.gyroscopeToggle = gyroscopeToggle;
     this.bpfTickness = bpfTickness;
     this.isStreaming = true;
   }
 
   process(data) {
-    if (this.initialized)
+    if (this.initialized) {
       this.eventIn.process(null, data);
+    }
   }
 
   reset() {
