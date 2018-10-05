@@ -95,7 +95,6 @@ class SensorsDisplay {
       callback: value => bpfDisplay.params.set('radius', value),
     });
 
-
     eventIn.connect(filter);
     filter.connect(bpfDisplay);
 
@@ -103,7 +102,6 @@ class SensorsDisplay {
       this.initialized = true;
       eventIn.start();
     });
-
 
     this.eventIn = eventIn;
     this.filter = filter;
