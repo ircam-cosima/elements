@@ -97,7 +97,7 @@ class GestureRecognitionModule extends BaseModule {
 
   feedDecoder(data) {
     if (this._checkDataIntegrity(data)) {
-      const { intensity, bandpass, orientation } = this.decoderInputs;
+      const { intensity, bandpass, orientation, gyroscope } = this.decoderInputs;
 
       // filter data according to `project.params.learning.inputs`
       if (!intensity || !bandpass || !orientation) {
@@ -125,15 +125,22 @@ class GestureRecognitionModule extends BaseModule {
           }
         }
 
+        if (gyroscope) {
+          for (let i = 8; i < 11; i++) {
+            filteredData[index] = data[i];
+            index += 1;
+          }
+        }
+
         if (filteredData.length !== 0)
           data = filteredData;
       }
 
       const results = this.decoder.run(data);
 
-      // don't forward when no results
-      if (results !== null)
+      if (results !== null) {
         this.decoderListeners.forEach(callback => callback(results));
+      }
     } else {
       console.warn('Invalid processedSensors data', data);
     }
