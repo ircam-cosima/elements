@@ -9,7 +9,7 @@ class LoopSynth {
     this.params = Object.assign({}, defaults, config);
     this.buffers = null;
 
-    this._current = {};
+    this.current = {};
 
     this.output = audioContext.createGain();
     this.output.gain.value = 1;
@@ -32,7 +32,8 @@ class LoopSynth {
   }
 
   trigger(label, bufferIndex) {
-    this.stop();
+    if (this.current.src)
+      this.stop();
 
     const now = audioContext.currentTime;
     const buffer = this.buffers[label][bufferIndex];
@@ -49,14 +50,14 @@ class LoopSynth {
     src.loop = true;
     src.start(now);
 
-    this._current.src = src;
-    this._current.env = env;
-    this._current.label = label;
+    this.current.src = src;
+    this.current.env = env;
+    this.current.label = label;
   }
 
   stop(callback = null) {
-    if (this._current.src) {
-      const { src, env } = this._current;
+    if (this.current.src) {
+      const { src, env } = this.current;
       const now = audioContext.currentTime;
       const endTime = now + this.params.fadeDuration;
 
@@ -65,8 +66,8 @@ class LoopSynth {
       env.gain.linearRampToValueAtTime(0, endTime);
       src.stop(endTime);
 
-      this._current.src = null;
-      this._current.env = null;
+      this.current.src = null;
+      this.current.env = null;
 
       if (callback)
         src.onend = callback;
@@ -116,11 +117,14 @@ class LikeliestLoopSynth {
   processDecoderOutput(data) {
     const { likeliest } = data;
 
-    if (likeliest !== null && this.currentLabel !== likeliest) {
+    if (this.currentLabel !== likeliest) {
       this.currentLabel = likeliest;
+      this.synth.stop();
 
-      const index = client.index % this.buffers[likeliest].length;
-      this.synth.trigger(likeliest, index);
+      if (likeliest !== null) {
+        const index = client.index % this.buffers[likeliest].length;
+        this.synth.trigger(likeliest, index);
+      }
     }
   }
 }

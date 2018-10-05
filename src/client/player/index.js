@@ -27,7 +27,6 @@ function bootstrap() {
   });
 
   const experience = new PlayerExperience(config, clientPreset, projectPresets, audioFiles);
-  console.log(audioFiles);
 
   client.start();
 }

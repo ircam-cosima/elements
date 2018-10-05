@@ -138,10 +138,16 @@ class AudioRendererModule extends BaseModule {
       case 'update-project-param': {
         const project = { payload };
         const model = project.model;
-        const labels = model.payload.models.map(mod => mod.label);
 
-        if (this.instrument)
+        let labels = [];
+
+        if (model) {
+          labels = model.payload.models.map(mod => mod.label);
+        }
+
+        if (this.instrument) {
           this.instrument.setLabels(labels);
+        }
       }
       case 'update-model': {
         const model = payload.model;
@@ -166,7 +172,6 @@ class AudioRendererModule extends BaseModule {
         break;
       }
       case 'update-audio-files': {
-        console.log('update-audio-files', payload);
         const audioFiles = payload;
         const audioBufferManager = this.experience.audioBufferManager;
 

@@ -36,9 +36,17 @@ process.env.NODE_ENV = config.env;
 
 // application presets
 const applicationName = process.env.APPLICATION || config.application || 'default';
+let applicationMetas = null;
 let clientPresets = null;
 let projectPresets = null;
 
+try {
+  applicationMetas = require(path.join(process.cwd(), `applications/${applicationName}/metas.json`));
+} catch(err) {
+  console.info(`No "./applications/${applicationName}/metas.json" found`);
+}
+
+// get transpiled files in dist folder
 try {
   clientPresets = require(`../applications/${applicationName}-client-presets.js`).default;
 } catch(err) {
@@ -108,8 +116,7 @@ appStore.init(applicationName, projectPresets)
     });
 
     server.start().then(() => {
-      appStore.updateAudioFiles(directoryWatcher.getList());
-
+      const appDisplayName = (applicationMetas && applicationMetas.name) ? applicationMetas.name : config.appName
       // define the configuration object to be passed to the `.ejs` template
       // `directoryWatcher` is ready after server starts
       server.setClientConfigDefinition((clientType, config, httpRequest) => {
@@ -117,7 +124,7 @@ appStore.init(applicationName, projectPresets)
           clientType: clientType,
           env: config.env,
           applicationName: applicationName,
-          appName: config.appName,
+          appName: appDisplayName,
           websockets: config.websockets,
           version: config.version,
           defaultType: config.defaultClient,
@@ -126,8 +133,14 @@ appStore.init(applicationName, projectPresets)
         };
       });
 
-      // watch for updates
-      directoryWatcher.addListener('update', list => appStore.updateAudioFiles(list));
+      // init application audio files and watch for updates
+      appStore.updateAudioFiles(directoryWatcher.getList())
+        .catch(err => console.error(err.stack));
+
+      directoryWatcher.addListener('update', list => {
+        appStore.updateAudioFiles(list)
+          .catch(err => console.error(err.stack));
+      });
 
     });
   })

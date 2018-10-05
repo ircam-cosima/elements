@@ -1,0 +1,66 @@
+{
+  "uuid": "f9303761-ca09-4097-a555-8e2036094b12",
+  "params": {
+    "name": "test",
+    "preset": "default-mapping",
+    "clientDefaults": {
+      "audioRendering": {
+        "mute": true,
+        "volume": 0
+      },
+      "mappings": {
+        "gain": false,
+        "bandpass": false
+      },
+      "record": {
+        "label": "5beats"
+      }
+    },
+    "learning": {
+      "config": {
+        "docType": "rapid-mix:ml-configuration",
+        "docVersion": "1.0.0",
+        "target": {
+          "name": "xmm",
+          "version": "1.0.0"
+        },
+        "payload": {
+          "gaussians": 1,
+          "absoluteRegularization": 0.1,
+          "relativeRegularization": 0.1,
+          "covarianceMode": "full",
+          "hierarchical": true,
+          "states": 4,
+          "transitionMode": "leftright",
+          "regressionEstimator": "full",
+          "modelType": "hhmm"
+        }
+      },
+      "trainingSet": {
+        "docType": "rapid-mix:ml-training-set",
+        "docVersion": "1.0.0",
+        "payload": {
+          "inputDimension": null,
+          "outputDimension": null,
+          "data": []
+        }
+      },
+      "inputs": {
+        "intensity": true,
+        "bandpass": true,
+        "orientation": true,
+        "gyroscope": false
+      }
+    },
+    "recording": {
+      "type": "AutoTrigger",
+      "options": {
+        "threshold": 0.02,
+        "offDelay": 0.3,
+        "preRollCount": 2,
+        "preRollInterval": 1
+      }
+    },
+    "sensorsPreprocessing": {}
+  }
+}

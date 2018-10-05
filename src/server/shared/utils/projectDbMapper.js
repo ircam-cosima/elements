@@ -2,17 +2,14 @@ import fs from 'fs';
 import path from 'path';
 
 const cwd = process.cwd();
-const dbPath = path.join(cwd, 'db');
-
-if (!fs.existsSync(dbPath))
-  fs.mkdirSync(dbPath);
+const applicationsPath = path.join(cwd, 'applications');
 
 /**
  * Naive project persistance implementation.
  */
 const projectStore = {
   configure(applicationName) {
-    this.dbPath = path.join(dbPath, applicationName);
+    this.dbPath = path.join(applicationsPath, applicationName, 'db');
 
     if (!fs.existsSync(this.dbPath))
       fs.mkdirSync(this.dbPath);
