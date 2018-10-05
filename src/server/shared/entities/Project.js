@@ -2,8 +2,6 @@ import * as mano from 'mano-js/common';
 import PlayerCollection from './PlayerCollection';
 import uuidv4 from 'uuid/v4';
 import merge from 'lodash.merge';
-// import { labels as audioConfig } from '../../../shared/config/audio';
-
 
 class Project {
   constructor() {
@@ -35,7 +33,6 @@ class Project {
           label: null,
         },
       },
-      audioFiles: {},
       learning: {
         config: null,
         trainingSet: null,

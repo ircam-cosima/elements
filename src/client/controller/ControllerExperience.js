@@ -4,11 +4,16 @@ import AudioRendererHook from './AudioRendererHook';
 
 
 class ControllerExperience extends Experience {
-  constructor(config, clientPresets, projectPresets) {
+  constructor(config, clientPresets, projectPresets, audioFiles) {
     super();
 
     this.platform = this.require('platform', { features: ['web-audio'] });
-    this.audioBufferManager = this.require('audio-buffer-manager');
+    this.audioBufferManager = this.require('audio-buffer-manager', {
+      files: {
+        labels: audioFiles,
+      },
+    });
+
     if (config.env === 'production') {
       this.auth = this.require('auth');
     }
@@ -54,7 +59,9 @@ class ControllerExperience extends Experience {
 
     // initialize the view / allow for canvas rendering
     this.view = new ControllerView();
-    this.view.model.projectPresets = projectPresets
+    this.view.model.projectPresets = projectPresets;
+    this.view.model.audioFiles = this.audioBufferManager.data.labels;
+
     // request server action
     this.view.request = (type, payload) => {
       const action = { type, payload };
@@ -183,6 +190,14 @@ class ControllerExperience extends Experience {
         this.view.updatePlayer(player);
         break;
       }
+      case 'update-audio-files': {
+        this.view.model.audioFiles = this.audioBufferManager.data.labels;
+        projectsDetails.forEach(project => {
+          project.players.forEach(player => {
+            this.view.updatePlayer(player);
+          });
+        });
+      }
 
       default: {
         throw new Error(`Invalid action ${type}`);
@@ -217,6 +232,13 @@ class ControllerExperience extends Experience {
 
         if (this.audioRendererHook.player && player.uuid === this.audioRendererHook.player.uuid)
           this.audioRendererHook.stop();
+      }
+      case 'update-audio-files': {
+        const audioFiles = payload;
+
+        if (this.audioRendererHook.instrument) {
+          this.audioRendererHook.updateAudioFiles(audioFiles);
+        }
       }
     }
   }

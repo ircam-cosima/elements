@@ -17,8 +17,8 @@ function bootstrap() {
 
   const clientPresets = window.clientPresets;
   const clientPreset = clientPresets[config.clientType];
-
   const projectPresets = window.projectPresets;
+  const audioFiles = config.audioFiles;
 
   // configure views for the services
   client.setServiceInstanciationHook((id, instance) => {
@@ -26,7 +26,8 @@ function bootstrap() {
       instance.view = serviceViews.get(id, config);
   });
 
-  const experience = new PlayerExperience(config, clientPreset, projectPresets);
+  const experience = new PlayerExperience(config, clientPreset, projectPresets, audioFiles);
+  console.log(audioFiles);
 
   client.start();
 }

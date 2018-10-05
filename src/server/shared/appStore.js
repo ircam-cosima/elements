@@ -19,7 +19,7 @@ const appStore = {
     this.projects = new ProjectCollection();
     this.players = new PlayerCollection();
 
-    this.defaultAudioFiles = null;
+    this.audioFiles = null;
 
     this._listeners = new Set();
 
@@ -52,13 +52,10 @@ const appStore = {
     this._listeners.forEach(listener => listener(channel, ...args));
   },
 
-  /**
-   *
-   */
   createProject(name, preset, params = null) {
     const presetInfos = this.projectPresets[preset];
     const project = Project.create(name, preset, presetInfos);
-    project.params.audioFiles = this.defaultAudioFiles;
+    // project.params.audioFiles = this.defaultAudioFiles;
 
     if (params !== null) {
       merge(project.params, params);
@@ -304,11 +301,6 @@ const appStore = {
   updateAudioFiles(list) {
     list.sort();
 
-    // - create a filelist according to the format used client side:
-    // aka: "label": [path1, path2]
-    // @note - automating the audio file process breaks the ability
-    // of using several soundfiles with the same label.
-
     const audioFiles = {};
     const labels = [];
     const promises = [];
@@ -321,17 +313,19 @@ const appStore = {
       labels.push(basename);
     }
 
-    this.defaultAudioFiles = audioFiles;
+    this.audioFiles = audioFiles;
 
+    this.emit('update-audio-files', this.audioFiles);
+
+    // clear examples associated to removed labels / soundfile
     this.projects.getAll().forEach(project => {
       const trainedLabels = project.trainingSet.getLabels();
-      // clear examples associated to removed labels/soundfile
+
       trainedLabels.forEach(trainedLabel => {
         if (labels.indexOf(trainedLabel) === -1)
           this.clearExamplesFromProject(trainedLabel, project);
       });
 
-      project.params.audioFiles = audioFiles;
       project.params.clientDefaults.record.label = Object.keys(audioFiles)[0];
 
       this.emit('update-project-param', project);

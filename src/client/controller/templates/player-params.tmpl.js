@@ -70,7 +70,7 @@ const playerParamsTmpl = `
   </p>
 
   <select class="player-param" data-name="record.label">
-  <% var labels = Object.keys(project.params.audioFiles) %>
+  <% var labels = Object.keys(global.audioFiles) %>
   <% labels.forEach(function(label) { %>
     <% var selected = player.params.record.label === label ? ' selected' : ''; %>
     <option name="<%= label %>"<%= selected %>><%= label %></option>

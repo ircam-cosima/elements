@@ -22,6 +22,7 @@ class RecordingControlModule extends BaseModule {
       'update-player-param',
       'update-project-param',
       'update-model',
+      'update-audio-files',
     ];
 
     this.allowedRequests = [
@@ -42,6 +43,8 @@ class RecordingControlModule extends BaseModule {
     this.currentProject = null;
 
     this.view = new RecordingControlView();
+    this.view.model.labels = Object.keys(this.experience.audioBufferManager.data.labels);
+
     this.view.request = (type, payload) => {
       switch (type) {
         case 'update-player-param':
@@ -106,6 +109,11 @@ class RecordingControlModule extends BaseModule {
     const { type, payload } = action;
     let recordParams;
 
+    if (type === 'update-audio-files') {
+      const audioFiles = payload;
+      this.view.model.labels = Object.keys(payload);
+    }
+
     // handle trained labels
     if (type === 'update-model' || type === 'add-player-to-project') {
       const model = type === 'update-model' ? payload.model : payload.project.model;
@@ -117,22 +125,20 @@ class RecordingControlModule extends BaseModule {
     // handle trigger params
     if (type === 'add-player-to-project' || type === 'update-project-param') {
       let recording = null;
-      let audioFiles = null;
+      // let audioFiles = null;
 
       if (type === 'add-player-to-project') {
         recording = payload.project.params.recording.options;
-        audioFiles = payload.project.params.audioFiles
+        // audioFiles = payload.project.params.audioFiles
       } else {
         recording = payload.params.recording.options;
-        audioFiles = payload.params.audioFiles;
+        // audioFiles = payload.params.audioFiles;
       }
 
       this.trigger.threshold = recording.threshold;
       this.trigger.offDelay = recording.offDelay;
       this.trigger.preRollCount = recording.preRollCount;
       this.trigger.preRollInterval = recording.preRollInterval;
-
-      this.view.model.labels = Object.keys(audioFiles);
     }
 
     // handle recording state

@@ -22,6 +22,7 @@ class AudioRendererModule extends BaseModule {
       'update-player-param',
       'update-project-param',
       'update-model',
+      'update-audio-files',
     ];
 
     this.allowedRequests = [
@@ -36,8 +37,6 @@ class AudioRendererModule extends BaseModule {
 
     this.processSensorsData = this.processSensorsData.bind(this);
     this.processDecoderOutput = this.processDecoderOutput.bind(this);
-
-    this.audioFiles = {};
     this.instrument = null;
 
     if (this.options.showView) {
@@ -121,65 +120,28 @@ class AudioRendererModule extends BaseModule {
         this.instrument.updateMappings(mappingParams);
         this.instrument.connect(audioOutput);
 
+        const buffers = this.experience.audioBufferManager.data.labels;
+        this.instrument.setBuffers(buffers);
+
         this.experience.mute(audioParams.mute);
         this.experience.volume(audioParams.volume);
 
-        audioBufferManager
-          .load({ [uuid]: audioFiles })
-          .then(buffers => {
-            this.instrument.setBuffers(buffers[uuid]);
+        if (this.view) {
+          this.view.model.loading = false;
+          this.view.render();
+        }
 
-            if (this.view) {
-              this.view.model.loading = false;
-              this.view.render();
-            }
-
-            this.gestureRecognitionModule.addDecoderListener(this.processDecoderOutput);
-          });
+        this.gestureRecognitionModule.addDecoderListener(this.processDecoderOutput);
         break;
       }
+      // @todo / @fixme - probably need to update labels...
       case 'update-project-param': {
-        const project = payload;
-        const uuid = project.uuid;
-        const audioFiles = project.params.audioFiles;
+        const project = { payload };
+        const model = project.model;
+        const labels = model.payload.models.map(mod => mod.label);
 
-        // check if we need to refresh audioFiles
-        let refresh = false;
-        const currentFiles = this.audioFiles;
-
-        for (let label in audioFiles) {
-          if (!(label in currentFiles))
-            refresh = true;
-
-          if (currentFiles[label] && currentFiles[label][0] !== audioFiles[label][0])
-            refresh = true;
-
-          if (refresh)
-            break;
-        }
-
-        this.audioFiles = audioFiles;
-
-        if (refresh) {
-          const audioBufferManager = this.experience.audioBufferManager;
-
-          if (this.view) {
-            this.view.model.loading = true;
-            this.view.render();
-          }
-
-          audioBufferManager
-            .load({ [uuid]: audioFiles })
-            .then(buffers => {
-              this.instrument.setBuffers(buffers[uuid]);
-
-              if (this.view) {
-                this.view.model.loading = false;
-                this.view.render();
-              }
-            });
-        }
-        break;
+        if (this.instrument)
+          this.instrument.setLabels(labels);
       }
       case 'update-model': {
         const model = payload.model;
@@ -201,6 +163,30 @@ class AudioRendererModule extends BaseModule {
           merge(this.view.model.mappings, mappingParams);
           this.view.render();
         }
+        break;
+      }
+      case 'update-audio-files': {
+        console.log('update-audio-files', payload);
+        const audioFiles = payload;
+        const audioBufferManager = this.experience.audioBufferManager;
+
+        if (this.view) {
+          this.view.model.loading = true;
+          this.view.render();
+        }
+
+        audioBufferManager
+          .load({ labels: audioFiles })
+          .then(buffers => {
+            if (this.instrument) {
+              this.instrument.setBuffers(buffers['labels']);
+            }
+
+            if (this.view) {
+              this.view.model.loading = false;
+              this.view.render();
+            }
+          });
         break;
       }
     }

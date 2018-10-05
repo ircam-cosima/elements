@@ -10,7 +10,6 @@ class AudioRendererHook {
 
     this.player = null;
     this.project = null;
-    this.audioFiles = {};
   }
 
   init(player, project) {
@@ -22,11 +21,8 @@ class AudioRendererHook {
 
     const audioBufferManager = this.experience.audioBufferManager;
     const uuid = project.uuid;
-    const audioFiles = project.params.audioFiles;
     const audioParams = player.params.audioRendering;
     const mappingParams = player.params.mappings;
-
-    this.audioFiles = audioFiles;
 
     const model = project.model;
     const labels = model.payload.models.map(mod => mod.label);
@@ -40,14 +36,9 @@ class AudioRendererHook {
     instrument.setLabels(labels);
     instrument.updateMappings(mappingParams);
     instrument.connect(audioOutput);
+    instrument.setBuffers(this.experience.audioBufferManager.data.labels);
 
-    audioBufferManager
-      .load({ [uuid]: audioFiles })
-      .then(buffers => {
-        instrument.setBuffers(buffers[uuid]);
-        // now the instrument is completely ready and can process streams
-        this.instrument = instrument;
-      });
+    this.instrument = instrument;
   }
 
   stop() {
@@ -65,32 +56,20 @@ class AudioRendererHook {
   }
 
   updateProject(project) {
-    const uuid = project.uuid;
-    const audioFiles = project.params.audioFiles;
-    // check if we need to refresh audioFiles
-    let refresh = false;
-    const currentFiles = this.audioFiles;
+    const model = project.model;
+    const labels = model.payload.models.map(mod => mod.label);
 
-    for (let label in audioFiles) {
-      if (!(label in currentFiles))
-        refresh = true;
+    if (this.instrument)
+      this.instrument.setLabels(labels);
+  }
 
-      if (currentFiles[label] && currentFiles[label][0] !== audioFiles[label][0])
-        refresh = true;
-
-      if (refresh)
-        break;
-    }
-
-    this.audioFiles = audioFiles;
-
-    if (refresh) {
-      const audioBufferManager = this.experience.audioBufferManager;
-
-      audioBufferManager
-        .load({ [uuid]: audioFiles })
-        .then(buffers => this.instrument.setBuffers(buffers[uuid]));
-    }
+  updateAudioFiles(audioFiles) {
+    this.experience.audioBufferManager.load({ 'labels': audioFiles })
+      .then(buffers => {
+        if (this.instrument) {
+          this.instrument.setBuffers(buffers['labels']);
+        }
+      });
   }
 
   processSensorsData(clientIndex, data) {

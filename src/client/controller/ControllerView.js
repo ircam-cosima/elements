@@ -35,6 +35,7 @@ const model = {
   projects: [],
   projectsOverview: [],
   projectPresets: [],
+  audioFiles: {},
   mlPresets: mlPresets,
   colors: colors,
 };

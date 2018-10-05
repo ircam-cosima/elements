@@ -63,27 +63,14 @@ appStore.init(applicationName, projectPresets)
     server.init(config);
 
     server.router.use(fileUpload());
-    // define the configuration object to be passed to the `.ejs` template
-    server.setClientConfigDefinition((clientType, config, httpRequest) => {
-      return {
-        clientType: clientType,
-        env: config.env,
-        applicationName: applicationName,
-        appName: config.appName,
-        websockets: config.websockets,
-        version: config.version,
-        defaultType: config.defaultClient,
-        assetsDomain: config.assetsDomain,
-      };
-    });
-
-    const comm = new EventEmitter();
 
     const appDirectory = path.join('applications', applicationName);
     const directoryWatcher = server.require('directory-watcher', {
       publicDirectory: appDirectory,
       watchedDirectory: 'audio',
     });
+
+    const comm = new EventEmitter();
 
     server.router.use('/audio', serveStatic(path.join(appDirectory, 'audio')));
 
@@ -121,8 +108,24 @@ appStore.init(applicationName, projectPresets)
     });
 
     server.start().then(() => {
-      // init
       appStore.updateAudioFiles(directoryWatcher.getList());
+
+      // define the configuration object to be passed to the `.ejs` template
+      // `directoryWatcher` is ready after server starts
+      server.setClientConfigDefinition((clientType, config, httpRequest) => {
+        return {
+          clientType: clientType,
+          env: config.env,
+          applicationName: applicationName,
+          appName: config.appName,
+          websockets: config.websockets,
+          version: config.version,
+          defaultType: config.defaultClient,
+          assetsDomain: config.assetsDomain,
+          audioFiles: appStore.audioFiles,
+        };
+      });
+
       // watch for updates
       directoryWatcher.addListener('update', list => appStore.updateAudioFiles(list));
 

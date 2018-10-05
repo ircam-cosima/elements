@@ -9,7 +9,7 @@ import { sounds as uiSounds } from '../../shared/config/ui';
 const audioContext = soundworks.audioContext;
 
 class PlayerExperience extends soundworks.Experience {
-  constructor(config, clientPreset, projectPresets) {
+  constructor(config, clientPreset, projectPresets, audioFiles) {
     super();
 
     this.clientPreset = clientPreset;
@@ -23,7 +23,10 @@ class PlayerExperience extends soundworks.Experience {
       assetsDomain: config.assetsDomain,
       // should be loaded when the project is chosen
       // files: { triggers, labels, uiSounds },
-      files: { uiSounds },
+      files: {
+        uiSounds,
+        labels: audioFiles
+      },
     });
 
     this.streamSensors = false;

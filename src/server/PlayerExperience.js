@@ -91,6 +91,7 @@ class PlayerExperience extends Experience {
           const clients = project.players.getClients();
           this.dispatch(action, clients);
 
+          // if we changed the project name
           if (name === 'name') {
             const action = {
               type: 'list-project-overview',
@@ -132,6 +133,16 @@ class PlayerExperience extends Experience {
           const clients = this.subscriptions.get('list-project-overview');
           this.dispatch(action, clients);
           break;
+        }
+        case 'update-audio-files': {
+          const [audioFiles] = args;
+          const action = {
+            type: 'update-audio-files',
+            payload: audioFiles,
+          }
+
+          const clients = this.subscriptions.get('update-audio-files');
+          this.dispatch(action, clients);
         }
       }
     });
