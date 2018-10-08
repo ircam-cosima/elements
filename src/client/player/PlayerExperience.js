@@ -59,7 +59,6 @@ class PlayerExperience extends soundworks.Experience {
     this.masterNode = audioContext.createGain();
     this.masterNode.connect(this.muteNode);
     this.masterNode.gain.value = 1;
-    this.masterNode.gain.setValueAtTime(1, audioContext.currentTime);
 
     // instanciate modules from configuration
     for (let moduleId in this.clientPreset) {
@@ -162,14 +161,12 @@ class PlayerExperience extends soundworks.Experience {
 
   volume(volume) {
     const gain = decibelToLinear(volume);
-    const now = audioContext.currentTime;
-    this.masterNode.gain.setValueAtTime(gain, now + 0.005);
+    this.masterNode.gain.value = gain;
   }
 
   mute(flag) {
     const target = flag ? 0 : 1;
-    const now = audioContext.currentTime;
-    this.muteNode.gain.linearRampToValueAtTime(target, now + 0.005);
+    this.muteNode.gain.value = target;
   }
 
   // @todo - test module dependecies and throw more usefull error

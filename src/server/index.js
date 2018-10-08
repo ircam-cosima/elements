@@ -116,7 +116,11 @@ appStore.init(applicationName, projectPresets)
     });
 
     server.start().then(() => {
-      const appDisplayName = (applicationMetas && applicationMetas.name) ? applicationMetas.name : config.appName
+      const appDisplayName = (applicationMetas && applicationMetas.name) ? applicationMetas.name : config.appName;
+
+      // init application audio files and watch for updates
+      appStore.updateAudioFiles(directoryWatcher.getList())
+        .catch(err => console.error(err.stack));
       // define the configuration object to be passed to the `.ejs` template
       // `directoryWatcher` is ready after server starts
       server.setClientConfigDefinition((clientType, config, httpRequest) => {
@@ -132,10 +136,6 @@ appStore.init(applicationName, projectPresets)
           audioFiles: appStore.audioFiles,
         };
       });
-
-      // init application audio files and watch for updates
-      appStore.updateAudioFiles(directoryWatcher.getList())
-        .catch(err => console.error(err.stack));
 
       directoryWatcher.addListener('update', list => {
         appStore.updateAudioFiles(list)

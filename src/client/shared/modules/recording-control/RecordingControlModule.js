@@ -125,14 +125,11 @@ class RecordingControlModule extends BaseModule {
     // handle trigger params
     if (type === 'add-player-to-project' || type === 'update-project-param') {
       let recording = null;
-      // let audioFiles = null;
 
       if (type === 'add-player-to-project') {
         recording = payload.project.params.recording.options;
-        // audioFiles = payload.project.params.audioFiles
       } else {
         recording = payload.params.recording.options;
-        // audioFiles = payload.params.audioFiles;
       }
 
       this.trigger.threshold = recording.threshold;

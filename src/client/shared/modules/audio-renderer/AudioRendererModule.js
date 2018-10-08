@@ -93,11 +93,8 @@ class AudioRendererModule extends BaseModule {
         const { player, project } = payload;
         const audioBufferManager = this.experience.audioBufferManager;
         const uuid = payload.project.uuid;
-        const audioFiles = project.params.audioFiles;
         const audioParams = player.params.audioRendering;
         const mappingParams = player.params.mappings;
-
-        this.audioFiles = audioFiles;
 
         if (this.view) {
           merge(this.view.model.audioParams, audioParams);
@@ -148,6 +145,7 @@ class AudioRendererModule extends BaseModule {
         if (this.instrument) {
           this.instrument.setLabels(labels);
         }
+        break;
       }
       case 'update-model': {
         const model = payload.model;
