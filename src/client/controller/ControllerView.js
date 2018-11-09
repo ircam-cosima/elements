@@ -121,17 +121,17 @@ class ControllerView extends View {
 
           this.request('update-player-param', streamDecoding);
 
-          // find player and project -> this is ugly and should be maintained in
-          // the experience
+          // find player and project -> this is ugly and should be maintained in the experience
           const projects = this.model.projects;
           let player = null;
           let project = null;
 
-          projects.forEach(_project => {
-            _project.players.forEach(_player => {
-              if (_player.uuid = uuid)
-                player = _player;
-                project = _project;
+          projects.forEach(proj => {
+            proj.players.forEach(play => {
+              if (play.uuid === uuid) {
+                player = play;
+                project = proj;
+              }
             });
           });
 
@@ -153,16 +153,12 @@ class ControllerView extends View {
         e.preventDefault();
         const $btn = e.target;
         const $params = $btn.closest('.project').querySelector('.params');
-        const hidden = $params.classList.contains('hidden');
-
-        if (hidden)
-          $params.classList.remove('hidden');
-        else
-          $params.classList.add('hidden');
+        const hidden = $params.classList.toggle('hidden');
       },
       'click .project .delete-project': e => {
         if (window.confirm('Are you sure?')) {
           e.preventDefault();
+
           const $btn = e.target;
           const $project = $btn.closest('.project');
           const uuid = $project.dataset.uuid;
@@ -325,10 +321,11 @@ class ControllerView extends View {
           value: false,
         });
 
-        if (paramName === 'streams.sensors')
+        if (paramName === 'streams.sensors') {
           this._deleteSensorsStream(uuid, index);
-        else if (paramName === 'streams.decoding')
+        } else if (paramName === 'streams.decoding') {
           this._deleteLikelihoodsStream(uuid, index);
+        }
       }
     });
   }

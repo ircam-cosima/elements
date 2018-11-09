@@ -13,8 +13,9 @@ class AudioRendererHook {
   }
 
   init(player, project) {
-    if (this.player)
+    if (this.player) {
       this.stop();
+    }
 
     this.player = player;
     this.project = project;

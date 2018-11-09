@@ -75,16 +75,17 @@ class ControllerExperience extends Experience {
 
     if (this.streams) {
       this.rawSocket.receive('sensors', data => {
-        if (!this.sensorsBuffer)
+        if (!this.sensorsBuffer) {
           this.sensorsBuffer = new Float32Array(data.length - 1);
+        }
 
         const playerIndex = data[0];
 
-        for (let i = 0; i < this.sensorsBuffer.length; i++)
+        for (let i = 0; i < this.sensorsBuffer.length; i++) {
           this.sensorsBuffer[i] = data[i + 1];
+        }
 
         this.view.processSensorsStream(playerIndex, this.sensorsBuffer);
-        //forward to audioRenderer
         this.audioRendererHook.processSensorsData(playerIndex, this.sensorsBuffer);
       });
 
