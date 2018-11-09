@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import chalk from 'chalk';
 
 const cwd = process.cwd();
 const applicationsPath = path.join(cwd, 'applications');
@@ -11,46 +12,51 @@ const projectStore = {
   configure(applicationName) {
     this.dbPath = path.join(applicationsPath, applicationName, 'db');
 
-    if (!fs.existsSync(this.dbPath))
+    if (!fs.existsSync(this.dbPath)) {
       fs.mkdirSync(this.dbPath);
+    }
   },
 
   getFilename(uuid) {
     const filename = path.join(this.dbPath, `${uuid}.json`);
+
     return filename;
   },
 
   getList() {
     return new Promise((resolve, reject) => {
       fs.readdir(this.dbPath, (err, files) => {
-        if (err)
+        if (err) {
           throw err;
+        }
 
         const promises = [];
-        files.forEach(basename => {
-          const filename = path.join(this.dbPath, basename);
-          const stats = fs.statSync(filename)
-          // read one file
-          if (!stats.isDirectory()) {
-            const promise = new Promise((resolve, reject) => {
-              fs.readFile(filename, 'utf8', (err, data) => {
-                if (err)
-                  throw err;
 
+        files.forEach(basename => {
+          if (path.extname(basename) === '.json') {
+            const filename = path.join(this.dbPath, basename);
+            const stats = fs.statSync(filename);
+            // read one file
+            if (!stats.isDirectory()) {
+              const promise = new Promise((resolve, reject) => {
                 try {
+                  const data = fs.readFileSync(filename, 'utf8');
                   const projectData = JSON.parse(data);
                   resolve(projectData);
                 } catch(err) {
-                  console.error(`Invalid project: ${filename} is not valid JSON`);
+                  console.error(chalk.yellow(`[Elements - db] Error reading project "${filename}"`));
+                  resolve(null);
                 }
               });
-            });
 
-            promises.push(promise);
+              promises.push(promise);
+            }
           }
         });
 
         Promise.all(promises).then(results => {
+          // remove files that may have been corrupted (allow the server to start)
+          results = results.filter(r => r !== null);
           resolve(results)
         });
       });
@@ -61,22 +67,19 @@ const projectStore = {
     return new Promise((resolve, reject) => {
       const uuid = projectData.uuid;
 
-      if (!uuid)
+      if (!uuid) {
         throw new Error(`projectDbMapper: Invalid project "${project.name}"`);
+      }
 
       const filename = path.join(this.dbPath, `${uuid}.json`);
 
       try {
         const json = JSON.stringify(projectData, null, 2);
+        fs.writeFileSync(filename, json, 'utf8');
 
-        fs.writeFile(filename, json, 'utf8', err => {
-          if (err)
-            throw err;
-
-          resolve(projectData);
-        });
+        resolve(projectData);
       } catch(err) {
-        throw new Error(`projectDbMapper: Invalid JSON of project "${project.name}"`);
+        console.error(chalk.yellow(`[Elements - db] Error persisting project "${project.name}"`));
       }
     });
   },
@@ -85,17 +88,18 @@ const projectStore = {
     return new Promise((resolve, reject) => {
       const uuid = project.uuid;
 
-      if (!uuid)
+      if (!uuid) {
         throw new Error(`projectDbMapper: Invalid project "${project.name}"`);
+      }
 
       const filename = path.join(this.dbPath, `${uuid}.json`);
 
-      fs.unlink(filename, err => {
-        if (err)
-          throw err;
-
+      try {
+        fs.unlink(filename);
         resolve(null);
-      });
+      } catch(err) {
+        throw err;
+      }
     });
   },
 };

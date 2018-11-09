@@ -82,15 +82,11 @@ const applicationsDirectory = path.join(cwd, 'applications');
 const escapedPresetsMatchStr = '^' + escapeRegExp(cwd + path.sep + 'applications' + path.sep) + '([a-zA-Z0-9\-_]+)' + escapeRegExp(path.sep) + '(client|project)' + escapeRegExp('-presets.js');
 const presetsMatch = new RegExp(escapedPresetsMatchStr);
 
-// const escapedConfigSearchStr = '^' + escapeRegExp(distDirectory + path.sep + 'applications' + path.sep) + '([a-zA-Z\-_]+)' + escapeRegExp(path.sep) + '.*';
-// const clientsSearch = new RegExp(escapedClientsSearchStr);
-
 
 const transpilePreset = file => {
   const match = file.abs.match(presetsMatch);
   const appName = match[1];
   const type = match[2];
-  console.log(appName, type);
   const target = path.join(distDirectory, 'applications', `${appName}-${type}-presets.js`);
 
   return fileStore.get(target)

@@ -94,10 +94,9 @@ class ProjectChooserView extends View {
         const name = $input.value;
         const preset = $select.value;
 
-        console.log(name, preset);
-
-        if (name !== '')
+        if (name !== '') {
           this.request('create-project', { name, preset });
+        }
       },
       // 'click button': change state and render, view only action
       'click .expand': e => {
@@ -109,10 +108,11 @@ class ProjectChooserView extends View {
     if (this.model.projectList !== 'none') {
       let action = null;
 
-      if (this.model.projectList === 'select')
+      if (this.model.projectList === 'select') {
         action = 'change';
-      else if (this.model.projectList === 'buttons')
+      } else if (this.model.projectList === 'buttons') {
         action = 'click';
+      }
 
       this.installEvents({
         [`${action} .select-project`]: e => {
@@ -131,8 +131,9 @@ class ProjectChooserView extends View {
     super.onRender();
 
     // the overlay must be skipped only on first rendering
-    if (this.model.state === 'reduced')
+    if (this.model.state === 'reduced') {
       this.model.forceProject = false;
+    }
 
     this.$el.classList.remove('reduced', 'expanded');
     this.$el.classList.add(this.model.state);

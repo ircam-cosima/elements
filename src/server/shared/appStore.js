@@ -124,7 +124,6 @@ const appStore = {
     if (!project)
       throw new Error('Cannot add player to invalid project, check your presets (`forceProject`)');
 
-    console.log(project.params.clientDefaults);
     merge(player.params, project.params.clientDefaults);
 
     project.addPlayer(player);
