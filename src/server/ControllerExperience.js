@@ -17,6 +17,11 @@ class ControllerExperience extends Experience {
     this.streams = false;
     this.oscStreams = false;
 
+    // store monitoring informations that allows to define the sensors routing
+    this.monitorings = {};
+
+    this.defineStreamsRouting = this.defineStreamsRouting.bind(this);
+
     for (let name in presets) {
       const preset = presets[name];
       const moduleIds = Object.keys(preset);
@@ -31,11 +36,13 @@ class ControllerExperience extends Experience {
         const streamsConfig = preset['streams'];
 
         if (streamsConfig.osc) {
-          if (streamsConfig.osc.sendAddress)
+          if (streamsConfig.osc.sendAddress) {
             this.config.osc.sendAddress = streamsConfig.osc.sendAddress;
+          }
 
-          if (streamsConfig.osc.sendPort)
+          if (streamsConfig.osc.sendPort) {
             this.config.osc.sendPort = streamsConfig.osc.sendPort;
+          }
 
           this.oscStreams = true;
           this.osc = this.require('osc');
@@ -49,14 +56,26 @@ class ControllerExperience extends Experience {
 
     if (this.streams) {
       this.comm.addListener('sensors', data => {
-        this.rawSocket.broadcast('controller', null, 'sensors', data);
+        const playerIndex = data[0];
+        // send to the controller who are asking for something
+        this.monitorings[playerIndex].monitors.forEach((req, controller) => {
+          if (req.sensors || req.audio) {
+            this.rawSocket.send(controller, 'sensors', data);
+          }
+        });
 
-        if (this.oscStreams)
+        if (this.oscStreams) {
           this.osc.send('/sensors', Array.from(data));
+        }
       });
 
       this.comm.addListener('decoding', (playerIndex, data) => {
-        this.broadcast('controller', null, 'decoding', playerIndex, data);
+        // send to the controller who are asking for something
+        this.monitorings[playerIndex].monitors.forEach((req, controller) => {
+          if (req.decoding || req.audio) {
+            this.send(controller, 'decoding', playerIndex, data);
+          }
+        });
 
         if (this.oscStreams) {
           const likelihoods = data.likelihoods.slice(0);
@@ -147,6 +166,17 @@ class ControllerExperience extends Experience {
           this.dispatch(action, this.clients);
           break;
         }
+
+        case 'unregister-player': {
+          const [player] = args;
+          const payload = { player: player.serialize() };
+
+          delete this.monitorings[player.index];
+
+          const action = { type: 'unregister-player', payload };
+          this.dispatch(action, this.clients);
+          break;
+        }
       }
     });
   }
@@ -158,6 +188,13 @@ class ControllerExperience extends Experience {
   }
 
   exit(client) {
+    // @todo
+    for (let i in this.monitorings) {
+      if (this.monitorings[i].monitors.has(client)) {
+        this.monitorings[i].monitors.delete(client);
+      }
+    }
+
     super.exit(client);
   }
 
@@ -246,8 +283,70 @@ class ControllerExperience extends Experience {
         case 'trigger-audio': {
           this.comm.emit('trigger-audio', action);
         }
+
+        case 'monitor': {
+          this.defineStreamsRouting(client, payload);
+        }
       }
     }
+  }
+
+  /**
+   * Define if a player should stream its sensors, and route them to the
+   * proper controller(s)
+   * @param {Object} controller - the controller which makes the request
+   * @param {Object} action - action descirbing the requested monitoring
+   */
+  defineStreamsRouting(controller, payload) {
+    const { uuid, name, value } = payload;
+    const player = appStore.players.get(uuid);
+
+    if (!this.monitorings[player.index]) {
+      this.monitorings[player.index] = {
+        sensors: false,
+        decoding: false,
+        monitors: new Map(),
+      };
+    }
+
+    const monitoringInfos = this.monitorings[player.index];
+
+    if (!monitoringInfos.monitors.has(controller)) {
+      monitoringInfos.monitors.set(controller, {});
+    }
+
+    const monitorDetails = monitoringInfos.monitors.get(controller);
+    monitorDetails[name] = value;
+
+    const currentlyStreamSensors = monitoringInfos.sensors;
+    const currentlyStreamDecoding = monitoringInfos.decoding;
+
+    let mustStreamSensors = false;
+    let mustStreamDecoding = false;
+
+    monitoringInfos.monitors.forEach((req, controller) => {
+      mustStreamSensors = mustStreamSensors || !!(req.audio) || !!(req.sensors);
+      mustStreamDecoding = mustStreamDecoding || !!(req.audio) || !!(req.decoding);
+    });
+
+    if (currentlyStreamSensors !== mustStreamSensors) {
+      appStore.updatePlayerParam(player, 'streams.sensors', mustStreamSensors);
+    }
+
+    if (currentlyStreamDecoding !== mustStreamDecoding) {
+      appStore.updatePlayerParam(player, 'streams.decoding', mustStreamDecoding);
+    }
+
+    monitoringInfos.sensors = mustStreamSensors;
+    monitoringInfos.decoding = mustStreamDecoding;
+
+    payload = {
+      monitorDetails: monitorDetails,
+      uuid: player.uuid,
+    };
+
+    const action = { type: 'monitor', payload };
+    this.dispatch(action, controller);
   }
 }
 

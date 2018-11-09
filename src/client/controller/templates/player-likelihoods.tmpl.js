@@ -1,5 +1,5 @@
 const playerLikelihoodsTmpl = `
-  <div class="close" data-name="streams.decoding"></div>
+  <div class="close" data-name="decoding"></div>
   <div class="canvas-container"></div>
 `;
 

@@ -21,6 +21,7 @@ class ControllerExperience extends Experience {
     this.config = config;
     this.clientPresets = clientPresets;
     this.projectPresets = projectPresets;
+    this.audioRendererHooks = {};
 
     this.dispatch = this.dispatch.bind(this);
     // define if we need the `rawSocket` service
@@ -44,8 +45,6 @@ class ControllerExperience extends Experience {
 
   start() {
     super.start();
-
-    this.audioRendererHook = new AudioRendererHook(this, this.config);
 
     // initialize the whole thing
     this.receive('dispatch', this.dispatch);
@@ -76,7 +75,7 @@ class ControllerExperience extends Experience {
     if (this.streams) {
       this.rawSocket.receive('sensors', data => {
         if (!this.sensorsBuffer) {
-          this.sensorsBuffer = new Float32Array(data.length - 1);
+          this.sensorsBuffer = new Float32Array(data.length);
         }
 
         const playerIndex = data[0];
@@ -86,14 +85,18 @@ class ControllerExperience extends Experience {
         }
 
         this.view.processSensorsStream(playerIndex, this.sensorsBuffer);
-        this.audioRendererHook.processSensorsData(playerIndex, this.sensorsBuffer);
+        if (this.audioRendererHooks[playerIndex]) {
+          this.audioRendererHooks[playerIndex].processSensorsData(playerIndex, this.sensorsBuffer);
+        }
       });
 
       this.receive('decoding', (playerIndex, data) => {
         const likelihoods = data.likelihoods;
         this.view.processLikelihoodsStream(playerIndex, likelihoods);
         //forward to audioRenderer
-        this.audioRendererHook.processDecoderOutput(playerIndex, data);
+        if (this.audioRendererHooks[playerIndex]) {
+          this.audioRendererHooks[playerIndex].processDecoderOutput(playerIndex, data);
+        }
       });
     }
 
@@ -182,6 +185,7 @@ class ControllerExperience extends Experience {
       }
       case 'remove-player-from-project': {
         const { player, project } = payload;
+        this.view.model.monitoring[player.index] = {};
         this.view.removePlayerFromProject(player, project);
         this.view.updateHeader();
         break;
@@ -200,6 +204,36 @@ class ControllerExperience extends Experience {
         });
       }
 
+      case 'monitor': {
+        const { uuid, monitorDetails } = payload;
+        const player = this.view.model.players.find(p => p.uuid === uuid);
+
+        this.view.model.monitoring[player.index] = monitorDetails;
+        this.view.updatePlayer(player);
+
+        // console.log(monitor)
+        if (monitorDetails.audio === true && !this.audioRendererHooks[player.index]) {
+
+          const project = this.view.model.projects.find(p => p.uuid = player.project.uuid);
+          const audioRenderer = new AudioRendererHook(this, player, project);
+          this.audioRendererHooks[player.index] = audioRenderer;
+
+        } else if (monitorDetails.audio === false && this.audioRendererHooks[player.index]) {
+
+          this.audioRendererHooks[player.index].stop();
+          delete this.audioRendererHooks[player.index];
+
+        }
+        break;
+      }
+
+      case 'unregister-player': {
+        const { player } = payload;
+        delete this.view.model.monitoring[player.index];
+
+        break;
+      }
+
       default: {
         throw new Error(`Invalid action ${type}`);
         break;
@@ -215,31 +249,37 @@ class ControllerExperience extends Experience {
       case 'update-player-param': {
         const player = payload;
 
-        if (this.audioRendererHook.player && player.uuid === this.audioRendererHook.player.uuid) {
-          this.audioRendererHook.updatePlayerParams(player);
+        if (this.audioRendererHooks[player.index]) {
+          this.audioRendererHooks[player.index].updatePlayerParams(player);
         }
         break;
       }
       case 'update-project-param': {
         const project = payload;
 
-        if (this.audioRendererHook.project && project.uuid === this.audioRendererHook.project.uuid) {
-          this.audioRendererHook.updateProject(project);
-        }
+        project.players.forEach(player => {
+          if (this.audioRendererHooks[player.index]) {
+            this.audioRendererHooks[player.index].updateProject(project);
+          }
+        });
         break;
       }
       case 'remove-player-from-project': {
         const { player, project } = payload;
 
-        if (this.audioRendererHook.player && player.uuid === this.audioRendererHook.player.uuid)
-          this.audioRendererHook.stop();
+        if (this.audioRendererHooks[player.index]) {
+          this.audioRendererHooks[player.index].stop();
+          delete this.audioRendererHooks[player.index];
+        }
+        break;
       }
       case 'update-audio-files': {
         const audioFiles = payload;
 
-        if (this.audioRendererHook.instrument) {
-          this.audioRendererHook.updateAudioFiles(audioFiles);
+        for (let i in this.audioRendererHooks) {
+          this.audioRendererHooks[i].updateAudioFiles(audioFiles);
         }
+        break;
       }
     }
   }

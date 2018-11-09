@@ -20,21 +20,29 @@ const playerParamsTmpl = `
 </select>
 
 <% if (Object.keys(player.preset).indexOf('streams') !== -1) { %>
-<div class="streams-params">
-  <label class="checkbox">
-    <% var checked = player.params.streams.sensors ? ' checked' : ''; %>
-    <input type="checkbox" class="player-param" data-name="streams.sensors"<%= checked %> />
-    <div class="checkbox-ui"></div>
-    <span>Stream sensors</span>
-  </label>
+  <div class="streams-params">
+    <% var monitorDetails = global.monitoring[player.index] || {}; %>
+    <label class="checkbox">
+      <% var checked = monitorDetails.sensors ? ' checked' : ''; %>
+      <input type="checkbox" class="player-monitor" data-name="sensors"<%= checked %> />
+      <div class="checkbox-ui"></div>
+      <span>Display sensors</span>
+    </label>
 
-  <label class="checkbox">
-    <% var checked = player.params.streams.decoding ? ' checked' : ''; %>
-    <input type="checkbox" class="player-param" data-name="streams.decoding"<%= checked %> />
-    <div class="checkbox-ui"></div>
-    <span>Stream decoding</span>
-  </label>
-</div>
+    <label class="checkbox">
+      <% var checked = monitorDetails.decoding ? ' checked' : ''; %>
+      <input type="checkbox" class="player-monitor" data-name="decoding"<%= checked %> />
+      <div class="checkbox-ui"></div>
+      <span>Display decoding</span>
+    </label>
+
+    <label class="checkbox">
+      <% var checked = monitorDetails.audio ? ' checked' : ''; %>
+      <input type="checkbox" class="player-monitor" data-name="audio"<%= checked %> />
+      <div class="checkbox-ui"></div>
+      <span>Duplicate audio</span>
+    </label>
+  </div>
 <% } %>
 
 <div class="audio-params">

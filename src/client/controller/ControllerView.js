@@ -32,6 +32,8 @@ function createDOM(tmplFunction, data) {
 }
 
 const model = {
+  players: [],
+  monitoring: {},
   projects: [],
   projectsOverview: [],
   projectPresets: [],
@@ -272,7 +274,7 @@ class ControllerView extends View {
         this.request('update-player-param', { uuid, name, value });
       },
       // player params / slider
-      // @todo - these have bad behaviors due to rendering
+      // @todo - these have bad behaviors due to rendering (hopefull fix with real view system)
       'input .player input[type=range].player-param': e => {
         e.preventDefault();
         const $input = e.target;
@@ -283,7 +285,6 @@ class ControllerView extends View {
 
         this.request('update-player-param', { uuid, name, value });
       },
-
       // player params / buttons
       'click .player button.player-param': e => {
         e.preventDefault();
@@ -307,25 +308,36 @@ class ControllerView extends View {
         this.request('trigger-audio', { uuid, kind, label });
       },
 
+
+      // monitoring
+      'click .player input[type=checkbox].player-monitor': e => {
+        e.preventDefault();
+        const $input = e.target;
+        const $player = $input.closest('.player');
+        const uuid = $player.dataset.uuid;
+        const name = $input.dataset.name;
+        const value = !($input.hasAttribute('checked'));
+
+        this.request('monitor', { uuid, name, value });
+      },
+
       'click .player .stream-display .close': e => {
         e.preventDefault();
         const $btn = e.target;
         const $player = $btn.closest('.player');
         const uuid = $player.dataset.uuid;
         const index = parseInt($player.dataset.index, 10);
-        const paramName = $btn.dataset.name;
+        const name = $btn.dataset.name;
 
-        this.request('update-player-param', {
-          uuid: uuid,
-          name: paramName,
-          value: false,
-        });
-
-        if (paramName === 'streams.sensors') {
-          this._deleteSensorsStream(uuid, index);
-        } else if (paramName === 'streams.decoding') {
-          this._deleteLikelihoodsStream(uuid, index);
-        }
+        this.request('monitor', { uuid, name, value: false });
+        // @note - ugly but...
+        setTimeout(() => {
+          if (name === 'sensors') {
+            this._deleteSensorsStream(uuid, index);
+          } else if (name === 'decoding') {
+            this._deleteLikelihoodsStream(uuid, index);
+          }
+        }, 300);
       }
     });
   }
@@ -335,8 +347,6 @@ class ControllerView extends View {
 
     this.$header = this.$el.querySelector('#header');
     this.$projects = this.$el.querySelector('#projects');
-
-    // this.updateHeader();
   }
 
   onResize(width, height, orientation) {}
@@ -374,10 +384,14 @@ class ControllerView extends View {
     }
   }
 
-  updateProject(project) {
+  _updateProjectReference(project) {
     // update project reference
     const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
     this.model.projects[projectIndex] = project;
+  }
+
+  updateProject(project) {
+    this._updateProjectReference(project);
 
     // update project name
     const nameSelector = `#_${project.uuid} .header .name`;
@@ -397,9 +411,9 @@ class ControllerView extends View {
   }
 
   addPlayerToProject(player, project) {
-    // update project reference
-    const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
-    this.model.projects[projectIndex] = project;
+    this._updateProjectReference(project);
+    this.model.players.push(player);
+    // this.model.playersMonitoring[player.index] = {};
 
     const data = { player: player, global: this.model };
     const $player = createDOM(this.playerTmpl, data);
@@ -411,14 +425,16 @@ class ControllerView extends View {
   }
 
   removePlayerFromProject(player, project) {
-    const projectIndex = this.model.projects.findIndex(p => p.uuid === project.uuid);
-    this.model.projects[projectIndex] = project;
+    this._updateProjectReference(project);
+    const index = this.model.players.findIndex(p => p.uuid === player.uuid);
+    this.model.players.splice(index, 1);
 
     const selector = `#_${player.uuid}`;
     const $player = this.$el.querySelector(selector);
 
-    if (this.sensorsDisplayCollection.has(player.index))
+    if (this.sensorsDisplayCollection.has(player.index)) {
       this._deleteSensorsStream(player.uuid, player.index);
+    }
 
     $player.remove();
   }
@@ -435,9 +451,13 @@ class ControllerView extends View {
   }
 
   _updateSensorsStream(player) {
+    if (!this.model.monitoring[player.index]) {
+      return;
+    }
+
     const sensorsDisplay = this.sensorsDisplayCollection.get(player.index);
 
-    if (player.params.streams.sensors === true) {
+    if (this.model.monitoring[player.index].sensors === true) {
       if (sensorsDisplay && sensorsDisplay.isStreaming === false) {
         sensorsDisplay.reset();
         sensorsDisplay.isStreaming = true;
@@ -450,7 +470,7 @@ class ControllerView extends View {
         this.sensorsDisplayCollection.set(player.index, sensorsDisplay);
       }
     } else if (
-      player.params.streams.sensors === false &&
+      !!(this.model.monitoring[player.index].sensors) === false &&
       sensorsDisplay &&
       sensorsDisplay.isStreaming === true
     ) {
@@ -469,16 +489,23 @@ class ControllerView extends View {
   }
 
   processSensorsStream(playerIndex, data) {
-    const sensorsDisplay = this.sensorsDisplayCollection.get(playerIndex);
-    // as everything is async, we cannot garantee that the chain still exists
-    if (sensorsDisplay)
-      sensorsDisplay.process(data);
+    if (this.model.monitoring[playerIndex].sensors) {
+      const sensorsDisplay = this.sensorsDisplayCollection.get(playerIndex);
+      // as everything is async, we cannot garantee that the chain still exists
+      if (sensorsDisplay) {
+        sensorsDisplay.process(data);
+      }
+    }
   }
 
   _updateLikelihoodsStream(player) {
+    if (!this.model.monitoring[player.index]) {
+      return;
+    }
+
     const likelihoodsDisplay = this.likelihoodsDisplayCollection.get(player.index);
 
-    if (player.params.streams.decoding === true) {
+    if (this.model.monitoring[player.index].decoding === true) {
       if (likelihoodsDisplay && likelihoodsDisplay.isStreaming === false) {
         likelihoodsDisplay.reset();
         likelihoodsDisplay.isStreaming = true;
@@ -491,7 +518,7 @@ class ControllerView extends View {
         this.likelihoodsDisplayCollection.set(player.index, likelihoodsDisplay);
       }
     } else if (
-      player.params.streams.decoding === false &&
+      !!(this.model.monitoring[player.index].decoding) === false &&
       likelihoodsDisplay &&
       likelihoodsDisplay.isStreaming === true
     ) {
@@ -509,10 +536,13 @@ class ControllerView extends View {
   }
 
   processLikelihoodsStream(playerIndex, data) {
-    const likelihoodsDisplay = this.likelihoodsDisplayCollection.get(playerIndex);
+    if (this.model.monitoring[playerIndex].decoding) {
+      const likelihoodsDisplay = this.likelihoodsDisplayCollection.get(playerIndex);
 
-    if (likelihoodsDisplay)
-      likelihoodsDisplay.process(data);
+      if (likelihoodsDisplay) {
+        likelihoodsDisplay.process(data);
+      }
+    }
   }
 
 }

@@ -4,19 +4,9 @@ import Instrument from '../shared/modules/audio-renderer/Instrument';
  * mimic AudioRendererModule behavior
  */
 class AudioRendererHook {
-  constructor(experience, config) {
+  constructor(experience, player, project) {
+    console.log(project);
     this.experience = experience;
-    this.config = config;
-
-    this.player = null;
-    this.project = null;
-  }
-
-  init(player, project) {
-    if (this.player) {
-      this.stop();
-    }
-
     this.player = player;
     this.project = project;
 
@@ -51,38 +41,29 @@ class AudioRendererHook {
   }
 
   updatePlayerParams(player) {
-    if (this.instrument) {
-      this.instrument.updateMappings(player.params.mappings);
-    }
+    this.instrument.updateMappings(player.params.mappings);
   }
 
   updateProject(project) {
     const model = project.model;
     const labels = model.payload.models.map(mod => mod.label);
 
-    if (this.instrument)
-      this.instrument.setLabels(labels);
+    this.instrument.setLabels(labels);
   }
 
   updateAudioFiles(audioFiles) {
     this.experience.audioBufferManager.load({ 'labels': audioFiles })
       .then(buffers => {
-        if (this.instrument) {
-          this.instrument.setBuffers(buffers['labels']);
-        }
+        this.instrument.setBuffers(buffers['labels']);
       });
   }
 
   processSensorsData(clientIndex, data) {
-    if (this.instrument && this.player && clientIndex === this.player.index) {
-      this.instrument.processSensorsData(data);
-    }
+    this.instrument.processSensorsData(data);
   }
 
   processDecoderOutput(clientIndex, data) {
-    if (this.instrument && this.player && clientIndex === this.player.index) {
-      this.instrument.processDecoderOutput(data);
-    }
+    this.instrument.processDecoderOutput(data);
   }
 }
 

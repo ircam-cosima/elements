@@ -117,6 +117,8 @@ const appStore = {
 
     this.removePlayerFromProject(player, project);
     this.players.remove(player);
+
+    this.emit('unregister-player', player);
   },
 
   /** Used by the `ProjectManager` service */
@@ -135,6 +137,7 @@ const appStore = {
     if (project !== null) {
       project.removePlayer(player);
       player.params.mappings = {}; // clean mappings for next project
+
       this.emit('remove-player-from-project', player, project);
     }
   },
