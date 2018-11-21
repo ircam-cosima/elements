@@ -9,7 +9,7 @@
         "volume": 0
       },
       "mappings": {
-        "gain": false,
+        "gain": true,
         "bandpass": false
       },
       "record": {

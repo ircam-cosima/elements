@@ -202,6 +202,7 @@ class ControllerExperience extends Experience {
             this.view.updatePlayer(player);
           });
         });
+        break;
       }
 
       case 'monitor': {
@@ -211,7 +212,6 @@ class ControllerExperience extends Experience {
         this.view.model.monitoring[player.index] = monitorDetails;
         this.view.updatePlayer(player);
 
-        // console.log(monitor)
         if (monitorDetails.audio === true && !this.audioRendererHooks[player.index]) {
 
           const project = this.view.model.projects.find(p => p.uuid = player.project.uuid);

@@ -57,41 +57,55 @@ class ControllerExperience extends Experience {
     if (this.streams) {
       this.comm.addListener('sensors', data => {
         const playerIndex = data[0];
-        // send to the controller who are asking for something
-        this.monitorings[playerIndex].monitors.forEach((req, controller) => {
-          if (req.sensors || req.audio) {
-            this.rawSocket.send(controller, 'sensors', data);
-          }
-        });
 
-        if (this.oscStreams) {
-          this.osc.send('/sensors', Array.from(data));
+        try {
+          // send to the controller who are asking for something
+          this.monitorings[playerIndex].monitors.forEach((req, controller) => {
+            if (req.sensors || req.audio) {
+              this.rawSocket.send(controller, 'sensors', data);
+            }
+          });
+
+          if (this.oscStreams) {
+            this.osc.send('/sensors', Array.from(data));
+          }
+        } catch(err) {
+          console.log('error sensors stream');
+          console.log(playerIndex);
+          console.error(err.stack);
         }
       });
 
       this.comm.addListener('decoding', (playerIndex, data) => {
-        // send to the controller who are asking for something
-        this.monitorings[playerIndex].monitors.forEach((req, controller) => {
-          if (req.decoding || req.audio) {
-            this.send(controller, 'decoding', playerIndex, data);
-          }
-        });
+        try {
+          // send to the controller who are asking for something
+          this.monitorings[playerIndex].monitors.forEach((req, controller) => {
+            if (req.decoding || req.audio) {
+              this.send(controller, 'decoding', playerIndex, data);
+            }
+          });
 
-        if (this.oscStreams) {
-          const likelihoods = data.likelihoods.slice(0);
-          likelihoods.unshift(playerIndex);
-          this.osc.send('/likelihoods', likelihoods);
+          if (this.oscStreams) {
+            const likelihoods = data.likelihoods.slice(0);
+            likelihoods.unshift(playerIndex);
+            this.osc.send('/likelihoods', likelihoods);
 
-          if (data.timeProgressions) {
-            const timeProgressions = data.timeProgressions.slice(0);
-            timeProgressions.unshift(playerIndex);
-            this.osc.send('/timeProgressions', timeProgressions);
+            if (data.timeProgressions) {
+              const timeProgressions = data.timeProgressions.slice(0);
+              timeProgressions.unshift(playerIndex);
+              this.osc.send('/timeProgressions', timeProgressions);
+            }
           }
+        } catch(err) {
+          console.log('error sensors stream');
+          console.log(playerIndex);
+          console.error(err.stack);
         }
       });
     }
 
     appStore.addListener((channel, ...args) => {
+
       switch (channel) {
         case 'add-player-to-project':
         case 'remove-player-from-project': {
@@ -282,10 +296,21 @@ class ControllerExperience extends Experience {
         }
         case 'trigger-audio': {
           this.comm.emit('trigger-audio', action);
+          break;
         }
 
         case 'monitor': {
           this.defineStreamsRouting(client, payload);
+          break;
+        }
+
+        case 'mute-all': {
+          const mute = payload.mute;
+          console.log('mute all', mute);
+
+          appStore.players.forEach(player => {
+            appStore.updatePlayerParam(player, 'audioRendering.mute', mute);
+          });
         }
       }
     }

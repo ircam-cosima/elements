@@ -40,6 +40,7 @@ const model = {
   audioFiles: {},
   mlPresets: mlPresets,
   colors: colors,
+  muteAll: false,
 };
 
 class ControllerView extends View {
@@ -308,7 +309,16 @@ class ControllerView extends View {
         this.request('trigger-audio', { uuid, kind, label });
       },
 
+      // mute all
+      'click #header input[type=checkbox].mute-all': e => {
+        // e.preventDefault();
+        const $input = e.target;
+        const value = !($input.hasAttribute('checked'));
 
+        this.model.muteAll = value;
+        this.updateHeader();
+        this.request('mute-all', { mute: value });
+      },
       // monitoring
       'click .player input[type=checkbox].player-monitor': e => {
         e.preventDefault();
@@ -359,11 +369,13 @@ class ControllerView extends View {
       players: players,
       projectPresets: this.model.projectPresets,
       projectsOverview: this.model.projectsOverview,
+      muteAll: this.model.muteAll,
     });
   }
 
   addProject(project) {
     this.model.projects.push(project);
+    // this.model.projects.sort(); // doesn't work because the DOM rendering is too dumb
 
     const projectData = { project: project, global: this.model };
     const $project = createDOM(this.projectTmpl, projectData);

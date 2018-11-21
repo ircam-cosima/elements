@@ -46,7 +46,6 @@ const playerParamsTmpl = `
 <% } %>
 
 <div class="audio-params">
-
   <label class="checkbox">
     <% var checked = player.params.audioRendering.mute ? ' checked' : ''; %>
     <input type="checkbox" class="player-param" data-name="audioRendering.mute"<%= checked %> />

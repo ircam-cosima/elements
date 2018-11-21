@@ -19,6 +19,7 @@ const headerTmpl = `
 <div>
   <h4>Move all players to project</h4>
   <select class="move-players-to-project-target input-large">
+    <option value="">select a project and trigger</option>
   <% projectsOverview.forEach(function(overview) { %>
     <option value="<%= overview.uuid %>"><%= overview.name %></option>
   <% }); %>
@@ -26,17 +27,12 @@ const headerTmpl = `
   <button class="btn normal move-players-to-project">Trigger</button>
 </div>
 
-<% if (players.length > 0) { %>
-<div>
-  <h4>Duplicate client audio</h4>
-  <select id="duplicate-audio" class="input-large">
-    <option value="">none</option>
-    <% players.forEach(function(player) { %>
-    <option value="<%= player.uuid %>"><%= player.type %> <%= player.index %></option>
-    <% }); %>
-  </select>
-</div>
-<% } %>
+<label class="param checkbox">
+  <% var checked = muteAll === true ? ' checked' : ''; %>
+  <input type="checkbox" class="mute-all" <%= checked %> />
+  <div class="checkbox-ui"></div>
+  <span>Mute All</span>
+</label>
 `;
 
 export default headerTmpl;
