@@ -95,7 +95,7 @@ const projectPresets = {
         // enabled: true,
         payload: {
           movingAverage: new MovingAverage(20),
-          normDegree: 1/360,
+          normDegree: 1 / 360 * 1000,
           // Q:
           minCutoff: 100,
           maxCutoff: 6000,
