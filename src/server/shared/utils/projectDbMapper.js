@@ -63,9 +63,9 @@ const projectStore = {
     });
   },
 
-  persist(projectData) {
+  persist(project) {
     return new Promise((resolve, reject) => {
-      const uuid = projectData.uuid;
+      const uuid = project.uuid;
 
       if (!uuid) {
         throw new Error(`projectDbMapper: Invalid project "${project.name}"`);
@@ -74,10 +74,10 @@ const projectStore = {
       const filename = path.join(this.dbPath, `${uuid}.json`);
 
       try {
-        const json = JSON.stringify(projectData, null, 2);
+        const json = JSON.stringify(project, null, 2);
         fs.writeFileSync(filename, json, 'utf8');
 
-        resolve(projectData);
+        resolve(project);
       } catch(err) {
         console.error(chalk.yellow(`[Elements - db] Error persisting project "${project.name}"`));
       }
