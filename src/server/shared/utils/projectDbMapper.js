@@ -30,34 +30,27 @@ const projectStore = {
           throw err;
         }
 
-        const promises = [];
+        const results = [];
 
-        files.forEach(basename => {
+        files.forEach((basename, index) => {
           if (path.extname(basename) === '.json') {
             const filename = path.join(this.dbPath, basename);
             const stats = fs.statSync(filename);
             // read one file
             if (!stats.isDirectory()) {
-              const promise = new Promise((resolve, reject) => {
-                try {
-                  const data = fs.readFileSync(filename, 'utf8');
-                  const projectData = JSON.parse(data);
-                  resolve(projectData);
-                } catch(err) {
-                  console.error(chalk.yellow(`[Elements - db] Error reading project "${filename}"`));
-                  resolve(null);
-                }
-              });
-
-              promises.push(promise);
+              try {
+                const data = fs.readFileSync(filename, 'utf8');
+                const projectData = JSON.parse(data);
+                results.push(projectData);
+              } catch(err) {
+                console.error(chalk.yellow(`[Elements - db] Error reading project "${filename}"`));
+              }
             }
           }
-        });
 
-        Promise.all(promises).then(results => {
-          // remove files that may have been corrupted (allow the server to start)
-          results = results.filter(r => r !== null);
-          resolve(results)
+          if (index === files.length - 1) {
+            resolve(results);
+          }
         });
       });
     });

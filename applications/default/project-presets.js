@@ -59,7 +59,7 @@ const projectPresets = {
           const avg = payload.movingAverage.process(energy);
           const pow = Math.pow(avg, 1/1);
 
-          gain.gain = pow;
+          gain.gain = pow * 500;
         }
       },
       // {
@@ -98,7 +98,7 @@ const projectPresets = {
           normDegree: 1 / 360 * 1000,
           // Q:
           minCutoff: 100,
-          maxCutoff: 6000,
+          maxCutoff: 2000,
         },
         /**
          * data is an array that contains:
@@ -143,7 +143,8 @@ const projectPresets = {
 
 // @important - don't remove that
 const isNode = new Function('try {return this===global;}catch(e){return false;}');
-if (!isNode())
+if (!isNode()) {
   window.projectPresets = projectPresets;
+}
 
 export default projectPresets;
