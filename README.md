@@ -1,6 +1,6 @@
 # COMO - Elements
 
-##  CoMo allows for creating sound-movement relationshiops using mobiles.
+##  CoMo Elements allows for creating sound-movement relationshiops using mobiles.
 
 CoMo can be seen as an distributed and interactive machine learning system, using web technologies. It is based on a software ecosystem developed at IRCAM-STMS, using XMM, Collective Soundworks, waves.js. The client side allows for recording gestures, recognition, and plays related sounds. The server side performs the training and stores the statistical models.
 
@@ -15,7 +15,15 @@ Joseph Larralde, Benjamin Matuszewski, Norbert Schnell, Frederic Bevilacqua (coo
 XMM has been developed by Jules Françoise
 Thanks to Roland Cahen, Xavier Boissarie, Marion Voillot, Olivier Houix, Anne Dubos, Jan Schacher, Joël Chevrier, Jean-François Jégo, Andrea Cera, Michelle Agnes Magalheas, Bertha Bermudez
 
-## Launch the server on port 80 (default)
+## Installation and running
+
+Install Node.js https://nodejs.org/en/
+
+On a terminal, in the Elements folder
+
+`npm install`
+
+Then launch the server on port 80 (default)
 
 `npm run como`
 
