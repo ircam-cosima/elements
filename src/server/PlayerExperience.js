@@ -11,6 +11,7 @@ class PlayerExperience extends Experience {
 
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.checkin = this.require('checkin');
+    this.syncScheduler = this.require('sync-scheduler');
 
     // define if we need the `rawSocket` service
     this.streams = false;

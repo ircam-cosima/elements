@@ -17,15 +17,13 @@ class PlayerExperience extends soundworks.Experience {
 
     this.platform = this.require('platform', { features: ['web-audio', 'mobile-device'] });
     this.checkin = this.require('checkin');
-    // this.sharedParams = this.require('shared-params');
+    this.syncScheduler = this.require('sync-scheduler');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: config.assetsDomain,
-      // should be loaded when the project is chosen
-      // files: { triggers, labels, uiSounds },
       files: {
         uiSounds,
-        labels: audioFiles
+        labels: audioFiles,
       },
     });
 
@@ -93,14 +91,15 @@ class PlayerExperience extends soundworks.Experience {
 
     Promise.all(initPromises)
       .then(() => {
-        // @warning - render only 1 frame over 4
+        // @warning - render only 1 frame over 8
         let flag = 0;
 
         this.view.setPreRender((ctx, dt, canvasWidth, canvasHeight) => {
           flag = (flag + 1) % 8;
 
-          if (flag !== 0)
+          if (flag !== 0) {
             return;
+          }
 
           ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         });

@@ -9,10 +9,10 @@ class ControllerExperience extends Experience {
 
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.audioBufferManager = this.require('audio-buffer-manager', {
-      files: {
-        labels: audioFiles,
-      },
+      assetsDomain: config.assetsDomain,
+      files: { labels: audioFiles },
     });
+    this.syncScheduler = this.require('sync-scheduler');
 
     if (config.env === 'production') {
       this.auth = this.require('auth');

@@ -110,9 +110,10 @@ class AudioRendererModule extends BaseModule {
         const synth = projectPreset.synth;
         const effects = projectPreset.effects;
         const mappings = projectPreset.mappings;
+        const syncScheduler = this.experience.syncScheduler;
         const audioOutput = this.experience.getAudioOutput();
 
-        this.instrument = new Instrument(synth, effects, mappings);
+        this.instrument = new Instrument(synth, effects, mappings, syncScheduler);
         this.instrument.setLabels(labels);
         this.instrument.updateMappings(mappingParams);
         this.instrument.connect(audioOutput);

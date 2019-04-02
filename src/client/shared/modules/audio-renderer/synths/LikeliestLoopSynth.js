@@ -55,7 +55,7 @@ class LoopSynth {
     this.current.label = label;
   }
 
-  stop(callback = null) {
+  stop() {
     if (this.current.src) {
       const { src, env } = this.current;
       const now = audioContext.currentTime;
@@ -68,11 +68,6 @@ class LoopSynth {
 
       this.current.src = null;
       this.current.env = null;
-
-      if (callback)
-        src.onend = callback;
-    } else if (callback !== null) {
-        callback();
     }
   }
 }

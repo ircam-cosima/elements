@@ -3,9 +3,15 @@ import MovingAverage from '../shared/utils/MovingAverage';
 const projectPresets = {
   'default-mapping': {
     synth: {
-      type: 'likeliest-loop', // 'likeliest-loop', 'likeliest-granular', 'probabilistic-granular'
+      // 'likeliest-loop',
+      // 'likeliest-granular',
+      // 'probabilistic-granular'
+      // type: 'likeliest-loop',
+      type: 'likeliest-synced',
       params: {
         fadeDuration: 0.5,
+        period: 2, //
+        origin: 'absolute', // relative to the first recognition
       },
     },
     effects: [

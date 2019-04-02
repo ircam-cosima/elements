@@ -3,8 +3,8 @@ import synthFactory from './synths/synthFactory';
 import effectFactory from './effects/effectFactory';
 
 class Instrument {
-  constructor(synth, effects, mappings) {
-    this.synth = synthFactory(synth);
+  constructor(synth, effects, mappings, syncScheduler) {
+    this.synth = synthFactory(synth, syncScheduler);
     this.effects = effects.map(config => effectFactory(config));
 
     this.mappings = mappings;
@@ -69,10 +69,11 @@ class Instrument {
       // get the stack we are addressing
       let enabledMappingStack = [];
 
-      if (mapping.input === 'sensors')
+      if (mapping.input === 'sensors') {
         enabledMappingStack = this.enabledSensorsMappings;
-      else if (mapping.input === 'decoding')
+      } else if (mapping.input === 'decoding') {
         enabledMappingStack = this.enabledDecoderMappings;
+      }
 
       const index = enabledMappingStack.findIndex(entry => entry.mapping === mapping);
 
@@ -82,13 +83,15 @@ class Instrument {
         mapping.targets.forEach(targetId => {
           let target = null;
 
-          if (targetId === 'synth')
+          if (targetId === 'synth') {
             target = this.synth;
-          else
+          } else {
             target = this.effects.find(effect => effect.id === targetId);
+          }
 
-          if (target)
+          if (target) {
             targets.push(target);
+          }
         });
 
         enabledMappingStack.push({ mapping, targets });

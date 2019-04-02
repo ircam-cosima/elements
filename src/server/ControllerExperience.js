@@ -6,6 +6,8 @@ class ControllerExperience extends Experience {
     super(clientType);
 
     this.audioBufferManager = this.require('audio-buffer-manager');
+    this.syncScheduler = this.require('sync-scheduler');
+
     if (config.env === 'production') {
       this.auth = this.require('auth');
     }
