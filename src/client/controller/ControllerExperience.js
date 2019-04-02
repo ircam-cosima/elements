@@ -67,11 +67,6 @@ class ControllerExperience extends Experience {
       this.request(action);
     };
 
-    // request local action
-    this.view.requestLocal = (type, payload) => {
-      this.requestLocal({ type, payload });
-    };
-
     if (this.streams) {
       this.rawSocket.receive('sensors', data => {
         if (!this.sensorsBuffer) {
@@ -105,24 +100,6 @@ class ControllerExperience extends Experience {
 
   stop() {}
 
-  // action that shall not be dispatched to the server
-  requestLocal(action) {
-    const { type, payload } = action;
-
-    // handle stop duplication
-    switch (type) {
-      case 'duplicate-audio': {
-        const { player, project } = payload;
-        this.audioRendererHook.init(player, project);
-        break;
-      }
-      case 'stop-duplicate-audio': {
-        this.audioRendererHook.stop();
-        break;
-      }
-    }
-  }
-
   request(action) {
     this.send('request', action);
   }
@@ -132,19 +109,19 @@ class ControllerExperience extends Experience {
 
     switch (type) {
       case 'init': {
-          const { projectsDetails, projectsOverview } = payload;
+        const { projectsDetails, projectsOverview } = payload;
 
-          this.view.model.projectsOverview = projectsOverview;
+        this.view.model.projectsOverview = projectsOverview;
 
-          projectsDetails.forEach(project => {
-            this.view.addProject(project);
+        projectsDetails.forEach(project => {
+          this.view.addProject(project);
 
-            project.players.forEach(player => {
-              this.view.addPlayerToProject(player, project.uuid);
-            });
+          project.players.forEach(player => {
+            this.view.addPlayerToProject(player, project.uuid);
           });
+        });
 
-          this.view.updateHeader();
+        this.view.updateHeader();
         break;
       }
       case 'list-project': {
@@ -191,6 +168,7 @@ class ControllerExperience extends Experience {
         break;
       }
       case 'update-player-param': {
+
         const player = payload;
         this.view.updatePlayer(player);
         break;

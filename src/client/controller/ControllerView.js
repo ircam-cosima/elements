@@ -98,51 +98,6 @@ class ControllerView extends View {
         this.request('move-all-players-to-project', { uuid })
       },
 
-      'change #header #duplicate-audio': e => {
-        e.preventDefault();
-        const $select = e.target;
-        const uuid = $select.value;
-
-        // @todo - handle stop duplication
-        if (uuid === '') {
-          this.requestLocal('stop-duplicate-audio', {});
-        } else {
-          // enable streaming for this client
-          const streamSensors = {
-            uuid: uuid,
-            name: 'streams.sensors',
-            value: true,
-          };
-
-          this.request('update-player-param', streamSensors);
-
-          const streamDecoding = {
-            uuid: uuid,
-            name: 'streams.decoding',
-            value: true,
-          };
-
-          this.request('update-player-param', streamDecoding);
-
-          // find player and project -> this is ugly and should be maintained in the experience
-          const projects = this.model.projects;
-          let player = null;
-          let project = null;
-
-          projects.forEach(proj => {
-            proj.players.forEach(play => {
-              if (play.uuid === uuid) {
-                player = play;
-                project = proj;
-              }
-            });
-          });
-
-          // request synth and mapping duplication
-          this.requestLocal('duplicate-audio', { player, project });
-        }
-      },
-
       'click .project .export-project': e => {
         e.preventDefault();
         const $btn = e.target;
@@ -460,6 +415,10 @@ class ControllerView extends View {
 
     this._updateSensorsStream(player);
     this._updateLikelihoodsStream(player);
+
+    // update player instance in this.model
+    const index = this.model.players.findIndex(p => p.uuid === player.uuid);
+    this.model.players[index] = player;
   }
 
   _updateSensorsStream(player) {

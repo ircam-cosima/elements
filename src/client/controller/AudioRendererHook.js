@@ -5,7 +5,6 @@ import Instrument from '../shared/modules/audio-renderer/Instrument';
  */
 class AudioRendererHook {
   constructor(experience, player, project) {
-    console.log(project);
     this.experience = experience;
     this.player = player;
     this.project = project;
