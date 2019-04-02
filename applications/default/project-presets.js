@@ -10,7 +10,7 @@ const projectPresets = {
       type: 'likeliest-synced',
       params: {
         fadeDuration: 0.5,
-        period: 2, //
+        period: Infinity, //
         origin: 'absolute', // relative to the first recognition
       },
     },

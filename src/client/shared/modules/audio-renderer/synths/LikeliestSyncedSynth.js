@@ -38,8 +38,11 @@ class SyncSynth extends TimeEngine {
 
   stop() {
     const now = audioContext.currentTime;
+    const endTime = now + this.fadeDuration;
     this.env.gain.setValueAtTime(1, now);
-    this.env.gain.linearRampToValueAtTime(0, now + this.fadeDuration);
+    this.env.gain.linearRampToValueAtTime(0, endTime);
+    // clean existing sources
+    this.sources.forEach(src => src.stop(endTime));
 
     this.syncScheduler.remove(this);
   }
@@ -50,13 +53,15 @@ class SyncSynth extends TimeEngine {
     const offset = relSyncTime % this.period;
     const src = audioContext.createBufferSource();
 
-    console.log(syncTime, offset);
-
     src.buffer = this.buffer;
     src.connect(this.env);
     src.start(audioTime, offset);
+    src.onended = () => this.sources.delete(src);
 
-    return (Math.floor(relSyncTime / this.period) + 1) * this.period;
+    this.sources.add(src);
+
+    const nextTime = (Math.floor(relSyncTime / this.period) + 1) * this.period;
+    return nextTime;
   }
 }
 
@@ -106,15 +111,16 @@ class LikeliestSyncedSynth {
         this.synth.stop();
       }
 
-      if (this.config.origin === 'absolute') {
-        console.log(this.buffers);
-        const index = client.index % this.buffers[likeliest].length;
-        const buffer = this.buffers[likeliest][index];
-        const origin = 0;
+      if (likeliest !== null) {
+        if (this.config.origin === 'absolute') {
+          const index = client.index % this.buffers[likeliest].length;
+          const buffer = this.buffers[likeliest][index];
+          const origin = 0;
 
-        this.synth = new SyncSynth(this.syncScheduler, buffer, this.config);
-        this.synth.connect(this.bus);
-        this.synth.start(origin);
+          this.synth = new SyncSynth(this.syncScheduler, buffer, this.config);
+          this.synth.connect(this.bus);
+          this.synth.start(origin);
+        }
       }
     }
   }
