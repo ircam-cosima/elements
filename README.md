@@ -2,7 +2,7 @@
 
 ##  CoMo Elements allows for creating sound-movement relationshiops using mobiles.
 
-CoMo can be seen as an distributed and interactive machine learning system, using web technologies. It is based on a software ecosystem developed at IRCAM-STMS, using XMM, Collective Soundworks, waves.js. The client side allows for recording gestures, recognition, and plays related sounds. The server side performs the training and stores the statistical models.
+CoMo can be seen as a distributed and interactive machine learning system, using web technologies. It is based on a software ecosystem developed at IRCAM-STMS, using `XMM`, `soundworks`, `waves.js`. The client side allows for recording gestures, recognition, and plays related sounds. The server side performs the training and stores the statistical models.
 
 The server also output the data using OSC (OpenSoundControl), which allows to connect the CoMo-Elements to Max, Pd, Processing, openFrameworks, etc. on the local server.
 
@@ -33,6 +33,7 @@ Then launch the server on port 80 (default)
 
 ### Entities
 
+```
 Player {
   uuid: soundworks.client.uuid
   index: soundworks.client.index
@@ -50,9 +51,6 @@ Player {
     sensors: {
       stream: Boolean,
     }
-    <!-- ui: {
-      // to be defined
-    } -->
   }
 }
 
@@ -78,13 +76,9 @@ Project {
   trainingData: mano.TrainingData
   processor: mano.XmmProcessor
 }
+```
 
 ## Player Modules
-
-CommonViews
-
-
-modules
 
 ProjectChooser
   - switch project
@@ -107,30 +101,3 @@ AudioControl
 GUIs
   - background-color renderer
   - likelihoods renderer
-
-
-## notes
-
-- remove designer
-  use 127.0.0.1/#designer and a set of clients presets
-
-- remove ProjectManager service
-
-
-
-
-
-
-## Modules
-
-audio-control
-- user has control audio parameters (mute, intensity)
-
-
-
-
-
-
-
-
-
