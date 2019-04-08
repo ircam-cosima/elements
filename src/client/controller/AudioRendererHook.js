@@ -20,9 +20,10 @@ class AudioRendererHook {
     const synth = projectPreset.synth;
     const effects = projectPreset.effects;
     const mappings = projectPreset.mappings;
+    const syncScheduler = this.experience.syncScheduler;
     const audioOutput = this.experience.getAudioOutput();
 
-    const instrument = new Instrument(synth, effects, mappings);
+    const instrument = new Instrument(synth, effects, mappings, syncScheduler);
     instrument.setLabels(labels);
     instrument.updateMappings(mappingParams);
     instrument.connect(audioOutput);

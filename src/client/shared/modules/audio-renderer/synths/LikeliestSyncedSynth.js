@@ -16,7 +16,7 @@ class SyncSynth extends TimeEngine {
       this.period = config.period;
     }
 
-    this.fadeDuration = config.fadeDuration;
+    this.fadeDuration = config.fadeDuration || 0.05;
 
     this.env = audioContext.createGain();
     this.sources = new Set();
@@ -33,6 +33,8 @@ class SyncSynth extends TimeEngine {
     this.env.gain.setValueAtTime(0, now);
     this.env.gain.linearRampToValueAtTime(1, now + this.fadeDuration);
 
+    this.computeOffset = true;
+
     this.syncScheduler.add(this);
   }
 
@@ -48,9 +50,16 @@ class SyncSynth extends TimeEngine {
   }
 
   advanceTime(syncTime) {
+    // the first time advanceTime is called we need to calculate an offset in the buffer
     const relSyncTime = syncTime - this.origin;
     const audioTime = this.syncScheduler.audioTime;
-    const offset = relSyncTime % this.period;
+    let offset = 0;
+
+    if (this.computeOffset) {
+      offset = relSyncTime % this.period;
+      this.computeOffset = false;
+    }
+
     const src = audioContext.createBufferSource();
 
     src.buffer = this.buffer;
@@ -60,7 +69,8 @@ class SyncSynth extends TimeEngine {
 
     this.sources.add(src);
 
-    const nextTime = (Math.floor(relSyncTime / this.period) + 1) * this.period;
+    const nextTime = syncTime - offset + this.period;
+
     return nextTime;
   }
 }
@@ -107,7 +117,7 @@ class LikeliestSyncedSynth {
     if (this.currentLabel !== likeliest) {
       this.currentLabel = likeliest;
 
-      if (this.synth) {
+      if (this.synth && this.synth.master) {
         this.synth.stop();
       }
 
