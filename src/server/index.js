@@ -68,8 +68,8 @@ try {
 
 appStore.init(applicationName, projectPresets)
   .then(() => {
-    server.init(config);
 
+    server.init(config);
     server.router.use(fileUpload());
 
     const appDirectory = path.join('applications', applicationName);
@@ -142,6 +142,54 @@ appStore.init(applicationName, projectPresets)
           .catch(err => console.error(err.stack));
       });
 
+      // bind osc controls
+      const osc = server.require('osc');
+
+      osc.receive('/project-list-request', () => {
+        const projectList = JSON.stringify(appStore.projects.overview());
+        osc.send('/project-list', projectList);
+      });
+
+      osc.receive('/player-list-request', () => {
+        const playerList = JSON.stringify(appStore.players.overview());
+        osc.send('/player-list', playerList);
+      });
+
+      osc.receive('/add-player-to-project', (playerUuid, projectUuid) => {
+        const player = appStore.players.get(playerUuid);
+        const project = appStore.projects.get(projectUuid);
+
+        if (player && project) {
+          appStore.removePlayerFromProject(player, project);
+          appStore.addPlayerToProject(player, project);
+        }
+      });
+
+      osc.receive('/update-player-param', (playerUuid, name, value) => {
+        switch (name) {
+          case 'audioRendering.mute':
+            value = !!parseInt(value);
+            break;
+          case 'audioRendering.volume':
+            value = parseInt(value);
+            break;
+        }
+
+        const player = appStore.players.get(playerUuid);
+
+        if (player) {
+          appStore.updatePlayerParam(player, name, value);
+        }
+      });
+      // now listen for appStore
+
+      osc.receive('/move-all-players-to-project', (projectUuid) => {
+        const project = appStore.projects.get(projectUuid);
+
+        if (project) {
+          appStore.moveAllPlayersToProject(project);
+        }
+      });
     });
   })
   .catch(err => console.error(err.stack));

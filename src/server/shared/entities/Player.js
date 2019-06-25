@@ -45,6 +45,13 @@ class Player {
 
     return serialized;
   }
+
+  overview() {
+    return {
+      index: this.index,
+      uuid: this.uuid,
+    };
+  }
 }
 
 export default Player;

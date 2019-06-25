@@ -39,6 +39,15 @@ class PlayerCollection {
 
     return serializedCollection;
   }
+
+  overview() {
+    const overview = [];
+    this.players.forEach(player => {
+      overview.push(player.overview());
+    });
+
+    return overview;
+  }
 }
 
 export default PlayerCollection;

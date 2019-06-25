@@ -29,7 +29,8 @@ class GestureRecognitionModule extends BaseModule {
     this.decoder = new mano.XmmProcessor({ /* @todo: pass options */ });
     this.decoder.setConfig({ likelihoodWindow: 20 });
 
-    return this.processedSensors.init();
+    const promise = this.processedSensors.init();
+    return promise;
   }
 
   start() {

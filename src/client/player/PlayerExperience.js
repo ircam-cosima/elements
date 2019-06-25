@@ -107,7 +107,9 @@ class PlayerExperience extends soundworks.Experience {
         this.modules.forEach(module => module.start());
         this.modules.forEach(module => module.show());
       })
-      .catch(err => console.error(err.stack));
+      .catch(err => {
+        console.error(err.stack);
+      });
   }
 
   stop() {
