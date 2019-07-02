@@ -9,6 +9,9 @@ class Player {
     this.project = null;
     this.preset = preset;
 
+    // override sensors through osc
+    this.overrideSensors = false;
+
     // const mappings = {};
     // preset['audio-renderer'].mappings.forEach(mapping => mappings[mapping.id] = false);
 

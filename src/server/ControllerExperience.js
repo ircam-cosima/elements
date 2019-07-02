@@ -88,6 +88,8 @@ class ControllerExperience extends Experience {
           });
 
           if (this.oscStreams) {
+            this.osc.send('/decoding', JSON.stringify(data));
+
             const likelihoods = data.likelihoods.slice(0);
             likelihoods.unshift(playerIndex);
             this.osc.send('/likelihoods', likelihoods);

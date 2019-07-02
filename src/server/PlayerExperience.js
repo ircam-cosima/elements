@@ -284,6 +284,12 @@ class PlayerExperience extends Experience {
 
   initializeSensorStreaming(client) {
     this.rawSocket.receive(client, 'sensors', data => {
+      const player = appStore.players.getByIndex(data[0]);
+      // osc bypass
+      if (player.overrideSensors) {
+        return;
+      }
+
       this.comm.emit('sensors', data);
     });
 

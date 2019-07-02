@@ -190,6 +190,34 @@ appStore.init(applicationName, projectPresets)
           appStore.moveAllPlayersToProject(project);
         }
       });
+
+      osc.receive('/override-sensors-start', playerIndex => {
+        const player = appStore.players.getByIndex(playerIndex);
+        if (player) {
+          player.overrideSensors = true;
+        }
+      });
+
+      osc.receive('/override-sensors-stop', playerIndex => {
+        const player = appStore.players.getByIndex(playerIndex);
+        if (player) {
+          player.overrideSensors = false;
+        }
+      });
+
+      osc.receive('/override-sensors-data', (...data) => {
+        const playerIndex = data[0];
+        const player = appStore.players.getByIndex(playerIndex);
+
+        if (player) {
+          comm.emit('sensors', data);
+        }
+      });
+
+      osc.receive('/decoding', (data) => {
+        console.log(data);
+        console.log(JSON.parse(data));
+      });
     });
   })
   .catch(err => console.error(err.stack));
