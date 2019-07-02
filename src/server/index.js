@@ -191,21 +191,24 @@ appStore.init(applicationName, projectPresets)
         }
       });
 
-      osc.receive('/override-sensors-start', playerIndex => {
+      osc.receive('/override-start', playerIndex => {
+        // console.log('/override-start', playerIndex)
         const player = appStore.players.getByIndex(playerIndex);
         if (player) {
           player.overrideSensors = true;
         }
       });
 
-      osc.receive('/override-sensors-stop', playerIndex => {
+      osc.receive('/override-stop', playerIndex => {
+        // console.log('/override-stop', playerIndex)
         const player = appStore.players.getByIndex(playerIndex);
         if (player) {
           player.overrideSensors = false;
         }
       });
 
-      osc.receive('/override-sensors-data', (...data) => {
+      osc.receive('/override-sensors', (...data) => {
+        // console.log('/override-sensors', playerIndex, data)
         const playerIndex = data[0];
         const player = appStore.players.getByIndex(playerIndex);
 
@@ -214,9 +217,13 @@ appStore.init(applicationName, projectPresets)
         }
       });
 
-      osc.receive('/decoding', (data) => {
-        console.log(data);
-        console.log(JSON.parse(data));
+      osc.receive('/override-decoding', (playerIndex, data) => {
+        // console.log('/override-decoding', playerIndex, data);
+        const player = appStore.players.getByIndex(playerIndex);
+
+        if (player) {
+          comm.emit('decding', playerIndex, JSON.parse(data));
+        }
       });
     });
   })

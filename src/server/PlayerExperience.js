@@ -294,6 +294,12 @@ class PlayerExperience extends Experience {
     });
 
     this.receive(client, 'decoding', (playerIndex, data) => {
+      const player = appStore.players.getByIndex(playerIndex);
+      // osc bypass
+      if (player.overrideSensors) {
+        return;
+      }
+
       this.comm.emit('decoding', playerIndex, data);
     });
   }
