@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 1290.0, 225.0, 461.0, 426.0 ],
+		"rect" : [ 444.0, 133.0, 784.0, 476.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -37,6 +37,33 @@
 		"style" : "",
 		"subpatcher_template" : "",
 		"boxes" : [ 			{
+				"box" : 				{
+					"id" : "obj-17",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 155.0, 433.0, 289.0, 22.0 ],
+					"presentation_rect" : [ 264.0, 452.0, 0.0, 0.0 ],
+					"style" : "",
+					"text" : "0.000013 0. 0. 0.006899 0."
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-13",
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 294.0, 403.0, 150.0, 20.0 ],
+					"presentation_rect" : [ 294.0, 414.0, 0.0, 0.0 ],
+					"style" : "",
+					"text" : "decoding"
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"id" : "obj-16",
 					"maxclass" : "comment",
@@ -132,7 +159,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 286.0, 54.0, 124.0, 33.0 ],
+					"patching_rect" : [ 380.0, 54.0, 124.0, 33.0 ],
 					"style" : "",
 					"text" : "Select player index \n(cf. controller)"
 				}
@@ -1273,12 +1300,12 @@
 				"box" : 				{
 					"id" : "obj-5",
 					"maxclass" : "newobj",
-					"numinlets" : 4,
-					"numoutlets" : 4,
-					"outlettype" : [ "", "", "", "" ],
-					"patching_rect" : [ 22.0, 54.0, 249.0, 22.0 ],
+					"numinlets" : 5,
+					"numoutlets" : 5,
+					"outlettype" : [ "", "", "", "", "" ],
+					"patching_rect" : [ 21.999994, 54.0, 304.0, 22.0 ],
 					"style" : "",
-					"text" : "route /sensors /likelihoods /timeProgressions"
+					"text" : "route /sensors /likelihoods /timeProgressions /decoding"
 				}
 
 			}
@@ -1321,6 +1348,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-10", 1 ],
 					"source" : [ "obj-3", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-17", 1 ],
+					"source" : [ "obj-5", 3 ]
 				}
 
 			}
