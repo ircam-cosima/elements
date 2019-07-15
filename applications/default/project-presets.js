@@ -1,4 +1,6 @@
 import MovingAverage from '../shared/utils/MovingAverage';
+import MovingMedian from '../shared/utils/MovingMedian';
+import * as lfoMotion from 'lfo-motion';
 
 const projectPresets = {
   'default-mapping': {
@@ -52,13 +54,73 @@ const projectPresets = {
     ],
     mappings: [
       {
+        id: 'kick',
+        input: 'sensors',
+        targets: ['gain'],
+        payload: {
+          movingMedian: new MovingMedian(5),
+          // kickStartTime: null,
+          lastMedian: 0,
+          peak: 0,
+          threshold: 0.01,
+          minInter: 0.2,
+          triggered: false,
+        },
+        process: (data, targets, payload, audioContext, buffers) => {
+          try {
+            // const time = frame.time;
+            const value = data[0];
+            const median = payload.lastMedian;
+            const threshold = payload.threshold;
+            const minInter = payload.minInter;
+            const delta = value - median;
+
+            if (delta > threshold) {
+              // if (payload.kickStartTime === null) {
+              //   payload.kickStartTime = time;
+              // }
+
+              if (value > payload.peak && !payload.triggered) {
+                payload.peak = value;
+                payload.triggered = true;
+
+                // get random buffer
+                const bufferNames = Object.keys(buffers);
+                const bufferName = bufferNames[Math.floor(bufferNames.length * Math.random())];
+                const buffer = buffers[bufferName][0];
+                const src = audioContext.createBufferSource();
+
+                src.buffer = buffer;
+                src.connect(audioContext.destination);
+                src.start(audioContext.currentTime);
+                // output frame
+                // this.frame.time = time;
+                // this.frame.data[0] = 1;
+                // this.frame.data[1] = payload.peak;
+                // this.propagateFrame();
+              }
+            } else {
+              // end kick
+              payload.triggered = false;
+              payload.peak = 0;
+              payload.kickStartTime = null;
+
+            }
+
+            payload.lastMedian = payload.movingMedian.process(value);
+          } catch(err) {
+            alert(err.message);
+          }
+        }
+      },
+      {
         id: 'gain',
         input: 'sensors',
         targets: ['gain'],
         payload: {
           movingAverage: new MovingAverage(20),
         },
-        process: (data, targets, payload) => {
+        process: (data, targets, payload, audioContext, buffers) => {
           const gain = targets[0];
 
           const energy = data[1]; // enhanced intensity

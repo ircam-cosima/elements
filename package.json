@@ -28,6 +28,7 @@
     "debug": "2.6.9",
     "express-fileupload": "^0.3.0",
     "klaw-sync": "^4.0.0",
+    "lfo-motion": "github:Ircam-RnD/lfo-motion",
     "lodash.debounce": "^4.0.8",
     "lodash.merge": "4.6.0",
     "lodash.template": "^4.4.0",
@@ -37,7 +38,6 @@
     "serve-static": "^1.13.2",
     "soundworks": "^2.1.12",
     "source-map-support": "^0.4.17",
-    "sqlite3": "^3.1.9",
     "waves-lfo": "~1.1.1",
     "xmm-node": "github:ircam-rnd/xmm-node"
   },

@@ -7,6 +7,8 @@ class Instrument {
     this.synth = synthFactory(synth, syncScheduler);
     this.effects = effects.map(config => effectFactory(config));
 
+    this.buffers = {};
+
     this.mappings = mappings;
     this.enabledSensorsMappings = [];
     this.enabledDecoderMappings = [];
@@ -42,6 +44,7 @@ class Instrument {
 
   setBuffers(buffers) {
     this.synth.setBuffers(buffers);
+    this.buffers = buffers;
   }
 
   setLabels(labels) {
@@ -109,7 +112,7 @@ class Instrument {
     if (this.enabledSensorsMappings.length > 0) {
       for (let i = 0; i < this.enabledSensorsMappings.length; i++) {
         const { mapping, targets } = this.enabledSensorsMappings[i];
-        mapping.process(data, targets, mapping.payload);
+        mapping.process(data, targets, mapping.payload, audioContext, this.buffers);
       }
     }
   }
@@ -120,7 +123,7 @@ class Instrument {
     if (this.enabledDecoderMappings.length > 0) {
       for (let i = 0; i < this.enabledDecoderMappings.length; i++) {
         const { mapping, targets } = this.enabledDecoderMappings[i];
-        mapping.process(data, targets, mapping.payload);
+        mapping.process(data, targets, mapping.payload, audioContext, this.buffers);
       }
     }
   }

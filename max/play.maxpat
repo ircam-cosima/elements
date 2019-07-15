@@ -95,7 +95,6 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 1590.5, 784.0, 43.0, 22.0 ],
-					"presentation_rect" : [ 1590.5, 783.0, 0.0, 0.0 ],
 					"style" : "",
 					"text" : "set $1"
 				}
@@ -161,7 +160,6 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 1295.0, 851.0, 101.0, 22.0 ],
-					"presentation_rect" : [ 1399.0, 888.0, 0.0, 0.0 ],
 					"style" : "",
 					"text" : "/override-stop $1"
 				}
@@ -175,7 +173,6 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "int" ],
 					"patching_rect" : [ 1295.0, 817.0, 29.5, 22.0 ],
-					"presentation_rect" : [ 1377.0, 858.0, 0.0, 0.0 ],
 					"style" : "",
 					"text" : "i 0"
 				}
@@ -5693,11 +5690,11 @@
 					"bufferchooser_visible" : 0,
 					"cursor_color" : [ 1.0, 0.0, 0.0, 1.0 ],
 					"cursor_followmouse" : 0,
-					"cursor_position" : 3942.574514,
+					"cursor_position" : -1.0,
 					"cursor_shape" : "bar",
 					"cursor_size" : 3,
 					"cursor_visible" : 1,
-					"domain_bounds" : [ 0.0, 6110.0 ],
+					"domain_bounds" : [ 0.0, 9.977324 ],
 					"domainruler_bgcolor" : [ 1.0, 1.0, 1.0, 1.0 ],
 					"domainruler_fgcolor" : [ 0.0, 0.0, 0.0, 1.0 ],
 					"domainruler_grid" : 0,
