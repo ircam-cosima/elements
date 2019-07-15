@@ -1,6 +1,5 @@
 import MovingAverage from '../shared/utils/MovingAverage';
 import MovingMedian from '../shared/utils/MovingMedian';
-import * as lfoMotion from 'lfo-motion';
 
 const projectPresets = {
   'default-mapping': {

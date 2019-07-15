@@ -28,7 +28,6 @@
     "debug": "2.6.9",
     "express-fileupload": "^0.3.0",
     "klaw-sync": "^4.0.0",
-    "lfo-motion": "github:Ircam-RnD/lfo-motion",
     "lodash.debounce": "^4.0.8",
     "lodash.merge": "4.6.0",
     "lodash.template": "^4.4.0",
