@@ -90,7 +90,7 @@ class GranularSynth {
     newEngine.granular.position = now % (duration - 0.05);
     newEngine.granular.positionVar = 0.02;
 
-    // freeze
+    // freeze in center of buffer
     // newEngine.granular.position = duration / 2;
     // newEngine.granular.positionVar = 0.02;
 
@@ -185,7 +185,7 @@ class LikeliestGranularSynth {
       this.synth.trigger(likeliest, index);
     }
 
-    this.synth.updatePosition();
+    // this.synth.updatePosition();
   }
 }
 

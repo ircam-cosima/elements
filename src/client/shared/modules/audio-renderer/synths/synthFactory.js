@@ -1,12 +1,14 @@
 import LikeliestLoopSynth from './LikeliestLoopSynth';
-import LikeliestGranularSynth from './LikeliestGranularSynth';
+import LikeliestGranularSynthRandom from './LikeliestGranularSynthRandom';
+import LikeliestGranularSynthFreeze from './LikeliestGranularSynthFreeze';
 import ProbabilisticGranularSynth from './ProbabilisticGranularSynth';
 import LikeliestSyncedSynth from './LikeliestSyncedSynth';
 
 const ctors = {
   'likeliest-loop': LikeliestLoopSynth,
   'likeliest-synced': LikeliestSyncedSynth,
-  'likeliest-granular': LikeliestGranularSynth,
+  'likeliest-granular-random': LikeliestGranularSynthRandom,
+  'likeliest-granular-freeze': LikeliestGranularSynthFreeze,
   'probabilistic-granular': ProbabilisticGranularSynth,
 };
 
