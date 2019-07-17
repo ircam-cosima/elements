@@ -16,7 +16,7 @@ export default {
   env: 'development',
 
   // define which presets to load from application folder
-  application: 'default',
+  application: 'sound_tests',
 
   // version of application, can be used to force reload css and js files
   // from server (cf. `html/default.ejs`)
