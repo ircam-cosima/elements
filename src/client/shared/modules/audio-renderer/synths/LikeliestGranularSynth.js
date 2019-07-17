@@ -81,12 +81,32 @@ class GranularSynth {
     newEngine.env.gain.setValueAtTime(newEngine.env.gain.value, now);
     newEngine.env.gain.linearRampToValueAtTime(1, now + this.params.fadeDuration);
     newEngine.granular.buffer = buffer;
+
     // play grain randomly between 1/4 and 3/4 of the buffer
-    newEngine.granular.position = duration / 2;
-    newEngine.granular.positionVar = duration / 4;
+    // newEngine.granular.position = duration / 2; // 
+    // newEngine.granular.positionVar = duration / 4;
+
+    // freeze (relative to start)
+    newEngine.granular.position = now % (duration - 0.05);
+    newEngine.granular.positionVar = 0.02;
+
+    // freeze
+    // newEngine.granular.position = duration / 2;
+    // newEngine.granular.positionVar = 0.02;
 
     if (!newEngine.granular.master)
       scheduler.add(newEngine.granular);
+  }
+
+  updatePosition() {
+    // const currentEngineIndex = this.currentEngineIndex;
+    // const currentEngine = this.engines[currentEngineIndex];
+
+    // if (currentEngine && currentEngine.granular.master) {
+    //   const now = audioContext.currentTime;
+    //   const duration = currentEngine.granular.buffer;
+    //   currentEngine.granular.position = now % (duration - 0.05);
+    // }
   }
 
   stop(callback = null) {
@@ -158,6 +178,8 @@ class LikeliestGranularSynth {
 
       const index = client.index % this.buffers[likeliest].length;
       this.synth.trigger(likeliest, index);
+    } else {
+      this.synth.updatePosition();
     }
   }
 }
