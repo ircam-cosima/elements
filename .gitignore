@@ -9,6 +9,9 @@
 /src/server/config/*
 !/src/server/config/default.js
 
+/applications
+!/applications/default
+
 # Application instance specific
 /logs
 /db
