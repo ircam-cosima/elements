@@ -5,10 +5,10 @@ const projectPresets = {
   'default-mapping': {
     synth: {
       // 'likeliest-loop',
-      // 'likeliest-granular',
+      type: 'likeliest-granular',
       // 'probabilistic-granular'
       // type: 'likeliest-loop',
-      type: 'likeliest-synced',
+      // type: 'likeliest-synced',
       params: {
         fadeDuration: 0.5,
         period: Infinity, //

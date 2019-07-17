@@ -36,7 +36,7 @@ class ProbabilisticGranularEngine extends audio.GranularEngine {
 
     if (label === -1) {
       if (!this.currentLabel)
-        return null; // just wait for next update to be readded to the scheduler
+        return null; // just wait for next update to be re-added to the scheduler
       else
         label = this.currentLabel;
     }
