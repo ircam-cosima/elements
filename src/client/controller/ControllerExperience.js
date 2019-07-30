@@ -80,8 +80,9 @@ class ControllerExperience extends Experience {
         }
 
         this.view.processSensorsStream(playerIndex, this.sensorsBuffer);
+
         if (this.audioRendererHooks[playerIndex]) {
-          this.audioRendererHooks[playerIndex].processSensorsData(playerIndex, this.sensorsBuffer);
+          this.audioRendererHooks[playerIndex].processSensorsData(this.sensorsBuffer);
         }
       });
 
@@ -90,7 +91,7 @@ class ControllerExperience extends Experience {
         this.view.processLikelihoodsStream(playerIndex, likelihoods);
         //forward to audioRenderer
         if (this.audioRendererHooks[playerIndex]) {
-          this.audioRendererHooks[playerIndex].processDecoderOutput(playerIndex, data);
+          this.audioRendererHooks[playerIndex].processDecoderOutput(data);
         }
       });
     }
@@ -197,7 +198,6 @@ class ControllerExperience extends Experience {
           this.audioRendererHooks[player.index] = audioRenderer;
 
         } else if (monitorDetails.audio === false && this.audioRendererHooks[player.index]) {
-
           this.audioRendererHooks[player.index].stop();
           delete this.audioRendererHooks[player.index];
 

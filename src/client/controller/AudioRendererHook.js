@@ -1,5 +1,6 @@
 import Instrument from '../shared/modules/audio-renderer/Instrument';
 
+let id = 0;
 /**
  * mimic AudioRendererModule behavior
  */
@@ -58,11 +59,11 @@ class AudioRendererHook {
       });
   }
 
-  processSensorsData(clientIndex, data) {
+  processSensorsData(data) {
     this.instrument.processSensorsData(data);
   }
 
-  processDecoderOutput(clientIndex, data) {
+  processDecoderOutput(data) {
     this.instrument.processDecoderOutput(data);
   }
 }

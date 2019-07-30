@@ -2,7 +2,7 @@
   "uuid": "20c5f912-3feb-4034-a1ba-19ccf2e44180",
   "params": {
     "name": "test",
-    "preset": "default-mapping",
+    "preset": "synced-play",
     "clientDefaults": {
       "audioRendering": {
         "mute": false,

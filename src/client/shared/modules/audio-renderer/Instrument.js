@@ -17,7 +17,7 @@ class Instrument {
   connect(destination) {
     let prev = this.synth;
 
-    this.effects.forEach(effect => {
+    this.effects.forEach((effect, index) => {
       prev.connect(effect.input);
       prev = effect;
     });
@@ -97,7 +97,7 @@ class Instrument {
           }
         });
 
-        enabledMappingStack.push({ mapping, targets });
+        enabledMappingStack.push({ mapping, targets, payload: mapping.payload() });
 
       } else if (!enabled && index !== -1) { // remove from stack
         const { targets } = enabledMappingStack[index];
@@ -111,8 +111,8 @@ class Instrument {
   processSensorsData(data) {
     if (this.enabledSensorsMappings.length > 0) {
       for (let i = 0; i < this.enabledSensorsMappings.length; i++) {
-        const { mapping, targets } = this.enabledSensorsMappings[i];
-        mapping.process(data, targets, mapping.payload, audioContext, this.buffers);
+        const { mapping, targets, payload } = this.enabledSensorsMappings[i];
+        mapping.process(data, targets, payload, audioContext, this.buffers);
       }
     }
   }
@@ -123,7 +123,7 @@ class Instrument {
     if (this.enabledDecoderMappings.length > 0) {
       for (let i = 0; i < this.enabledDecoderMappings.length; i++) {
         const { mapping, targets } = this.enabledDecoderMappings[i];
-        mapping.process(data, targets, mapping.payload, audioContext, this.buffers);
+        mapping.process(data, targets, payload, audioContext, this.buffers);
       }
     }
   }

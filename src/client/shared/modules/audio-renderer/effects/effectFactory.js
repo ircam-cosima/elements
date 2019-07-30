@@ -13,8 +13,9 @@ function create(config) {
   const id = config.id;
   const params = config.params;
 
-  if (!ctors[type])
+  if (!ctors[type]) {
     throw new Error(`Undefined effect type "${type}"`);
+  }
 
   const effect = new ctors[type](id, params);
 

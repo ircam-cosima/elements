@@ -2,7 +2,7 @@
   "uuid": "4756d780-ddfb-45c5-8931-df4c28839605",
   "params": {
     "name": "Abcd",
-    "preset": "default-mapping",
+    "preset": "synced-play",
     "clientDefaults": {
       "audioRendering": {
         "mute": true,

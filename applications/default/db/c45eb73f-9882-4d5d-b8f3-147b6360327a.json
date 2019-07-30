@@ -2,7 +2,7 @@
   "uuid": "c45eb73f-9882-4d5d-b8f3-147b6360327a",
   "params": {
     "name": "Kick",
-    "preset": "default-mapping",
+    "preset": "synced-play",
     "clientDefaults": {
       "audioRendering": {
         "mute": true,

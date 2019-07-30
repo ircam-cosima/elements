@@ -16,7 +16,7 @@ export default {
   env: 'development',
 
   // define which presets to load from application folder
-  application: 'sound_tests',
+  application: 'default',
 
   // version of application, can be used to force reload css and js files
   // from server (cf. `html/default.ejs`)
@@ -54,8 +54,8 @@ export default {
   // server. Both entries are required otherwise a self-signed certificate
   // is generated.
   httpsInfos: {
-    key: null,
-    cert: null,
+    cert: path.join(process.cwd(), 'https-test', 'cert.pem'),
+    key: path.join(process.cwd(), 'https-test', 'key.pem'),
   },
 
   // socket.io configuration
