@@ -1,4 +1,6 @@
 autowatch = 1;
+inlets = 1;
+outlets = 2;
 
 var projects = [];
 var players = [];
@@ -6,12 +8,19 @@ var vbox;
 
 function setProjects(json) {
   projects = JSON.parse(json);
+
+  var projectIds = projects.map(function(p) { return p.uuid });
+  outlet(0, projectIds);
 }
 
 function setPlayers(json) {
   players = JSON.parse(json);
   // _createGui(this.patcher, vbox);
 
+  var playerIds = players.map(function(p) { return p.uuid });
+  outlet(1, playerIds);
+
+  // return;
   post(vbox);
 
   if (vbox) {
