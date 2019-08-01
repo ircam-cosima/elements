@@ -1,7 +1,7 @@
 import { audioContext, audio } from 'soundworks/client';
 
 const defaults = {
-  threshold: 0.02,
+  threshold: 0.0001,
   offDelay: 0.3,
   preRollCount: 2, // num ticks before recording
   preRollInterval: 1, // in seconds

@@ -25,5 +25,5 @@ Thumbs.db
 *.log
 package-lock.json
 
-https-test
+certificates
 audio-loading-updates.md
