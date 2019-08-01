@@ -29,7 +29,7 @@
     "express-fileupload": "^0.3.0",
     "klaw-sync": "^4.0.0",
     "lodash.debounce": "^4.0.8",
-    "lodash.merge": "4.6.0",
+    "lodash.merge": "^4.6.2",
     "lodash.template": "^4.4.0",
     "mano-js": "github:ircam-rnd/mano-js#v1.2.0",
     "node-watch": "^0.5.8",
