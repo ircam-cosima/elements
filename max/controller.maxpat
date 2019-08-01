@@ -10644,7 +10644,7 @@
  ],
 		"dependency_cache" : [ 			{
 				"name" : "controller-script.js",
-				"bootpath" : "~/work/dev/apps/elements/max",
+				"bootpath" : "~/work/dev/projects/elements/max",
 				"patcherrelativepath" : ".",
 				"type" : "TEXT",
 				"implicit" : 1

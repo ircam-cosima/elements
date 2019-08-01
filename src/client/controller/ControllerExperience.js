@@ -61,8 +61,23 @@ class ControllerExperience extends Experience {
     this.view.model.projectPresets = projectPresets;
     this.view.model.audioFiles = this.audioBufferManager.data.labels;
 
+    this.monitorAudioRequests = {};
+
     // request server action
     this.view.request = (type, payload) => {
+       // store audio duplicated clients to handle project change
+      if (type === 'monitor') {
+        const { name, value } = payload;
+
+        if (name === 'audio') {
+          if (value === true) {
+            this.monitorAudioRequests[payload.uuid] = payload;
+          } else {
+            delete this.monitorAudioRequests[payload];
+          }
+        }
+      }
+
       const action = { type, payload };
       this.request(action);
     };
@@ -159,6 +174,14 @@ class ControllerExperience extends Experience {
         const { player, project } = payload;
         this.view.addPlayerToProject(player, project);
         this.view.updateHeader();
+
+        if (this.monitorAudioRequests[player.uuid]) {
+          // if  player was audio monitored in last project, request again
+          this.request({
+            type: 'monitor',
+            payload: this.monitorAudioRequests[player.uuid],
+          });
+        }
         break;
       }
       case 'remove-player-from-project': {
@@ -200,7 +223,6 @@ class ControllerExperience extends Experience {
         } else if (monitorDetails.audio === false && this.audioRendererHooks[player.index]) {
           this.audioRendererHooks[player.index].stop();
           delete this.audioRendererHooks[player.index];
-
         }
         break;
       }

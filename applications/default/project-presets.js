@@ -424,7 +424,7 @@ const projectPresets = {
   },
 
 //-----------------------
-    'granular-random': {
+  'granular-random': {
     synth: {
       // 'likeliest-loop',
       // 'likeliest-granular',

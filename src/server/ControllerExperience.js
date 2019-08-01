@@ -302,7 +302,6 @@ class ControllerExperience extends Experience {
           this.comm.emit('trigger-audio', action);
           break;
         }
-
         case 'monitor': {
           this.defineStreamsRouting(client, payload);
           break;
