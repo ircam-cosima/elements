@@ -19,8 +19,6 @@ class MovingMedian {
     this.sorted.sort((a, b) => a < b ? -1 : 1);
     const ret = this.sorted[Math.floor(this.order / 2)];
 
-    console.log(this.buffer, this.sorted, ret);
-
     return ret;
   }
 }

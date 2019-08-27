@@ -61,7 +61,6 @@ try {
   for (let id in presets) {
     projectPresets[id] = {};
     projectPresets[id].mappings = presets[id].mappings.map(m => m.id);
-    console.log(presets[id].mappings.map(m => m.id))
   }
 } catch(err) {
   console.error(`Invalid "${applicationName}" project presets, file "./applications/${applicationName}/project-presets.js" not found or invalid`);

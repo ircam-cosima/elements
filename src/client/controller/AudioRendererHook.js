@@ -53,10 +53,9 @@ class AudioRendererHook {
   }
 
   updateAudioFiles(audioFiles) {
-    this.experience.audioBufferManager.load({ 'labels': audioFiles })
-      .then(buffers => {
-        this.instrument.setBuffers(buffers['labels']);
-      });
+    this.experience.audioBufferManager
+      .load({ 'labels': audioFiles })
+      .then(buffers => this.instrument.setBuffers(buffers['labels']));
   }
 
   processSensorsData(data) {

@@ -73,7 +73,7 @@ class ControllerExperience extends Experience {
           if (value === true) {
             this.monitorAudioRequests[payload.uuid] = payload;
           } else {
-            delete this.monitorAudioRequests[payload];
+            delete this.monitorAudioRequests[payload.uuid];
           }
         }
       }
@@ -216,7 +216,7 @@ class ControllerExperience extends Experience {
 
         if (monitorDetails.audio === true && !this.audioRendererHooks[player.index]) {
 
-          const project = this.view.model.projects.find(p => p.uuid = player.project.uuid);
+          const project = this.view.model.projects.find(p => p.uuid === player.project.uuid);
           const audioRenderer = new AudioRendererHook(this, player, project);
           this.audioRendererHooks[player.index] = audioRenderer;
 
