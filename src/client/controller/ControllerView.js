@@ -95,7 +95,9 @@ class ControllerView extends View {
         const $select = this.$el.querySelector('.move-players-to-project-target');
         const uuid = $select.value;
 
-        this.request('move-all-players-to-project', { uuid })
+        if (uuid !== '') {
+          this.request('move-all-players-to-project', { uuid });
+        }
       },
 
       'click .project .export-project': e => {
