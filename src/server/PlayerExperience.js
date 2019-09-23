@@ -286,7 +286,7 @@ class PlayerExperience extends Experience {
     this.rawSocket.receive(client, 'sensors', data => {
       const player = appStore.players.getByIndex(data[0]);
       // osc bypass
-      if (player.overrideSensors) {
+      if (!player || player.overrideSensors) {
         return;
       }
 
@@ -296,7 +296,7 @@ class PlayerExperience extends Experience {
     this.receive(client, 'decoding', (playerIndex, data) => {
       const player = appStore.players.getByIndex(playerIndex);
       // osc bypass
-      if (player.overrideSensors) {
+      if (!player || player.overrideSensors) {
         return;
       }
 
