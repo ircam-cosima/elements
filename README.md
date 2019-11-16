@@ -17,6 +17,9 @@ Thanks to Roland Cahen, Xavier Boissarie, Marion Voillot, Olivier Houix, Anne Du
 
 ## Installation and running
 
+On a terminal, xcode-select —install
+
+
 Install Node.js https://nodejs.org/en/
 
 On a terminal, in the Elements folder
