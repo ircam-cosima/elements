@@ -1,5 +1,5 @@
 // import client side soundworks and player experience
-import { client } from 'soundworks/client';
+import { client, serviceManager } from 'soundworks/client';
 import PlayerExperience from './PlayerExperience';
 import serviceViews from '../shared/serviceViews';
 // load modules
@@ -24,6 +24,34 @@ function bootstrap() {
   client.setServiceInstanciationHook((id, instance) => {
     if (serviceViews.has(id))
       instance.view = serviceViews.get(id, config);
+  });
+
+  const platformService = client.require('platform');
+
+  platformService.addFeatureDefinition({
+    id: 'device-sensor',
+    check: function () {
+      return client.platform.isMobile; // true if phone or tablet
+    },
+    interactionHook() {
+      return new Promise((resolve, reject) => {
+        if (typeof window.DeviceMotionEvent.requestPermission === 'function') {
+          window.DeviceMotionEvent.requestPermission()
+            .then(response => {
+              if (response == 'granted') {
+                resolve(true);
+              } else {
+                resolve(false);
+              }
+            })
+            .catch(err => {
+              resolve(false);
+            })
+        } else {
+          resolve(true);
+        }
+      });
+    }
   });
 
   const experience = new PlayerExperience(config, clientPreset, projectPresets, audioFiles);

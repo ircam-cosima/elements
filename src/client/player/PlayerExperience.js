@@ -15,7 +15,7 @@ class PlayerExperience extends soundworks.Experience {
     this.clientPreset = clientPreset;
     this.projectPresets = projectPresets;
 
-    this.platform = this.require('platform', { features: ['web-audio', 'mobile-device'] });
+    this.platform = this.require('platform', { features: ['web-audio', 'mobile-device', 'device-sensor'] });
     this.checkin = this.require('checkin');
     this.syncScheduler = this.require('sync-scheduler');
 

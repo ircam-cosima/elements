@@ -199,6 +199,7 @@ class ControllerExperience extends Experience {
       }
       case 'update-audio-files': {
         this.view.model.audioFiles = this.audioBufferManager.data.labels;
+
         projectsDetails.forEach(project => {
           project.players.forEach(player => {
             this.view.updatePlayer(player);

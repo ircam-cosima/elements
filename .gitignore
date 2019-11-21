@@ -27,3 +27,7 @@ package-lock.json
 
 certificates
 audio-loading-updates.md
+
+# ssl stuff
+get-ssl-certs.sh
+certs

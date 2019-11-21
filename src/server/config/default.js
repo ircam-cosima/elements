@@ -48,14 +48,14 @@ export default {
   // define if the HTTP server should be launched using secure connections.
   // For development purposes when set to `true` and no certificates are given
   // (cf. `httpsInfos`), a self-signed certificate is created.
-  useHttps: false,
+  useHttps: true,
 
   // paths to the key and certificate to be used in order to launch the https
   // server. Both entries are required otherwise a self-signed certificate
   // is generated.
   httpsInfos: {
-    cert: path.join(process.cwd(), 'https-test', 'cert.pem'),
-    key: path.join(process.cwd(), 'https-test', 'key.pem'),
+    cert: path.join(process.cwd(), 'certs', 'fullchain.pem'),
+    key: path.join(process.cwd(), 'certs', 'privkey.pem'),
   },
 
   // socket.io configuration

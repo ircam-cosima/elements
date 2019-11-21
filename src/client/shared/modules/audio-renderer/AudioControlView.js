@@ -11,7 +11,7 @@ const template = `
 
 <h4>Effects:</h4>
 <% for (var name in mappings) { %>
-<label class="checkbox">
+<label class="checkbox param-<%= name %>">
   <% var checked = mappings[name] ? ' checked' : ''; %>
   <input type="checkbox" class="player-param" data-name="mappings.<%= name %>"<%= checked %> />
   <div class="checkbox-ui"></div>
