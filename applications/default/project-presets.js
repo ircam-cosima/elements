@@ -2,7 +2,7 @@ import MovingAverage from '../shared/utils/MovingAverage';
 import MovingMedian from '../shared/utils/MovingMedian';
 
 const projectPresets = {
-  'synced-play': {
+  'unsynced-play': {
     synth: {
       // 'likeliest-loop',
       // 'likeliest-granular',
@@ -212,6 +212,7 @@ const projectPresets = {
       },
     ],
   },
+
   'synced-play': {
     synth: {
       // 'likeliest-loop',
