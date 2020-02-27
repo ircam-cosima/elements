@@ -57,6 +57,14 @@ function bootstrap() {
   const experience = new PlayerExperience(config, clientPreset, projectPresets, audioFiles);
 
   client.start();
+
+  console.log(client);
+
+  client.socket.addStateListener((name) => {
+    if (name === 'disconnect') {
+      setTimeout(() => window.location.reload(true), 2000);
+    }
+  });
 }
 
 window.addEventListener('load', bootstrap);

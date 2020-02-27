@@ -27,6 +27,12 @@ function bootstrap() {
 
   const experience = new ControllerExperience(config, clientPresets, projectPresets, audioFiles);
   soundworks.client.start();
+
+  soundworks.client.socket.addStateListener((name) => {
+    if (name === 'disconnect') {
+      setTimeout(() => window.location.reload(true), 2000);
+    }
+  });
 }
 
 window.addEventListener('load', bootstrap);

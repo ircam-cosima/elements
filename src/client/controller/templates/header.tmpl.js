@@ -17,6 +17,7 @@ const headerTmpl = `
 </form>
 
 <div>
+  <h4>#player: <%= players.length %></h4>
   <h4>Move all players to project</h4>
   <select class="move-players-to-project-target input-large">
     <option value="">select a project and trigger</option>

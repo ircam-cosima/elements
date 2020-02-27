@@ -391,6 +391,7 @@ class ControllerView extends View {
     $container.appendChild($player);
 
     this.updatePlayer(player);
+    this.updateHeader();
   }
 
   removePlayerFromProject(player, project) {
@@ -406,6 +407,7 @@ class ControllerView extends View {
     }
 
     $player.remove();
+    this.updateHeader();
   }
 
   updatePlayer(player) {
