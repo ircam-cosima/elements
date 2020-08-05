@@ -26,7 +26,7 @@
     "babel-runtime": "^6.26.0",
     "body-parser": "^1.17.2",
     "debug": "2.6.9",
-    "express-fileupload": "^0.3.0",
+    "express-fileupload": "^1.1.9",
     "klaw-sync": "^4.0.0",
     "lodash.debounce": "^4.0.8",
     "lodash.merge": "^4.6.2",
